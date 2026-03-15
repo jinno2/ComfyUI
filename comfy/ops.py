@@ -472,7 +472,7 @@ class disable_weight_init:
 
         def forward_comfy_cast_weights(self, input):
             weight, bias, offload_stream = cast_bias_weight(self, input, offloadable=True)
-            x = torch.nn.functional.linear(input, weight, bias)
+            x = safe_linear(input, weight, bias)
             uncast_bias_weight(self, weight, bias, offload_stream)
             return x
 
@@ -825,7 +825,7 @@ class fp8_ops(manual_cast):
                     logging.info("Exception during fp8 op: {}".format(e))
 
             weight, bias, offload_stream = cast_bias_weight(self, input, offloadable=True)
-            x = torch.nn.functional.linear(input, weight, bias)
+            x = safe_linear(input, weight, bias)
             uncast_bias_weight(self, weight, bias, offload_stream)
             return x
 
@@ -962,6 +962,78 @@ class QuantLinearFunc(torch.autograd.Function):
             grad_bias = grad_2d.sum(dim=0)
 
         return grad_input, grad_weight, grad_bias, None, None, None
+
+
+_CUDA_LINEAR_RETRY_ERRORS = (
+    "CUBLAS_STATUS_NOT_INITIALIZED",
+    "cublasLtMatmulAlgoGetHeuristic",
+)
+CUDA_LINEAR_FORCE_MATMUL = False
+
+
+def _can_use_cuda_linear_matmul_fallback(input, weight):
+    if not (torch.is_tensor(input) and torch.is_tensor(weight)):
+        return False
+    if isinstance(input, QuantizedTensor) or isinstance(weight, QuantizedTensor):
+        return False
+    if input.layout != torch.strided or weight.layout != torch.strided:
+        return False
+    if input.device.type != "cuda" or weight.device.type != "cuda":
+        return False
+    if not input.is_floating_point() or not weight.is_floating_point():
+        return False
+    return True
+
+
+def _should_retry_cuda_linear(error, input, weight):
+    if not _can_use_cuda_linear_matmul_fallback(input, weight):
+        return False
+    error_text = str(error)
+    return any(token in error_text for token in _CUDA_LINEAR_RETRY_ERRORS)
+
+
+def _linear_via_matmul(input, weight, bias):
+    out = torch.matmul(input, weight.transpose(-1, -2))
+    if bias is not None:
+        out = out + bias
+    return out
+
+
+def safe_linear(input, weight, bias):
+    global CUDA_LINEAR_FORCE_MATMUL
+
+    if CUDA_LINEAR_FORCE_MATMUL and _can_use_cuda_linear_matmul_fallback(input, weight):
+        return _linear_via_matmul(input, weight, bias)
+
+    try:
+        return torch.nn.functional.linear(input, weight, bias)
+    except RuntimeError as first_error:
+        if not _should_retry_cuda_linear(first_error, input, weight):
+            raise
+
+        logging.warning(
+            "CUDA linear failed (%s). Retrying after clearing async CUDA state.",
+            str(first_error).splitlines()[0],
+        )
+        comfy.model_management.discard_cuda_async_error()
+        comfy.model_management.soft_empty_cache()
+
+        input_retry = input.contiguous()
+        weight_retry = weight.contiguous()
+        bias_retry = bias.contiguous() if bias is not None else None
+
+        try:
+            return torch.nn.functional.linear(input_retry, weight_retry, bias_retry)
+        except RuntimeError as second_error:
+            if not _should_retry_cuda_linear(second_error, input_retry, weight_retry):
+                raise
+
+            logging.warning(
+                "CUDA linear retry failed (%s). Switching to matmul fallback for CUDA linear operations.",
+                str(second_error).splitlines()[0],
+            )
+            CUDA_LINEAR_FORCE_MATMUL = True
+            return _linear_via_matmul(input_retry, weight_retry, bias_retry)
 
 
 def mixed_precision_ops(quant_config={}, compute_dtype=torch.bfloat16, full_precision_mm=False, disabled=[]):
@@ -1146,7 +1218,7 @@ def mixed_precision_ops(quant_config={}, compute_dtype=torch.bfloat16, full_prec
                 return sd
 
             def _forward(self, input, weight, bias):
-                return torch.nn.functional.linear(input, weight, bias)
+                return safe_linear(input, weight, bias)
 
             def forward_comfy_cast_weights(self, input, compute_dtype=None, want_requant=False):
                 weight, bias, offload_stream = cast_bias_weight(self, input, offloadable=True, compute_dtype=compute_dtype, want_requant=want_requant)
