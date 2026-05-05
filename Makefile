@@ -11,10 +11,13 @@ PROJECT_NAME := ComfyUI
 
 # ---- Colors ----------------------------------------------------------------
 
-BLUE   := \033[1;34m
-GREEN  := \033[1;32m
-YELLOW := \033[1;33m
-RESET  := \033[0m
+BLUE    := \033[1;34m
+GREEN   := \033[1;32m
+YELLOW  := \033[1;33m
+CYAN    := \033[1;36m
+DIM     := \033[2m
+BOLD    := \033[1m
+RESET   := \033[0m
 
 # ---- Prerequisite helpers ---------------------------------------------------
 
@@ -35,10 +38,40 @@ _ensure-venv:
 .PHONY: help
 help: ## Show this help
 	@echo ""
-	@echo "$(BLUE)$(PROJECT_NAME) — available targets:$(RESET)"
+	@echo "$(BOLD)$(PROJECT_NAME)$(RESET) $(DIM)(Python / uv / ruff / pytest)$(RESET)"
 	@echo ""
-	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-18s$(RESET) %s\n", $$1, $$2}'
+	@echo "$(BLUE)Setup$(RESET)"
+	@echo "  $(GREEN)make install$(RESET)            Install Python dependencies (uv pip)"
+	@echo "  $(GREEN)make full_install$(RESET)        Clean everything, then install + build from scratch"
+	@echo "  $(GREEN)make update$(RESET)              git pull && install && build"
+	@echo "  $(GREEN)make full_update$(RESET)         Clean + full update (nuclear option)"
+	@echo ""
+	@echo "$(BLUE)Run$(RESET)"
+	@echo "  $(GREEN)make dev$(RESET)                 Start dev server on :8188 (verbose logs)"
+	@echo "  $(GREEN)make run$(RESET)                 Start production server on :8188"
+	@echo ""
+	@echo "$(BLUE)Service (systemd: $(SERVICE_NAME))$(RESET)"
+	@echo "  $(GREEN)make start$(RESET)               sudo systemctl start $(SERVICE_NAME)"
+	@echo "  $(GREEN)make stop$(RESET)                sudo systemctl stop $(SERVICE_NAME)"
+	@echo "  $(GREEN)make restart$(RESET)             Build + sudo systemctl restart $(SERVICE_NAME)"
+	@echo "  $(GREEN)make status$(RESET)              Show systemd unit status"
+	@echo "  $(GREEN)make logs$(RESET)                Tail journalctl logs (Ctrl+C to stop)"
+	@echo ""
+	@echo "$(BLUE)Test$(RESET)"
+	@echo "  $(GREEN)make test$(RESET)                Run all tests (tests-unit/ + tests/)"
+	@echo "  $(GREEN)make test-unit$(RESET)           Run unit tests only (tests-unit/)"
+	@echo "  $(GREEN)make test-integration$(RESET)    Run integration tests only (tests/)"
+	@echo ""
+	@echo "$(BLUE)Code quality$(RESET)"
+	@echo "  $(GREEN)make lint$(RESET)                Check code with ruff (no changes)"
+	@echo "  $(GREEN)make format$(RESET)              Auto-fix lint issues + format code"
+	@echo "  $(GREEN)make format-check$(RESET)        Check if formatting is clean (CI-friendly)"
+	@echo ""
+	@echo "$(BLUE)Maintenance$(RESET)"
+	@echo "  $(GREEN)make clean$(RESET)               Delete __pycache__, .pyc, .egg-info, caches"
+	@echo "  $(GREEN)make build$(RESET)               Install frontend packages (comfyui-frontend-*)"
+	@echo ""
+	@echo "$(DIM)Tip: Activate venv first → source .venv/bin/activate$(RESET)"
 	@echo ""
 
 # ---- Install ----------------------------------------------------------------
