@@ -7,7 +7,7 @@
 
 # ---- Configuration ----------------------------------------------------------
 
-PYTHON       ?= python
+PYTHON       := .venv/bin/python
 SERVICE_NAME ?= comfyui
 PROJECT_NAME := ComfyUI
 
@@ -27,11 +27,6 @@ RESET   := \033[0m
 .PHONY: _ensure-uv
 _ensure-uv:
 	@which uv > /dev/null 2>&1 || (echo "$(YELLOW)uv not found. Installing...$(RESET)" && curl -LsSf https://astral.sh/uv/install.sh | sh)
-
-# Ensure python venv is active
-.PHONY: _ensure-venv
-_ensure-venv:
-	@test -n "$$VIRTUAL_ENV" || (echo "$(YELLOW)No virtual environment active. Activate with: source .venv/bin/activate$(RESET)" && exit 1)
 
 # =============================================================================
 # Primary targets
@@ -73,8 +68,6 @@ help: ## Show this help
 	@echo "  $(GREEN)make clean$(RESET)               Delete __pycache__, .pyc, .egg-info, caches"
 	@echo "  $(GREEN)make build$(RESET)               Install frontend packages (comfyui-frontend-*)"
 	@echo ""
-	@echo "$(DIM)Tip: Activate venv first → source .venv/bin/activate$(RESET)"
-	@echo ""
 
 # ---- Install ----------------------------------------------------------------
 
@@ -108,11 +101,11 @@ build: ## Build frontend package (pip install comfyui deps)
 # ---- Run --------------------------------------------------------------------
 
 .PHONY: dev
-dev: _ensure-venv ## Run in development mode (with auto-reload)
+dev: ## Run in development mode (with auto-reload)
 	$(PYTHON) main.py --listen 0.0.0.0 --port 8188 --verbose
 
 .PHONY: run
-run: build _ensure-venv ## Run in production mode
+run: build ## Run in production mode
 	$(PYTHON) main.py --listen 0.0.0.0 --port 8188
 
 # ---- Service management (systemd) -------------------------------------------
@@ -140,15 +133,15 @@ logs: ## Tail systemd service logs
 # ---- Test -------------------------------------------------------------------
 
 .PHONY: test
-test: _ensure-venv ## Run all tests (unit + integration)
+test: ## Run all tests (unit + integration)
 	$(PYTHON) -m pytest tests-unit tests -v
 
 .PHONY: test-unit
-test-unit: _ensure-venv ## Run unit tests only
+test-unit: ## Run unit tests only
 	$(PYTHON) -m pytest tests-unit -v
 
 .PHONY: test-integration
-test-integration: _ensure-venv ## Run integration tests only
+test-integration: ## Run integration tests only
 	$(PYTHON) -m pytest tests -v
 
 # ---- Lint & Format ----------------------------------------------------------
