@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Example macOS launchd plist for ComfyUI.
+  Drop into ~/Library/LaunchAgents/com.yourorg.comfyui.plist, then:
+
+      launchctl load -w ~/Library/LaunchAgents/com.yourorg.comfyui.plist
+      launchctl unload ~/Library/LaunchAgents/com.yourorg.comfyui.plist   # to stop
+
+  Logs:
+      tail -f ~/Library/Logs/com.yourorg.comfyui.{out,err}.log
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yourorg.comfyui</string>
+
+    <!-- Adjust these to your real paths -->
+    <key>WorkingDirectory</key>
+    <string>/Users/you/path/to/ComfyUI</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/you/path/to/ComfyUI/.venv/bin/python</string>
+        <string>main.py</string>
+        <string>--listen</string>
+        <string>0.0.0.0</string>
+        <string>--port</string>
+        <string>8188</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/you/Library/Logs/com.yourorg.comfyui.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/you/Library/Logs/com.yourorg.comfyui.err.log</string>
+</dict>
+</plist>
