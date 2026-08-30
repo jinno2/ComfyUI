@@ -1,0 +1,135 @@
+{
+  "3": {
+    "inputs": {
+      "seed": 597033129971486,
+      "steps": 20,
+      "cfg": 7.6000000000000005,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": [
+        "4",
+        0
+      ],
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "latent_image": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "KSampler"
+  },
+  "4": {
+    "inputs": {
+      "ckpt_name": "myProjectName-step00010000.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple"
+  },
+  "5": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage"
+  },
+  "6": {
+    "inputs": {
+      "text": "masterpiece, best quality, (ohwx), hand on head, simple background",
+      "clip": [
+        "4",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode"
+  },
+  "7": {
+    "inputs": {
+      "text": "text, watermark",
+      "clip": [
+        "4",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode"
+  },
+  "8": {
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "4",
+        2
+      ]
+    },
+    "class_type": "VAEDecode"
+  },
+  "9": {
+    "inputs": {
+      "filename_prefix": [
+        "15",
+        0
+      ],
+      "images": [
+        "18",
+        0
+      ]
+    },
+    "class_type": "SaveImage"
+  },
+  "10": {
+    "inputs": {
+      "amount": 4,
+      "samples": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "RepeatLatentBatch"
+  },
+  "14": {
+    "inputs": {
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "PreviewImage"
+  },
+  "15": {
+    "inputs": {
+      "folder_name": "My_File",
+      "file_name": "image",
+      "time_format": "%Y-%m-%d"
+    },
+    "class_type": "SelectFolderPathEasy"
+  },
+  "18": {
+    "inputs": {
+      "upscale_model": [
+        "19",
+        0
+      ],
+      "image": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "ImageUpscaleWithModel"
+  },
+  "19": {
+    "inputs": {
+      "model_name": "RealESRGAN_x4.pth"
+    },
+    "class_type": "UpscaleModelLoader"
+  }
+}
