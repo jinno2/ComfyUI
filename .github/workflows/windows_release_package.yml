@@ -22,7 +22,7 @@ on:
         default: "6"
 #  push:
 #    branches:
-#      - master
+#      - main
 
 jobs:
   package_comfyui:

@@ -1,10 +1,10 @@
-# This is the GitHub Workflow that drives automatic full-GPU-enabled tests of all new commits to the master branch of ComfyUI
+# This is the GitHub Workflow that drives automatic full-GPU-enabled tests of all new commits to the main branch of ComfyUI
 # Results are reported as checkmarks on the commits, as well as onto https://ci.comfy.org/
 name: Full Comfy CI Workflow Runs
 on:
   push:
     branches:
-      - master
+      - main
       - release/**
     paths-ignore:
       - 'app/**'

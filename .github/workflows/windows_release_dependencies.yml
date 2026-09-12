@@ -32,7 +32,7 @@ on:
         default: "11"
 #  push:
 #    branches:
-#      - master
+#      - main
 
 jobs:
   build_dependencies:
