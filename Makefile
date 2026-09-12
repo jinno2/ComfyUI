@@ -95,6 +95,12 @@ help: ## Show this help
 	@echo "  $(GREEN)make full_update$(RESET)       Clean + full update (nuclear option)"
 	@echo "  $(GREEN)make device-info$(RESET)       Show detected platform + Python + torch backend"
 	@echo ""
+	@echo "$(BLUE)Models$(RESET)"
+	@echo "  $(GREEN)make setup-anima$(RESET)       One command: deps + WAI-ANIMA model download + workflows"
+	@echo "  $(GREEN)make anima-models$(RESET)      Download WAI-ANIMA files (Civitai token required)"
+	@echo "  $(GREEN)make anima-workflow$(RESET)    Install WAI-ANIMA workflow into the user dir"
+	@echo "  $(GREEN)make smoke-anima$(RESET)       Start server + generate one WAI-ANIMA image + stop"
+	@echo ""
 	@echo "$(BLUE)Run$(RESET)"
 	@echo "  $(GREEN)make dev$(RESET)               Start dev server on :8188 (verbose logs)"
 	@echo "  $(GREEN)make run$(RESET)               Start production server on :8188"
@@ -203,6 +209,140 @@ full_update: clean ## Clean + update (full rebuild)
 build: ## Build frontend package (pip install comfyui deps)
 	@echo "$(CYAN)Installing comfyui-frontend-* packages$(RESET)"
 	uv pip install --python $(PYTHON) comfyui-frontend-package comfyui-workflow-templates comfyui-embedded-docs
+
+# ---- Models: WAI-ANIMA (Civitai #2544636) -----------------------------------
+# One-command bootstrap: make setup-anima
+# Civitai token resolution: env CIVITAI_TOKEN, or a token written to
+# ~/.civitai_token (single line). Model dirs are gitignored — re-downloading
+# is the only way to restore them.
+
+ANIMA_BASE_URL     := https://civitai.com/api/download/models/2983680
+ANIMA_UNET_NAME    := waiANIMA_v10Base10.safetensors
+ANIMA_TE_NAME      := waiANIMA_v10Base10_txt.safetensors
+ANIMA_VAE_NAME     := qwen_image_vae.safetensors
+# Expected sizes in bytes (Civitai API sizeKB * 1024) — used for the
+# up-to-date skip and post-download verification.
+ANIMA_UNET_BYTES   := 4182233976
+ANIMA_TE_BYTES     := 1192135096
+ANIMA_VAE_BYTES    := 253806246
+ANIMA_WORKFLOW_UI  := scripts/wai_anima_workflow.json
+ANIMA_WORKFLOW_API := scripts/wai_anima_api.json
+USER_WORKFLOW_DIR  := user/default/ComfyUI/workflows
+
+# $(1): output path, $(2): download query, $(3): expected bytes, $(4): label
+define _anima_download
+	@TOKEN="$$CIVITAI_TOKEN"; \
+	if [ -z "$$TOKEN" ] && [ -s "$$HOME/.civitai_token" ]; then \
+		TOKEN=$$(tr -d ' \r\n' < "$$HOME/.civitai_token"); \
+	fi; \
+	if [ -z "$$TOKEN" ]; then \
+		echo "$(RED)Civitai token not found. Export CIVITAI_TOKEN or write it to ~/.civitai_token$(RESET)" >&2; \
+		exit 1; \
+	fi; \
+	mkdir -p $(dir $(1)); \
+	SIZE=$$( (wc -c < "$(1)") 2>/dev/null || printf 0); \
+	if [ "$$SIZE" = "$(3)" ]; then \
+		echo "$(DIM)$(4): up to date ($(1))$(RESET)"; \
+	else \
+		if [ "$$SIZE" != "0" ]; then \
+			echo "$(YELLOW)$(4): size mismatch ($$SIZE != $(3)), re-downloading$(RESET)"; \
+			rm -f "$(1)"; \
+		fi; \
+		echo "$(CYAN)$(4): downloading $(1) ($(3) bytes)...$(RESET)"; \
+		curl -fL --retry 3 --retry-delay 5 -C - -H "Authorization: Bearer $$TOKEN" \
+			-o "$(1)" "$(ANIMA_BASE_URL)?$(2)" \
+			|| { rm -f "$(1)"; echo "$(RED)download failed: $(4)$(RESET)" >&2; exit 1; }; \
+		SIZE=$$(wc -c < "$(1)"); \
+		if [ "$$SIZE" != "$(3)" ]; then \
+			echo "$(RED)$(4): size check failed ($$SIZE != $(3))$(RESET)" >&2; \
+			exit 1; \
+		fi; \
+		echo "$(GREEN)✓ $(4)$(RESET)"; \
+	fi
+endef
+
+.PHONY: setup-anima
+setup-anima: install anima-models anima-workflow ## One command: deps + WAI-ANIMA models + workflows
+	@echo "$(GREEN)✓ setup-anima complete — try 'make smoke-anima'$(RESET)"
+
+.PHONY: anima-models
+anima-models: ## Download WAI-ANIMA UNet + Qwen3 text encoder + Qwen Image VAE
+	$(call _anima_download,models/diffusion_models/$(ANIMA_UNET_NAME),fileId=2863158,$(ANIMA_UNET_BYTES),UNet (WAI-ANIMA v1.0))
+	$(call _anima_download,models/text_encoders/$(ANIMA_TE_NAME),fileId=2863150,$(ANIMA_TE_BYTES),Text encoder (Qwen3 0.6B))
+	$(call _anima_download,models/vae/$(ANIMA_VAE_NAME),type=VAE&format=SafeTensor&size=pruned&fp=fp8,$(ANIMA_VAE_BYTES),VAE (Qwen Image))
+
+.PHONY: anima-workflow
+anima-workflow: ## Install WAI-ANIMA workflow into the ComfyUI user dir
+	@if [ ! -f $(ANIMA_WORKFLOW_UI) ]; then \
+		echo "$(RED)$(ANIMA_WORKFLOW_UI) not found$(RESET)" >&2; exit 1; \
+	fi
+	@mkdir -p $(USER_WORKFLOW_DIR)
+	@cp -f $(ANIMA_WORKFLOW_UI) $(USER_WORKFLOW_DIR)/wai_anima.json
+	@echo "$(GREEN)✓ workflow installed: $(USER_WORKFLOW_DIR)/wai_anima.json$(RESET)"
+
+# Server lifecycle for smoke-anima (platform-neutral, no systemd/launchd).
+.PHONY: _anima-serve-up
+_anima-serve-up:
+	@mkdir -p .run
+	@if [ -f .run/comfyui-smoke.pid ] && kill -0 $$(cat .run/comfyui-smoke.pid) 2>/dev/null; then \
+		echo "$(RED)smoke server already running (PID $$(cat .run/comfyui-smoke.pid))$(RESET)" >&2; \
+		exit 1; \
+	fi
+	@nohup $(PYTHON) main.py --listen 127.0.0.1 --port 8188 > .run/comfyui-smoke.log 2>&1 & \
+	echo $$! > .run/comfyui-smoke.pid; \
+	echo "$(CYAN)server starting (PID $$(cat .run/comfyui-smoke.pid)), log: .run/comfyui-smoke.log$(RESET)"
+
+.PHONY: _anima-serve-down
+_anima-serve-down:
+	@if [ -f .run/comfyui-smoke.pid ]; then \
+		kill $$(cat .run/comfyui-smoke.pid) 2>/dev/null || true; \
+		rm -f .run/comfyui-smoke.pid; \
+	fi
+
+.PHONY: smoke-anima
+smoke-anima: ## Start server + generate one WAI-ANIMA image, then stop
+	@command -v jq >/dev/null 2>&1 || { echo "$(RED)jq is required for smoke-anima$(RESET)" >&2; exit 1; }
+	@$(MAKE) --no-print-directory _anima-serve-up
+	@trap '$(MAKE) --no-print-directory _anima-serve-down >/dev/null 2>&1' EXIT; \
+	$(MAKE) --no-print-directory _anima-smoke-run
+	@$(MAKE) --no-print-directory _anima-serve-down >/dev/null 2>&1 || true
+	@echo "$(GREEN)✓ smoke-anima complete — see output/$(RESET)"
+
+.PHONY: _anima-smoke-run
+_anima-smoke-run:
+	@READY=0; \
+	for i in $$(seq 1 120); do \
+		if curl -sf http://127.0.0.1:8188/ >/dev/null 2>&1; then \
+			echo "Server responsive ($$i s)"; \
+			READY=1; \
+			break; \
+		fi; \
+		sleep 1; \
+	done; \
+	if [ "$$READY" != "1" ]; then \
+		echo "$(RED)Server failed to bind :8188 within 120 s$(RESET)" >&2; \
+		tail -30 .run/comfyui-smoke.log >&2 || true; \
+		exit 1; \
+	fi; \
+	ACK=$$(curl -sf -X POST http://127.0.0.1:8188/prompt -H "Content-Type: application/json" \
+		-d "$$(jq -c --argjson seed $$(date +%s) '{prompt: (.["7"].inputs.seed = $$seed)}' $(ANIMA_WORKFLOW_API))"); \
+	PID=$$(echo "$$ACK" | jq -r .prompt_id 2>/dev/null); \
+	if [ -z "$$PID" ] || [ "$$PID" = "null" ]; then \
+		echo "$(RED)failed to queue prompt: $$ACK$(RESET)" >&2; \
+		exit 1; \
+	fi; \
+	echo "queued: $$PID"; \
+	ST=pending; \
+	for i in $$(seq 1 120); do \
+		ST=$$(curl -sf http://127.0.0.1:8188/history/$$PID | jq -r --arg p $$PID '.[$$p].status.status_str // "pending"'); \
+		if [ "$$ST" = "success" ] || [ "$$ST" = "error" ]; then break; fi; \
+		sleep 5; \
+	done; \
+	if [ "$$ST" != "success" ]; then \
+		echo "$(RED)generation did not succeed (status: $$ST) — see .run/comfyui-smoke.log$(RESET)" >&2; \
+		exit 1; \
+	fi; \
+	echo "$(GREEN)generated: $$(ls -t output/wai_anima_*.png | head -1)$(RESET)"
 
 # ---- Run --------------------------------------------------------------------
 

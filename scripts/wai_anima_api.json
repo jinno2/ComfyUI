@@ -1,0 +1,73 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "waiANIMA_v10Base10.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "waiANIMA_v10Base10_txt.safetensors",
+      "type": "stable_diffusion"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["2", 0],
+      "text": "1girl, silver hair, long hair, school uniform, cherry blossoms, spring, soft lighting, highly detailed, best quality"
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": ["2", 0],
+      "text": "low quality, worst quality, blurry, watermark, signature, jpeg artifacts"
+    }
+  },
+  "6": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": {
+      "width": 832,
+      "height": 1216,
+      "batch_size": 1
+    }
+  },
+  "7": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["1", 0],
+      "positive": ["4", 0],
+      "negative": ["5", 0],
+      "latent_image": ["6", 0],
+      "seed": 42,
+      "steps": 25,
+      "cfg": 4.5,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "denoise": 1.0
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["7", 0],
+      "vae": ["3", 0]
+    }
+  },
+  "9": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "wai_anima",
+      "images": ["8", 0]
+    }
+  }
+}
