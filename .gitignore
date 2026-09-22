@@ -25,3 +25,6 @@ filtered-openapi.yaml
 uv.lock
 .comfy_environment
 .run/
+# tas harness state — must not dirty the target worktree (post_dispatch dirty check)
+.audit/
+worktrees/
