@@ -120,10 +120,12 @@ else
 	@echo "  $(GREEN)make restart$(RESET)           Build + sudo systemctl restart $(SERVICE_NAME)"
 	@echo "  $(GREEN)make status$(RESET)            Show systemd unit status"
 	@echo "  $(GREEN)make logs$(RESET)              Tail journalctl logs (Ctrl+C to stop)"
+	@echo "  $(DIM)For systemd setup, see scripts/comfyui.service.example$(RESET)"
 endif
 	@echo ""
 	@echo "$(BLUE)Test$(RESET)"
-	@echo "  $(GREEN)make test$(RESET)              Run all tests (tests-unit/ + tests/)"
+	@echo "  $(GREEN)make test$(RESET)              Run unit tests (tests-unit/, fast default)"
+	@echo "  $(GREEN)make test-all$(RESET)          Run all tests (tests-unit/ + tests/)"
 	@echo "  $(GREEN)make test-unit$(RESET)         Run unit tests only (tests-unit/)"
 	@echo "  $(GREEN)make test-integration$(RESET)  Run integration tests only (tests/)"
 	@echo ""
@@ -446,7 +448,11 @@ endif
 # ---- Test -------------------------------------------------------------------
 
 .PHONY: test
-test: ## Run all tests (unit + integration)
+test: ## Run unit tests (fast default)
+	$(PYTHON) -m pytest tests-unit -v
+
+.PHONY: test-all
+test-all: ## Run all tests (unit + integration)
 	$(PYTHON) -m pytest tests-unit tests -v
 
 .PHONY: test-unit

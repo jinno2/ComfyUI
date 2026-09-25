@@ -99,7 +99,7 @@ def wait_for_completion(prompt_id: str, timeout: float = 600.0) -> dict:
 
 def main() -> int:
     prompt_text = "a corgi astronaut floating in space, ultra detailed, cinematic lighting"
-    out_path = Path("/Users/jinno/ComfyUI/output/comfyui_smoke.png")
+    out_path = Path(__file__).resolve().parent.parent / "output" / "comfyui_smoke.png"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     prompt = json.loads(PROMPT_TEXT)
