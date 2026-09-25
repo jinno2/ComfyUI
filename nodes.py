@@ -1768,6 +1768,7 @@ class LoadImage:
         output_images = []
         output_masks = []
         w, h = None, None
+        skipped_frames = 0
 
         for i in ImageSequence.Iterator(img):
             i = node_helpers.pillow(ImageOps.exif_transpose, i)
@@ -1779,6 +1780,7 @@ class LoadImage:
                 h = image.size[1]
 
             if image.size[0] != w or image.size[1] != h:
+                skipped_frames += 1
                 continue
 
             image = np.array(image).astype(np.float32) / 255.0
@@ -1790,6 +1792,9 @@ class LoadImage:
                 mask = torch.zeros((64, 64), dtype=torch.float32, device="cpu")
             output_images.append(image.to(dtype=dtype))
             output_masks.append(mask.unsqueeze(0).to(dtype=dtype))
+
+        if skipped_frames:
+            logging.warning(f"LoadImage: dropped {skipped_frames} frame(s) with a size other than the first frame ({w}x{h}).")
 
         output_image = torch.cat(output_images, dim=0)
         output_mask = torch.cat(output_masks, dim=0)
