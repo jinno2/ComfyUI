@@ -1338,7 +1338,7 @@ _CUDA_LINEAR_RETRY_ERRORS = (
     "CUBLAS_STATUS_NOT_INITIALIZED",
     "cublasLtMatmulAlgoGetHeuristic",
 )
-CUDA_LINEAR_FORCE_MATMUL = False
+CUDA_LINEAR_FORCE_MATMUL_DEVICES = set()
 
 
 def _can_use_cuda_linear_matmul_fallback(input, weight):
@@ -1370,9 +1370,7 @@ def _linear_via_matmul(input, weight, bias):
 
 
 def safe_linear(input, weight, bias):
-    global CUDA_LINEAR_FORCE_MATMUL
-
-    if CUDA_LINEAR_FORCE_MATMUL and _can_use_cuda_linear_matmul_fallback(input, weight):
+    if input.device in CUDA_LINEAR_FORCE_MATMUL_DEVICES and _can_use_cuda_linear_matmul_fallback(input, weight):
         return _linear_via_matmul(input, weight, bias)
 
     try:
@@ -1385,7 +1383,7 @@ def safe_linear(input, weight, bias):
             "CUDA linear failed (%s). Retrying after clearing async CUDA state.",
             str(first_error).splitlines()[0],
         )
-        comfy.model_management.discard_cuda_async_error()
+        comfy.model_management.discard_cuda_async_error(input.device)
         comfy.model_management.soft_empty_cache()
 
         input_retry = input.contiguous()
@@ -1402,7 +1400,7 @@ def safe_linear(input, weight, bias):
                 "CUDA linear retry failed (%s). Switching to matmul fallback for CUDA linear operations.",
                 str(second_error).splitlines()[0],
             )
-            CUDA_LINEAR_FORCE_MATMUL = True
+            CUDA_LINEAR_FORCE_MATMUL_DEVICES.add(input.device)
             return _linear_via_matmul(input_retry, weight_retry, bias_retry)
 
 

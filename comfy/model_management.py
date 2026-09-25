@@ -1627,10 +1627,12 @@ def pinned_hostbuf_size(size):
         return max(0, int(size * 2))
     return max(0, int(min(size, MAX_PINNED_MEMORY) * 2))
 
-def discard_cuda_async_error():
+def discard_cuda_async_error(device=None):
+    if device is None:
+        device = get_torch_device()
     try:
-        a = torch.tensor([1], dtype=torch.uint8, device=get_torch_device())
-        b = torch.tensor([1], dtype=torch.uint8, device=get_torch_device())
+        a = torch.tensor([1], dtype=torch.uint8, device=device)
+        b = torch.tensor([1], dtype=torch.uint8, device=device)
         _ = a + b
         synchronize()
     except RuntimeError:
