@@ -249,10 +249,25 @@ def _group_conds_by_hooks(model: BaseModel, conds: list[list[dict]], x_in: torch
 
     return out_conds, out_counts, hooked_to_run, default_conds, has_default_conds
 
+def _plan_memory_fit_batch(to_run, to_batch_temp, first_shape, free_memory, model):
+    to_batch = to_batch_temp[:1]
+    for i in range(1, len(to_batch_temp) + 1):
+        batch_amount = to_batch_temp[:len(to_batch_temp)//i]
+        input_shape = [len(batch_amount) * first_shape[0]] + list(first_shape)[1:]
+        cond_shapes = collections.defaultdict(list)
+        for tt in batch_amount:
+            for k, v in to_run[tt][0].conditioning.items():
+                cond_shapes[k].append(v.size())
+        if model.memory_required(input_shape, cond_shapes=cond_shapes) * 1.5 < free_memory:
+            to_batch = batch_amount
+            break
+    return to_batch
+
 def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tensor, timestep: torch.Tensor, model_options: dict[str]):
-    # NOTE: keep in sync with _calc_cond_batch_multigpu below. Cond grouping is
-    # shared via _group_conds_by_hooks; memory-fit batching and per-chunk output
-    # aggregation are still duplicated there with per-device scheduling on top.
+    # NOTE: keep in sync with _calc_cond_batch_multigpu below. Cond grouping and
+    # memory-fit batching are shared via _group_conds_by_hooks/_plan_memory_fit_batch;
+    # per-chunk output aggregation is still duplicated there with per-device
+    # scheduling on top.
     if 'multigpu_clones' in model_options:
         return _calc_cond_batch_multigpu(model, conds, x_in, timestep, model_options)
     out_conds, out_counts, hooked_to_run, default_conds, has_default_conds = _group_conds_by_hooks(model, conds, x_in, timestep, model_options)
@@ -273,20 +288,9 @@ def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tens
                     to_batch_temp += [x]
 
             to_batch_temp.reverse()
-            to_batch = to_batch_temp[:1]
 
             free_memory = model.current_patcher.get_free_memory(x_in.device)
-            for i in range(1, len(to_batch_temp) + 1):
-                batch_amount = to_batch_temp[:len(to_batch_temp)//i]
-                input_shape = [len(batch_amount) * first_shape[0]] + list(first_shape)[1:]
-                cond_shapes = collections.defaultdict(list)
-                for tt in batch_amount:
-                    for k, v in to_run[tt][0].conditioning.items():
-                        cond_shapes[k].append(v.size())
-
-                if model.memory_required(input_shape, cond_shapes=cond_shapes) * 1.5 < free_memory:
-                    to_batch = batch_amount
-                    break
+            to_batch = _plan_memory_fit_batch(to_run, to_batch_temp, first_shape, free_memory, model)
 
             input_x = []
             mult = []
@@ -413,19 +417,9 @@ def _calc_cond_batch_multigpu(model: BaseModel, conds: list[list[dict]], x_in: t
                     to_batch_temp += [x]
 
             to_batch_temp.reverse()
-            to_batch = to_batch_temp[:1]
 
             free_memory = comfy.model_management.get_free_memory(current_device)
-            for i in range(1, len(to_batch_temp) + 1):
-                batch_amount = to_batch_temp[:len(to_batch_temp)//i]
-                input_shape = [len(batch_amount) * first_shape[0]] + list(first_shape)[1:]
-                cond_shapes = collections.defaultdict(list)
-                for tt in batch_amount:
-                    for k, v in to_run[tt][0].conditioning.items():
-                        cond_shapes[k].append(v.size())
-                if model.memory_required(input_shape, cond_shapes=cond_shapes) * 1.5 < free_memory:
-                    to_batch = batch_amount
-                    break
+            to_batch = _plan_memory_fit_batch(to_run, to_batch_temp, first_shape, free_memory, model)
 
             conds_to_batch = [to_run.pop(x) for x in to_batch]
             device_load[current_device] += len(conds_to_batch)

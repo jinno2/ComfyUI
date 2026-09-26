@@ -60,3 +60,36 @@ def test_hooks_are_grouped_separately_and_keyframe_prepared():
     assert set(hooked.keys()) == {hooks, None}
     assert len(hooked[hooks]) == 1
     assert model.current_patcher.prepared == [hooks]
+
+
+class FakeCondEntry:
+    def __init__(self):
+        self.conditioning = {}
+
+
+class FakeMemoryModel:
+    def __init__(self, required):
+        self.required = required
+
+    def memory_required(self, input_shape, cond_shapes=None):
+        return self.required
+
+
+def test_memory_fit_batch_returns_largest_fitting_batch():
+    to_run = [(FakeCondEntry(), i) for i in range(4)]
+    to_batch_temp = [3, 2, 1, 0]
+    first_shape = torch.Size([1, 4, 8, 8])
+
+    to_batch = samplers._plan_memory_fit_batch(to_run, to_batch_temp, first_shape, 1.0, FakeMemoryModel(0.5))
+
+    assert to_batch == [3, 2, 1, 0]
+
+
+def test_memory_fit_batch_falls_back_to_first_candidate():
+    to_run = [(FakeCondEntry(), i) for i in range(4)]
+    to_batch_temp = [3, 2, 1, 0]
+    first_shape = torch.Size([1, 4, 8, 8])
+
+    to_batch = samplers._plan_memory_fit_batch(to_run, to_batch_temp, first_shape, 1.0, FakeMemoryModel(1e12))
+
+    assert to_batch == [3]
