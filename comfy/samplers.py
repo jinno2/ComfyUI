@@ -218,12 +218,7 @@ def _calc_cond_batch_outer(model: BaseModel, conds: list[list[dict]], x_in: torc
     )
     return executor.execute(model, conds, x_in, timestep, model_options)
 
-def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tensor, timestep: torch.Tensor, model_options: dict[str]):
-    # NOTE: keep in sync with _calc_cond_batch_multigpu below. Shared logic
-    # (hooked_to_run accumulation, memory-fit batching, per-chunk output
-    # aggregation) is duplicated there with per-device scheduling layered on top.
-    if 'multigpu_clones' in model_options:
-        return _calc_cond_batch_multigpu(model, conds, x_in, timestep, model_options)
+def _group_conds_by_hooks(model: BaseModel, conds: list[list[dict]], x_in: torch.Tensor, timestep: torch.Tensor, model_options: dict[str]):
     out_conds = []
     out_counts = []
     # separate conds by matching hooks
@@ -251,6 +246,16 @@ def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tens
                 hooked_to_run.setdefault(p.hooks, list())
                 hooked_to_run[p.hooks] += [(p, i)]
         default_conds.append(default_c)
+
+    return out_conds, out_counts, hooked_to_run, default_conds, has_default_conds
+
+def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tensor, timestep: torch.Tensor, model_options: dict[str]):
+    # NOTE: keep in sync with _calc_cond_batch_multigpu below. Cond grouping is
+    # shared via _group_conds_by_hooks; memory-fit batching and per-chunk output
+    # aggregation are still duplicated there with per-device scheduling on top.
+    if 'multigpu_clones' in model_options:
+        return _calc_cond_batch_multigpu(model, conds, x_in, timestep, model_options)
+    out_conds, out_counts, hooked_to_run, default_conds, has_default_conds = _group_conds_by_hooks(model, conds, x_in, timestep, model_options)
 
     if has_default_conds:
         finalize_default_conds(model, hooked_to_run, default_conds, x_in, timestep, model_options)
@@ -356,39 +361,13 @@ def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tens
     return out_conds
 
 def _calc_cond_batch_multigpu(model: BaseModel, conds: list[list[dict]], x_in: torch.Tensor, timestep: torch.Tensor, model_options: dict[str]):
-    # NOTE: keep in sync with _calc_cond_batch above. Same conds-by-hooks
-    # accumulation, memory-fit batching, and output aggregation, but adds a
-    # per-device scheduler, per-device patcher/control lookup, tensor .to(device)
-    # placement, and MultiGPUThreadPool dispatch around the inner loop.
-    out_conds = []
-    out_counts = []
-    # separate conds by matching hooks
-    hooked_to_run: dict[comfy.hooks.HookGroup,list[tuple[tuple,int]]] = {}
-    default_conds = []
-    has_default_conds = False
+    # NOTE: keep in sync with _calc_cond_batch above. Cond grouping is shared
+    # via _group_conds_by_hooks; this path adds a per-device scheduler,
+    # per-device patcher/control lookup, tensor .to(device) placement, and
+    # MultiGPUThreadPool dispatch around the inner loop.
+    out_conds, out_counts, hooked_to_run, default_conds, has_default_conds = _group_conds_by_hooks(model, conds, x_in, timestep, model_options)
 
     output_device = x_in.device
-
-    for i in range(len(conds)):
-        out_conds.append(torch.zeros_like(x_in))
-        out_counts.append(torch.ones_like(x_in) * 1e-37)
-
-        cond = conds[i]
-        default_c = []
-        if cond is not None:
-            for x in cond:
-                if 'default' in x:
-                    default_c.append(x)
-                    has_default_conds = True
-                    continue
-                p = get_area_and_mult(x, x_in, timestep)
-                if p is None:
-                    continue
-                if p.hooks is not None:
-                    model.current_patcher.prepare_hook_patches_current_keyframe(timestep, p.hooks, model_options)
-                hooked_to_run.setdefault(p.hooks, list())
-                hooked_to_run[p.hooks] += [(p, i)]
-        default_conds.append(default_c)
 
     if has_default_conds:
         finalize_default_conds(model, hooked_to_run, default_conds, x_in, timestep, model_options)
