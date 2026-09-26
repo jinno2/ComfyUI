@@ -1,8 +1,9 @@
 """prompt_worker must survive an unhandled executor exception.
 
 A raising PromptExecutor.execute must not kill the worker thread: the item
-gets an error status task_done, the background asset scan is resumed, and
-the next queued prompt still runs.
+gets an error status task_done with empty (not stale) outputs, the UI is
+told execution ended, the background asset scan is resumed, and the next
+queued prompt still runs.
 """
 
 import threading
@@ -21,8 +22,9 @@ class FakeExecutor:
     def execute(self, prompt, prompt_id, extra_data, outputs_to_execute):
         self.calls.append(prompt_id)
         if prompt_id == "boom":
-            if hasattr(self, "history_result"):
-                del self.history_result
+            # simulate a prior successful prompt: the attribute still holds
+            # that run's outputs and must not leak into the crashed entry
+            self.history_result = {"outputs": {"stale": True}, "meta": {}}
             raise RuntimeError("executor bug")
         self.history_result = {"outputs": {}, "meta": {}}
 
@@ -53,7 +55,11 @@ class FakeQueue:
 class FakeServer:
     def __init__(self):
         self.last_prompt_id = None
-        self.client_id = None
+        self.client_id = "client1"
+        self.sent = []
+
+    def send_sync(self, event, data, sid):
+        self.sent.append((event, data, sid))
 
 
 class FakeAssetManager:
@@ -80,8 +86,9 @@ def test_prompt_worker_survives_executor_exception(monkeypatch):
 
     queue = FakeQueue([_item("boom"), _item("good")])
     assets = FakeAssetManager()
+    server = FakeServer()
 
-    worker = threading.Thread(target=main.prompt_worker, args=(queue, FakeServer(), assets), daemon=True)
+    worker = threading.Thread(target=main.prompt_worker, args=(queue, server, assets), daemon=True)
     worker.start()
 
     deadline = time.monotonic() + 10
@@ -97,6 +104,11 @@ def test_prompt_worker_survives_executor_exception(monkeypatch):
     # the crash path must resume the background scan right away; the second
     # pause is released by the periodic gc section on its own cadence
     assert assets.resumed >= 1
+    # both the crash and success paths clear the UI executing state
+    assert server.sent == [
+        ("executing", {"node": None, "prompt_id": "boom"}, "client1"),
+        ("executing", {"node": None, "prompt_id": "good"}, "client1"),
+    ]
 
     queue.resumed.set()
     worker.join(timeout=1)

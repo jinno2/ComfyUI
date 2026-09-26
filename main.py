@@ -365,12 +365,15 @@ def prompt_worker(q, server_instance, asset_manager):
             except Exception:
                 logging.exception(f"Prompt {prompt_id} raised an unhandled exception; keeping the worker alive")
                 need_gc = True
+                # history_result is only assigned on success; never reuse a stale one
                 q.task_done(item_id,
-                            getattr(e, "history_result", None) or {},
+                            {},
                             status=execution.PromptQueue.ExecutionStatus(
                                 status_str='error',
                                 completed=True,
                                 messages=[]), process_item=remove_sensitive)
+                if server_instance.client_id is not None:
+                    server_instance.send_sync("executing", {"node": None, "prompt_id": prompt_id}, server_instance.client_id)
                 asset_manager.resume_background_scan()
                 continue
 
