@@ -16,6 +16,7 @@ from folder_paths import get_output_directory
 
 from . import request_logger
 from ._helpers import (
+    TRANSFER_IDLE_TIMEOUT,
     await_with_interrupt_monitor,
     default_base_url,
     diagnose_connectivity,
@@ -80,7 +81,7 @@ async def download_url_to_bytesio(
             dest.seek(0)
             dest.truncate(0)
         op_id = _generate_operation_id("GET", url, attempt)
-        timeout_cfg = aiohttp.ClientTimeout(total=timeout)
+        timeout_cfg = aiohttp.ClientTimeout(total=timeout, sock_read=TRANSFER_IDLE_TIMEOUT)
 
         is_path_sink = isinstance(dest, (str, Path))
         fhandle = None

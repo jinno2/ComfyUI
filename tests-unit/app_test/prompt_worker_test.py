@@ -63,6 +63,8 @@ class FakeServer:
 
 
 class FakeAssetManager:
+    enabled = False
+
     def __init__(self):
         self.paused = 0
         self.resumed = 0

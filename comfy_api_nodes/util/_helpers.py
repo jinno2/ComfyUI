@@ -162,6 +162,8 @@ async def poll_for_interrupt(stop_evt: asyncio.Event, tick: Callable[[], None] |
 
 T = TypeVar("T")
 
+TRANSFER_IDLE_TIMEOUT = 300.0  # seconds without any bytes from the server before a transfer is considered stalled
+
 
 async def await_with_interrupt_monitor(
     make_request: Callable[[], Awaitable[T]],

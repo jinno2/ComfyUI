@@ -23,7 +23,7 @@ file_log_outputs = get_file_log_outputs(args.verbose)
 setup_logger(log_level=console_log_level, file_outputs=file_log_outputs, use_stdout=args.log_stdout)
 
 from app.database.db import dependencies_available, init_db
-from app.assets.lifecycle import cleanup_temp_filesystem
+from app.assets.lifecycle import cleanup_stale_temp_files, cleanup_temp_filesystem
 from app.assets.manager import AssetManager, default_asset_manager
 import itertools
 import utils.extra_config
@@ -419,6 +419,8 @@ def prompt_worker(q, server_instance, asset_manager):
                 last_gc_collect = current_time
                 need_gc = False
                 hook_breaker_ac10a0.restore_functions()
+                if not asset_manager.enabled:
+                    cleanup_stale_temp_files()
 
                 asset_manager.queue_output_scan()
                 asset_manager.resume_background_scan()

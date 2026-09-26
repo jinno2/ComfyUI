@@ -5,8 +5,12 @@ from io import BytesIO
 
 import pytest
 
-from comfy_api_nodes.util import _helpers, download_helpers
-from comfy_api_nodes.util._helpers import await_with_interrupt_monitor, poll_for_interrupt
+from comfy_api_nodes.util import _helpers, download_helpers, upload_helpers
+from comfy_api_nodes.util._helpers import (
+    TRANSFER_IDLE_TIMEOUT,
+    await_with_interrupt_monitor,
+    poll_for_interrupt,
+)
 from comfy_api_nodes.util.common_exceptions import ApiHttpError, ProcessingInterrupted
 
 
@@ -95,3 +99,38 @@ def test_download_terminal_http_raises_api_http_error(monkeypatch):
         asyncio.run(download_helpers.download_url_to_bytesio("https://example.com/model.bin", BytesIO()))
     assert exc_info.value.status == 403
     assert str(exc_info.value) == "Failed to download (HTTP 403)."
+
+
+class _RecordingSession(_FakeSession):
+    seen = {}
+
+    def __init__(self, timeout=None):
+        _RecordingSession.seen["timeout"] = timeout
+
+    def get(self, url, headers=None, allow_redirects=True):
+        raise ValueError("stop")
+
+    def put(self, url, data=None, headers=None, skip_auto_headers=None):
+        raise ValueError("stop")
+
+
+def test_download_transfer_has_idle_timeout(monkeypatch):
+    monkeypatch.setattr(download_helpers.aiohttp, "ClientSession", _RecordingSession)
+    monkeypatch.setattr(download_helpers.request_logger, "log_request_response", lambda **kw: None)
+
+    with pytest.raises(ValueError, match="stop"):
+        asyncio.run(download_helpers.download_url_to_bytesio("https://example.com/model.bin", BytesIO()))
+    timeout = _RecordingSession.seen["timeout"]
+    assert timeout.total is None
+    assert timeout.sock_read == TRANSFER_IDLE_TIMEOUT
+
+
+def test_upload_transfer_has_idle_timeout(monkeypatch):
+    monkeypatch.setattr(upload_helpers.aiohttp, "ClientSession", _RecordingSession)
+    monkeypatch.setattr(upload_helpers.request_logger, "log_request_response", lambda **kw: None)
+
+    with pytest.raises(ValueError, match="stop"):
+        asyncio.run(upload_helpers.upload_file(None, "https://example.com/upload", BytesIO(b"data")))
+    timeout = _RecordingSession.seen["timeout"]
+    assert timeout.total is None
+    assert timeout.sock_read == TRANSFER_IDLE_TIMEOUT

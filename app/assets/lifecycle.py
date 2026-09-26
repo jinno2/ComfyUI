@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 import os
 import shutil
+import time
 
 import folder_paths
 from sqlalchemy import select
@@ -91,6 +92,38 @@ def cleanup_temp_filesystem() -> bool:
         )
         _excluded_scan_roots.add(temp_dir)
         return False
+
+
+STALE_TEMP_MAX_AGE = 24 * 60 * 60
+
+
+def cleanup_stale_temp_files(max_age_seconds: float = STALE_TEMP_MAX_AGE) -> int:
+    """Delete temp files older than max_age_seconds and prune the dirs they empty.
+
+    Temp is ephemeral by contract — a restart wipes it outright — so nothing may
+    rely on it surviving, while files in use are always freshly written and never
+    candidates. Keeps an unattended long-running server from filling its disk.
+    """
+    temp_dir = os.path.abspath(folder_paths.get_temp_directory())
+    if not os.path.isdir(temp_dir):
+        return 0
+    deadline = time.time() - max_age_seconds
+    removed = 0
+    for root, dirs, files in os.walk(temp_dir, topdown=False):
+        for name in files:
+            path = os.path.join(root, name)
+            try:
+                if os.stat(path).st_mtime < deadline:
+                    os.unlink(path)
+                    removed += 1
+            except OSError:
+                pass
+        for name in dirs:
+            try:
+                os.rmdir(os.path.join(root, name))
+            except OSError:
+                pass
+    return removed
 
 
 def start_asset_seeder() -> bool:

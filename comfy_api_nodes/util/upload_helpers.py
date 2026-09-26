@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from comfy_api.latest import IO, Input, Types
 
 from . import request_logger
-from ._helpers import await_with_interrupt_monitor, diagnose_connectivity, sleep_with_interrupt
+from ._helpers import TRANSFER_IDLE_TIMEOUT, await_with_interrupt_monitor, diagnose_connectivity, sleep_with_interrupt
 from .client import (
     ApiEndpoint,
     _display_time_progress,
@@ -265,7 +265,7 @@ async def upload_file(
     while True:
         attempt += 1
         operation_id = _generate_operation_id("PUT", upload_url, attempt, op_uuid)
-        timeout = aiohttp.ClientTimeout(total=None)
+        timeout = aiohttp.ClientTimeout(total=None, sock_read=TRANSFER_IDLE_TIMEOUT)
 
         sess: aiohttp.ClientSession | None = None
         try:
