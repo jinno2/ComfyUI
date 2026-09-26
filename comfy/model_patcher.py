@@ -1054,9 +1054,13 @@ class ModelPatcher:
                     m.comfy_cast_weights = True
 
                 if weight_key in self.weight_wrapper_patches:
+                    if "weight_function" not in m.__dict__:
+                        m.weight_function = []
                     m.weight_function.extend(self.weight_wrapper_patches[weight_key])
 
                 if bias_key in self.weight_wrapper_patches:
+                    if "bias_function" not in m.__dict__:
+                        m.bias_function = []
                     m.bias_function.extend(self.weight_wrapper_patches[bias_key])
 
                 mem_counter += move_weight_functions(m, device_to)
@@ -1224,6 +1228,8 @@ class ModelPatcher:
                                     self.patch_weight_to_device(weight_key)
                                 else:
                                     _, set_func, convert_func = get_key_weight(self.model, weight_key)
+                                    if "weight_function" not in m.__dict__:
+                                        m.weight_function = []
                                     m.weight_function.append(LowVramPatch(weight_key, self.patches, convert_func, set_func))
                                     patch_counter += 1
                             if bias_key in self.patches:
@@ -1231,6 +1237,8 @@ class ModelPatcher:
                                     self.patch_weight_to_device(bias_key)
                                 else:
                                     _, set_func, convert_func = get_key_weight(self.model, bias_key)
+                                    if "bias_function" not in m.__dict__:
+                                        m.bias_function = []
                                     m.bias_function.append(LowVramPatch(bias_key, self.patches, convert_func, set_func))
                                     patch_counter += 1
                             cast_weight = True
