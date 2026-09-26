@@ -1,5 +1,5 @@
 import json
-from urllib import request, parse
+from urllib import request
 import random
 
 #This is the ComfyUI api prompt format.
