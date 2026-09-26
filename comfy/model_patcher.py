@@ -2172,7 +2172,7 @@ class ModelPatcherDynamic(ModelPatcher):
         if key not in combined_patches:
             return
 
-        raise RuntimeError("Hooks not implemented in ModelPatcherDynamic. Please remove --fast arguments form ComfyUI startup")
+        raise RuntimeError("Hooks not implemented in ModelPatcherDynamic. Please remove --fast arguments from ComfyUI startup")
 
     def unpatch_hooks(self, whitelist_keys_set: set[str]=None) -> None:
         pass
