@@ -16,6 +16,7 @@ from folder_paths import get_output_directory
 
 from . import request_logger
 from ._helpers import (
+    await_with_interrupt_monitor,
     default_base_url,
     diagnose_connectivity,
     get_comfy_api_headers,
@@ -23,7 +24,7 @@ from ._helpers import (
     sleep_with_interrupt,
     to_aiohttp_url,
 )
-from .common_exceptions import ApiServerError, LocalNetworkError, ProcessingInterrupted
+from .common_exceptions import ApiHttpError, ApiServerError, LocalNetworkError, ProcessingInterrupted
 from .conversions import bytesio_to_image_tensor
 
 _RETRY_STATUS = {408, 429, 500, 502, 503, 504}
@@ -55,7 +56,7 @@ async def download_url_to_bytesio(
     aiohttp's redirect following.
 
     Raises:
-        ProcessingInterrupted, LocalNetworkError, ApiServerError, Exception (HTTP and other errors)
+        ProcessingInterrupted, LocalNetworkError, ApiServerError, ApiHttpError, Exception (other errors)
     """
     if not isinstance(dest, (str, Path)) and not hasattr(dest, "write"):
         raise ValueError("dest must be a path (str|Path) or a binary-writable object providing .write().")
@@ -84,43 +85,16 @@ async def download_url_to_bytesio(
         is_path_sink = isinstance(dest, (str, Path))
         fhandle = None
         session: aiohttp.ClientSession | None = None
-        stop_evt: asyncio.Event | None = None
-        monitor_task: asyncio.Task | None = None
-        req_task: asyncio.Task | None = None
 
         try:
             with contextlib.suppress(Exception):
                 request_logger.log_request_response(operation_id=op_id, request_method="GET", request_url=url)
 
             session = aiohttp.ClientSession(timeout=timeout_cfg)
-            stop_evt = asyncio.Event()
 
-            async def _monitor():
-                try:
-                    while not stop_evt.is_set():
-                        if is_processing_interrupted():
-                            return
-                        await asyncio.sleep(1.0)
-                except asyncio.CancelledError:
-                    return
-
-            monitor_task = asyncio.create_task(_monitor())
-
-            req_task = asyncio.create_task(
-                session.get(to_aiohttp_url(url), headers=headers, allow_redirects=allow_redirects)
+            resp = await await_with_interrupt_monitor(
+                lambda: session.get(to_aiohttp_url(url), headers=headers, allow_redirects=allow_redirects)
             )
-            done, pending = await asyncio.wait({req_task, monitor_task}, return_when=asyncio.FIRST_COMPLETED)
-
-            if monitor_task in done and req_task in pending:
-                req_task.cancel()
-                with contextlib.suppress(Exception):
-                    await req_task
-                raise ProcessingInterrupted("Task cancelled")
-
-            try:
-                resp = await req_task
-            except asyncio.CancelledError:
-                raise ProcessingInterrupted("Task cancelled") from None
 
             async with resp:
                 # Under allow_redirects=False a redirect lands here unfollowed, and its
@@ -146,7 +120,7 @@ async def download_url_to_bytesio(
                         await sleep_with_interrupt(delay, cls, None, None)
                         delay *= retry_backoff
                         continue
-                    raise Exception(f"Failed to download (HTTP {resp.status}).")
+                    raise ApiHttpError(f"Failed to download (HTTP {resp.status}).", resp.status)
 
                 if is_path_sink:
                     p = Path(str(dest))
@@ -216,16 +190,6 @@ async def download_url_to_bytesio(
                 ) from e
             raise ApiServerError("The remote service appears unreachable at this time.") from e
         finally:
-            if stop_evt is not None:
-                stop_evt.set()
-            if monitor_task:
-                monitor_task.cancel()
-                with contextlib.suppress(Exception):
-                    await monitor_task
-            if req_task and not req_task.done():
-                req_task.cancel()
-                with contextlib.suppress(Exception):
-                    await req_task
             if session:
                 with contextlib.suppress(Exception):
                     await session.close()

@@ -13,13 +13,13 @@ from pydantic import BaseModel, Field
 from comfy_api.latest import IO, Input, Types
 
 from . import request_logger
-from ._helpers import diagnose_connectivity, is_processing_interrupted, sleep_with_interrupt
+from ._helpers import await_with_interrupt_monitor, diagnose_connectivity, sleep_with_interrupt
 from .client import (
     ApiEndpoint,
     _display_time_progress,
     sync_op,
 )
-from .common_exceptions import ApiServerError, LocalNetworkError, ProcessingInterrupted
+from .common_exceptions import ApiHttpError, ApiServerError, LocalNetworkError, ProcessingInterrupted
 from .conversions import (
     audio_ndarray_to_bytesio,
     audio_tensor_to_contiguous_ndarray,
@@ -239,7 +239,7 @@ async def upload_file(
     Upload a file to a signed URL (e.g., S3 pre-signed PUT) with retries, Comfy progress display, and interruption.
 
     Raises:
-        ProcessingInterrupted, LocalNetworkError, ApiServerError, Exception
+        ProcessingInterrupted, LocalNetworkError, ApiServerError, ApiHttpError, Exception
     """
     if isinstance(file, BytesIO):
         with contextlib.suppress(Exception):
@@ -266,20 +266,7 @@ async def upload_file(
         attempt += 1
         operation_id = _generate_operation_id("PUT", upload_url, attempt, op_uuid)
         timeout = aiohttp.ClientTimeout(total=None)
-        stop_evt = asyncio.Event()
 
-        async def _monitor():
-            try:
-                while not stop_evt.is_set():
-                    if is_processing_interrupted():
-                        return
-                    if wait_label:
-                        _display_time_progress(cls, wait_label, int(time.monotonic() - start_ts), None)
-                    await asyncio.sleep(1.0)
-            except asyncio.CancelledError:
-                return
-
-        monitor_task = asyncio.create_task(_monitor())
         sess: aiohttp.ClientSession | None = None
         try:
             request_logger.log_request_response(
@@ -292,19 +279,16 @@ async def upload_file(
             )
 
             sess = aiohttp.ClientSession(timeout=timeout)
-            req = sess.put(upload_url, data=data, headers=headers, skip_auto_headers=skip_auto_headers)
-            req_task = asyncio.create_task(req)
-
-            done, pending = await asyncio.wait({req_task, monitor_task}, return_when=asyncio.FIRST_COMPLETED)
-
-            if monitor_task in done and req_task in pending:
-                req_task.cancel()
-                raise ProcessingInterrupted("Upload cancelled")
-
-            try:
-                resp = await req_task
-            except asyncio.CancelledError:
-                raise ProcessingInterrupted("Upload cancelled") from None
+            tick = (
+                (lambda: _display_time_progress(cls, wait_label, int(time.monotonic() - start_ts), None))
+                if wait_label
+                else None
+            )
+            resp = await await_with_interrupt_monitor(
+                lambda: sess.put(upload_url, data=data, headers=headers, skip_auto_headers=skip_auto_headers),
+                tick=tick,
+                cancelled_message="Upload cancelled",
+            )
 
             async with resp:
                 if resp.status >= 400:
@@ -333,7 +317,7 @@ async def upload_file(
                         )
                         delay *= retry_backoff
                         continue
-                    raise Exception(f"Failed to upload (HTTP {resp.status}).")
+                    raise ApiHttpError(f"Failed to upload (HTTP {resp.status}).", resp.status)
                 request_logger.log_request_response(
                     operation_id=operation_id,
                     request_method="PUT",
@@ -372,11 +356,6 @@ async def upload_file(
                 ) from e
             raise ApiServerError("The API service appears unreachable at this time.") from e
         finally:
-            stop_evt.set()
-            if monitor_task:
-                monitor_task.cancel()
-                with contextlib.suppress(Exception):
-                    await monitor_task
             if sess:
                 with contextlib.suppress(Exception):
                     await sess.close()

@@ -3,7 +3,8 @@ import contextlib
 import os
 import re
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
+from typing import TypeVar
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from io import BytesIO
@@ -144,6 +145,55 @@ async def sleep_with_interrupt(
         if now >= end:
             break
         await asyncio.sleep(min(1.0, end - now))
+
+
+async def poll_for_interrupt(stop_evt: asyncio.Event, tick: Callable[[], None] | None = None):
+    """Poll for interruption every second until stopped; returns instead of raising."""
+    try:
+        while not stop_evt.is_set():
+            if is_processing_interrupted():
+                return
+            if tick is not None:
+                tick()
+            await asyncio.sleep(1.0)
+    except asyncio.CancelledError:
+        return
+
+
+T = TypeVar("T")
+
+
+async def await_with_interrupt_monitor(
+    make_request: Callable[[], Awaitable[T]],
+    *,
+    tick: Callable[[], None] | None = None,
+    cancelled_message: str = "Task cancelled",
+) -> T:
+    """
+    Run a request raced against a per-second interruption poll. Returns the
+    request result when it wins the race; raises ProcessingInterrupted when
+    the poll observes an interruption first. The poll task is always stopped.
+    """
+    stop_evt = asyncio.Event()
+    monitor_task = asyncio.create_task(poll_for_interrupt(stop_evt, tick))
+    req_task = asyncio.create_task(make_request())
+    try:
+        done, pending = await asyncio.wait({req_task, monitor_task}, return_when=asyncio.FIRST_COMPLETED)
+        if monitor_task in done and req_task in pending:
+            req_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await req_task
+            raise ProcessingInterrupted(cancelled_message)
+        try:
+            return await req_task
+        except asyncio.CancelledError:
+            raise ProcessingInterrupted(cancelled_message) from None
+    finally:
+        stop_evt.set()
+        if not monitor_task.done():
+            monitor_task.cancel()
+        with contextlib.suppress(Exception):
+            await monitor_task
 
 
 def _retry_after_wait(value: str | None, fallback: float, max_wait: float) -> float:
