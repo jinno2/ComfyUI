@@ -14,6 +14,9 @@ permissions:
 
 jobs:
   cla-assistant:
+    # Signing writes to the central comfy-org/comfy-cla repo via a secret that
+    # only exists on the upstream repository; the check can never pass on forks.
+    if: github.repository == 'Comfy-Org/ComfyUI'
     runs-on: ubuntu-latest
     steps:
       # The CLA action normally requires every commit author in a PR to sign.
