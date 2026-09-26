@@ -93,3 +93,26 @@ def test_memory_fit_batch_falls_back_to_first_candidate():
     to_batch = samplers._plan_memory_fit_batch(to_run, to_batch_temp, first_shape, 1.0, FakeMemoryModel(1e12))
 
     assert to_batch == [3]
+
+
+def test_aggregate_accumulates_weighted_output():
+    out_conds = [torch.zeros(1, 2, 4)]
+    out_counts = [torch.zeros(1, 2, 4)]
+
+    samplers._accumulate_cond_output(out_conds, out_counts, 0, torch.ones(1, 2, 4) * 3.0, torch.full((1, 2, 4), 2.0), None)
+
+    torch.testing.assert_close(out_conds[0], torch.full((1, 2, 4), 6.0))
+    torch.testing.assert_close(out_counts[0], torch.full((1, 2, 4), 2.0))
+
+
+def test_aggregate_applies_area_narrowing():
+    out = torch.zeros(1, 1, 8)
+    out_conds = [out]
+    out_counts = [torch.zeros(1, 1, 8)]
+
+    samplers._accumulate_cond_output(out_conds, out_counts, 0, torch.ones(1, 1, 4), torch.ones(1, 1, 4), [4, 2])
+
+    torch.testing.assert_close(out[0, 0, 2:6], torch.ones(4))
+    assert torch.all(out[0, 0, :2] == 0)
+    assert torch.all(out[0, 0, 6:] == 0)
+    torch.testing.assert_close(out_counts[0][0, 0, 2:6], torch.ones(4))

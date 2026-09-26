@@ -263,11 +263,24 @@ def _plan_memory_fit_batch(to_run, to_batch_temp, first_shape, free_memory, mode
             break
     return to_batch
 
+def _accumulate_cond_output(out_conds, out_counts, cond_index, output, mult, area):
+    if area is None:
+        out_conds[cond_index] += output * mult
+        out_counts[cond_index] += mult
+    else:
+        out_c = out_conds[cond_index]
+        out_cts = out_counts[cond_index]
+        dims = len(area) // 2
+        for i in range(dims):
+            out_c = out_c.narrow(i + 2, area[i + dims], area[i])
+            out_cts = out_cts.narrow(i + 2, area[i + dims], area[i])
+        out_c += output * mult
+        out_cts += mult
+
 def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tensor, timestep: torch.Tensor, model_options: dict[str]):
-    # NOTE: keep in sync with _calc_cond_batch_multigpu below. Cond grouping and
-    # memory-fit batching are shared via _group_conds_by_hooks/_plan_memory_fit_batch;
-    # per-chunk output aggregation is still duplicated there with per-device
-    # scheduling on top.
+    # NOTE: keep in sync with _calc_cond_batch_multigpu below. Cond grouping,
+    # memory-fit batching, and output aggregation are shared helpers; this path
+    # runs batches inline while the multigpu path schedules them per device.
     if 'multigpu_clones' in model_options:
         return _calc_cond_batch_multigpu(model, conds, x_in, timestep, model_options)
     out_conds, out_counts, hooked_to_run, default_conds, has_default_conds = _group_conds_by_hooks(model, conds, x_in, timestep, model_options)
@@ -344,20 +357,7 @@ def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tens
                 output = model.apply_model(input_x, timestep_, **c).chunk(batch_chunks)
 
             for o in range(batch_chunks):
-                cond_index = cond_or_uncond[o]
-                a = area[o]
-                if a is None:
-                    out_conds[cond_index] += output[o] * mult[o]
-                    out_counts[cond_index] += mult[o]
-                else:
-                    out_c = out_conds[cond_index]
-                    out_cts = out_counts[cond_index]
-                    dims = len(a) // 2
-                    for i in range(dims):
-                        out_c = out_c.narrow(i + 2, a[i + dims], a[i])
-                        out_cts = out_cts.narrow(i + 2, a[i + dims], a[i])
-                    out_c += output[o] * mult[o]
-                    out_cts += mult[o]
+                _accumulate_cond_output(out_conds, out_counts, cond_or_uncond[o], output[o], mult[o], area[o])
 
     for i in range(len(out_conds)):
         out_conds[i] /= out_counts[i]
@@ -538,20 +538,7 @@ def _calc_cond_batch_multigpu(model: BaseModel, conds: list[list[dict]], x_in: t
         if error is not None:
             raise error
         for o in range(batch_chunks):
-            cond_index = cond_or_uncond[o]
-            a = area[o]
-            if a is None:
-                out_conds[cond_index] += output[o] * mult[o]
-                out_counts[cond_index] += mult[o]
-            else:
-                out_c = out_conds[cond_index]
-                out_cts = out_counts[cond_index]
-                dims = len(a) // 2
-                for i in range(dims):
-                    out_c = out_c.narrow(i + 2, a[i + dims], a[i])
-                    out_cts = out_cts.narrow(i + 2, a[i + dims], a[i])
-                out_c += output[o] * mult[o]
-                out_cts += mult[o]
+            _accumulate_cond_output(out_conds, out_counts, cond_or_uncond[o], output[o], mult[o], area[o])
 
     for i in range(len(out_conds)):
         out_conds[i] /= out_counts[i]
