@@ -359,11 +359,26 @@ def prompt_worker(q, server_instance, asset_manager):
                 extra_data[k] = sensitive[k]
 
             asset_manager.pause_background_scan()
-            e.execute(item[2], prompt_id, extra_data, item[4])
+            remove_sensitive = lambda prompt: prompt[:5] + prompt[6:]
+            try:
+                e.execute(item[2], prompt_id, extra_data, item[4])
+            except Exception:
+                logging.exception(f"Prompt {prompt_id} raised an unhandled exception; keeping the worker alive")
+                need_gc = True
+                # history_result is only assigned on success; never reuse a stale one
+                q.task_done(item_id,
+                            {},
+                            status=execution.PromptQueue.ExecutionStatus(
+                                status_str='error',
+                                completed=True,
+                                messages=[]), process_item=remove_sensitive)
+                if server_instance.client_id is not None:
+                    server_instance.send_sync("executing", {"node": None, "prompt_id": prompt_id}, server_instance.client_id)
+                asset_manager.resume_background_scan()
+                continue
 
             need_gc = True
 
-            remove_sensitive = lambda prompt: prompt[:5] + prompt[6:]
             q.task_done(item_id,
                         e.history_result,
                         status=execution.PromptQueue.ExecutionStatus(
