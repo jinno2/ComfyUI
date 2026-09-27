@@ -29,6 +29,7 @@ from server import PromptServer
 from . import request_logger
 from ._helpers import (
     _retry_after_wait,
+    await_with_interrupt_monitor,
     default_base_url,
     diagnose_connectivity,
     get_comfy_api_headers,
@@ -36,7 +37,7 @@ from ._helpers import (
     is_processing_interrupted,
     sleep_with_interrupt,
 )
-from .common_exceptions import ApiServerError, LocalNetworkError, ProcessingInterrupted
+from .common_exceptions import ApiHttpError, ApiServerError, LocalNetworkError, ProcessingInterrupted
 from .download_helpers import download_url_to_bytesio
 
 M = TypeVar("M", bound=BaseModel)
@@ -877,18 +878,6 @@ async def _request_base(cfg: _RequestConfig, expect_binary: bool):
     keyed = is_comfy_api_request and bool(cfg.idempotency_key)
     multipart_files = _normalize_files(cfg.files) if cfg.content_type == "multipart/form-data" and method != "GET" and cfg.files else []
 
-    async def _monitor(stop_evt: asyncio.Event, start_ts: float):
-        """Every second: update elapsed time and signal interruption."""
-        try:
-            while not stop_evt.is_set():
-                if is_processing_interrupted():
-                    return
-                if cfg.monitor_progress:
-                    _display_time_progress(cfg.node_cls, cfg.wait_label, int(time.monotonic() - start_ts))
-                await asyncio.sleep(1.0)
-        except asyncio.CancelledError:
-            return  # normal shutdown
-
     start_time = cfg.progress_origin_ts if cfg.progress_origin_ts is not None else time.monotonic()
     first_attempt_ts = time.monotonic()
     attempt = 0
@@ -903,8 +892,6 @@ async def _request_base(cfg: _RequestConfig, expect_binary: bool):
     while True:
         attempt += 1
         attempt_ts = time.monotonic()
-        stop_event = asyncio.Event()
-        monitor_task: asyncio.Task | None = None
         sess: aiohttp.ClientSession | None = None
 
         operation_id = _generate_operation_id(method, cfg.endpoint.path, attempt)
@@ -929,9 +916,6 @@ async def _request_base(cfg: _RequestConfig, expect_binary: bool):
             else None
         )
         try:
-            if cfg.monitor_progress:
-                monitor_task = asyncio.create_task(_monitor(stop_event, start_time))
-
             timeout = aiohttp.ClientTimeout(total=cfg.timeout)
             sess = aiohttp.ClientSession(timeout=timeout)
 
@@ -954,23 +938,13 @@ async def _request_base(cfg: _RequestConfig, expect_binary: bool):
                 request_data=request_body_log,
             )
 
-            req_coro = sess.request(method, url, params=params, **payload_kw)
-            req_task = asyncio.create_task(req_coro)
-
-            # Race: request vs. monitor (interruption)
-            tasks = {req_task}
-            if monitor_task:
-                tasks.add(monitor_task)
-            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-
-            if monitor_task and monitor_task in done:
-                # Interrupted – cancel the request and abort
-                if req_task in pending:
-                    req_task.cancel()
-                raise ProcessingInterrupted("Task cancelled")
-
-            # Otherwise, request finished
-            resp = await req_task
+            if cfg.monitor_progress:
+                resp = await await_with_interrupt_monitor(
+                    lambda: sess.request(method, url, params=params, **payload_kw),
+                    tick=lambda: _display_time_progress(cfg.node_cls, cfg.wait_label, int(time.monotonic() - start_time)),
+                )
+            else:
+                resp = await sess.request(method, url, params=params, **payload_kw)
             async with resp:
                 if keyed and resp.headers.get(_IDEMPOTENT_REPLAYED_HEADER):
                     logging.info("Server replayed the response of a previous attempt for %s %s", method, url)
@@ -992,7 +966,7 @@ async def _request_base(cfg: _RequestConfig, expect_binary: bool):
                             response_content=body,
                             error_message=msg,
                         )
-                        raise Exception(msg)
+                        raise ApiHttpError(msg, resp.status)
                     should_retry = False
                     in_flight = False
                     wait_time = 0.0
@@ -1017,7 +991,7 @@ async def _request_base(cfg: _RequestConfig, expect_binary: bool):
                                 response_content=body,
                                 error_message=msg,
                             )
-                            raise Exception(msg)
+                            raise ApiHttpError(msg, resp.status)
                         in_flight_waits += 1
                         in_flight = True
                         retries_used = 0
@@ -1088,7 +1062,7 @@ async def _request_base(cfg: _RequestConfig, expect_binary: bool):
                         response_content=body,
                         error_message=msg,
                     )
-                    raise Exception(msg)
+                    raise ApiHttpError(msg, resp.status)
 
                 if expect_binary:
                     bytes_payload = await _read_binary_body(resp, cfg, start_time)
@@ -1207,11 +1181,6 @@ async def _request_base(cfg: _RequestConfig, expect_binary: bool):
                 f"The service may be experiencing issues."
             ) from e
         finally:
-            stop_event.set()
-            if monitor_task:
-                monitor_task.cancel()
-                with contextlib.suppress(Exception):
-                    await monitor_task
             if sess:
                 with contextlib.suppress(Exception):
                     await sess.close()

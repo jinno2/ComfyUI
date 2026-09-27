@@ -268,7 +268,7 @@ class PromptServer():
 
         @routes.get('/ws')
         async def websocket_handler(request):
-            ws = web.WebSocketResponse()
+            ws = web.WebSocketResponse(heartbeat=30.0)
             await ws.prepare(request)
             sid = request.rel_url.query.get('clientId', '')
             if sid:
@@ -322,8 +322,9 @@ class PromptServer():
                         except Exception as e:
                             logging.error(f"Error processing WebSocket message: {e}")
             finally:
-                self.sockets.pop(sid, None)
-                self.sockets_metadata.pop(sid, None)
+                if self.sockets.get(sid) is ws:
+                    self.sockets.pop(sid, None)
+                    self.sockets_metadata.pop(sid, None)
             return ws
 
         @routes.get("/")
@@ -1170,19 +1171,10 @@ class PromptServer():
             # Check if a specific prompt_id was provided for targeted interruption
             prompt_id = json_data.get('prompt_id')
             if prompt_id:
-                currently_running, _ = self.prompt_queue.get_current_queue()
-
-                # Check if the prompt_id matches any currently running prompt
-                should_interrupt = False
-                for item in currently_running:
-                    # item structure: (number, prompt_id, prompt, extra_data, outputs_to_execute)
-                    if item[1] == prompt_id:
-                        logging.info(f"Interrupting prompt {prompt_id}")
-                        should_interrupt = True
-                        break
-
-                if should_interrupt:
-                    nodes.interrupt_processing()
+                # Atomic: only interrupts if the prompt is still the one running,
+                # so a finished job cannot leak the flag onto its successor
+                if self.prompt_queue.interrupt_if_running(prompt_id):
+                    logging.info(f"Interrupting prompt {prompt_id}")
                 else:
                     logging.info(f"Prompt {prompt_id} is not currently running, skipping interrupt")
             else:
