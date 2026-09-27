@@ -122,4 +122,3 @@ def make_all(prompt, count=10):
 prompt = json.loads(prompt_text)
 make_all(prompt)
 
-
