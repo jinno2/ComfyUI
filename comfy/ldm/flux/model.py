@@ -265,7 +265,6 @@ class Flux(nn.Module):
 
         extra_kwargs = {}
         if timestep_zero_index is not None:
-            lambda a: 0 if a == 0 else a + txt.shape[1]
             modulation_dims_combined = list(map(lambda x: (0 if x[0] == 0 else x[0] + txt.shape[1], x[1] + txt.shape[1], x[2]), modulation_dims))
             extra_kwargs["modulation_dims"] = modulation_dims_combined
 
