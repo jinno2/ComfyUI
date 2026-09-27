@@ -316,6 +316,16 @@ def cuda_malloc_warning():
             logging.warning("\nWARNING: this card most likely does not support cuda-malloc, if you get \"CUDA error\" please run ComfyUI with: --disable-cuda-malloc\n")
 
 
+def log_task_event(prompt_id, status, extra_data, elapsed_ms):
+    # Structured completion fact for log-tailing launchers, mirroring the
+    # [assets-event] pattern. Only injection-safe values ride along.
+    fields = f"prompt_id={prompt_id} status={status} elapsed_ms={elapsed_ms}"
+    create_ms = extra_data.get("create_time")
+    if isinstance(create_ms, int) and not isinstance(create_ms, bool):
+        fields += f" wait_ms={max(0, int(time.time() * 1000) - create_ms)}"
+    logging.info("[task-event] task.completed %s", fields)
+
+
 def prompt_worker(q, server_instance, asset_manager):
     current_time: float = 0.0
     cache_ram = 0
@@ -375,6 +385,7 @@ def prompt_worker(q, server_instance, asset_manager):
                 if server_instance.client_id is not None:
                     server_instance.send_sync("executing", {"node": None, "prompt_id": prompt_id}, server_instance.client_id)
                 asset_manager.resume_background_scan()
+                log_task_event(prompt_id, 'error', extra_data, int((time.perf_counter() - execution_start_time) * 1000))
                 continue
 
             need_gc = True
@@ -390,6 +401,7 @@ def prompt_worker(q, server_instance, asset_manager):
 
             current_time = time.perf_counter()
             execution_time = current_time - execution_start_time
+            log_task_event(prompt_id, 'success' if e.success else 'error', extra_data, int(execution_time * 1000))
 
             # Log Time in a more readable way after 10 minutes
             if execution_time > 600:

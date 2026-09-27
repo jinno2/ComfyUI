@@ -6,6 +6,7 @@ told execution ended, the background asset scan is resumed, and the next
 queued prompt still runs.
 """
 
+import logging
 import threading
 import time
 
@@ -121,3 +122,33 @@ def test_prompt_worker_survives_executor_exception(monkeypatch):
 
     queue.resumed.set()
     worker.join(timeout=1)
+
+
+def test_prompt_worker_emits_structured_task_events(caplog, monkeypatch):
+    caplog.set_level(logging.INFO)
+    monkeypatch.setattr(main.execution, "PromptExecutor", FakeExecutor)
+
+    items = [
+        ((0, "plain", {}, {}, [], {}), "plain"),
+        ((0, "stamped", {}, {"create_time": int(time.time() * 1000) - 5000}, [], {}), "stamped"),
+        ((0, "boom", {}, {}, [], {}), "boom"),
+    ]
+    queue = FakeQueue(items)
+    worker = threading.Thread(target=main.prompt_worker, args=(queue, FakeServer(), FakeAssetManager()), daemon=True)
+    worker.start()
+
+    deadline = time.monotonic() + 10
+    while len(queue.done) < 3 and time.monotonic() < deadline:
+        time.sleep(0.01)
+
+    queue.resumed.set()
+    worker.join(timeout=1)
+
+    lines = [record.getMessage() for record in caplog.records if "[task-event]" in record.getMessage()]
+    by_prompt = {line.split()[2].split("=")[1]: line for line in lines}
+    assert set(by_prompt) == {"plain", "stamped", "boom"}
+    assert "prompt_id=plain status=success elapsed_ms=" in by_prompt["plain"]
+    assert "prompt_id=boom status=error elapsed_ms=" in by_prompt["boom"]
+    assert "wait_ms=" not in by_prompt["plain"]
+    assert "prompt_id=stamped status=success" in by_prompt["stamped"]
+    assert "wait_ms=" in by_prompt["stamped"]
