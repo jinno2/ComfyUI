@@ -106,6 +106,13 @@ cache_helper = CacheHelper()
 extension_mimetypes_cache = {
     "webp" : "image",
     "fbx" : "model",
+    "flac": "audio",
+    "m4a": "audio",
+    "ogg": "audio",
+    "m4v": "video",
+    "mkv": "video",
+    "ogv": "video",
+    "wmv": "video",
 }
 
 def map_legacy(folder_name: str) -> str:
