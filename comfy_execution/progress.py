@@ -16,7 +16,7 @@ PreviewImageTuple = Tuple[str, Image.Image, Optional[int]]
 
 # progress_state snapshots carry every active node; per-step update calls can
 # arrive far faster than any UI can render, so coalesce them by time
-PROGRESS_STATE_MIN_INTERVAL = 0.1
+PROGRESS_STATE_MIN_INTERVAL = 1.0
 
 class NodeState(Enum):
     Pending = "pending"
