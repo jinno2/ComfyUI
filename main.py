@@ -23,7 +23,7 @@ file_log_outputs = get_file_log_outputs(args.verbose)
 setup_logger(log_level=console_log_level, file_outputs=file_log_outputs, use_stdout=args.log_stdout)
 
 from app.database.db import dependencies_available, init_db
-from app.assets.lifecycle import cleanup_temp_filesystem
+from app.assets.lifecycle import cleanup_stale_temp_files, cleanup_temp_filesystem
 from app.assets.manager import AssetManager, default_asset_manager
 import itertools
 import utils.extra_config
@@ -359,11 +359,26 @@ def prompt_worker(q, server_instance, asset_manager):
                 extra_data[k] = sensitive[k]
 
             asset_manager.pause_background_scan()
-            e.execute(item[2], prompt_id, extra_data, item[4])
+            remove_sensitive = lambda prompt: prompt[:5] + prompt[6:]
+            try:
+                e.execute(item[2], prompt_id, extra_data, item[4])
+            except Exception:
+                logging.exception(f"Prompt {prompt_id} raised an unhandled exception; keeping the worker alive")
+                need_gc = True
+                # history_result is only assigned on success; never reuse a stale one
+                q.task_done(item_id,
+                            {},
+                            status=execution.PromptQueue.ExecutionStatus(
+                                status_str='error',
+                                completed=True,
+                                messages=[]), process_item=remove_sensitive)
+                if server_instance.client_id is not None:
+                    server_instance.send_sync("executing", {"node": None, "prompt_id": prompt_id}, server_instance.client_id)
+                asset_manager.resume_background_scan()
+                continue
 
             need_gc = True
 
-            remove_sensitive = lambda prompt: prompt[:5] + prompt[6:]
             q.task_done(item_id,
                         e.history_result,
                         status=execution.PromptQueue.ExecutionStatus(
@@ -404,6 +419,8 @@ def prompt_worker(q, server_instance, asset_manager):
                 last_gc_collect = current_time
                 need_gc = False
                 hook_breaker_ac10a0.restore_functions()
+                if not asset_manager.enabled:
+                    cleanup_stale_temp_files()
 
                 asset_manager.queue_output_scan()
                 asset_manager.resume_background_scan()

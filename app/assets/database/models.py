@@ -1,8 +1,8 @@
 """Declares the asset schema: content rows describing bytes on disk, records
 describing what a user sees, and the tag and metadata tables hanging off them.
 The split is the point — many records can name one content row, and retiring
-content by marking it missing rather than deleting it is what keeps a path's
-history intact. Constraints declared here, not application code, are what make
+content by marking it missing rather than deleting it keeps a path's history
+available for recovery until cleanup. Constraints declared here are what make
 a negative size or a second live row at one path impossible.
 """
 
@@ -54,6 +54,7 @@ class AssetContent(Base):
     is_missing: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="0"
     )
+    missing_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=False), nullable=False, default=get_utc_now
     )
@@ -61,6 +62,7 @@ class AssetContent(Base):
     records: Mapped[list[Asset]] = relationship(back_populates="content")
 
     __table_args__ = (
+        Index("ix_asset_contents_missing_at", "is_missing", "missing_at"),
         Index(
             "uq_asset_contents_path_live",
             "path",
