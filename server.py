@@ -270,17 +270,7 @@ class PromptServer():
         async def websocket_handler(request):
             ws = web.WebSocketResponse(heartbeat=30.0)
             await ws.prepare(request)
-            sid = request.rel_url.query.get('clientId', '')
-            if sid:
-                # Reusing existing session, remove old
-                self.sockets.pop(sid, None)
-            else:
-                sid = uuid.uuid4().hex
-
-            # Store WebSocket for backward compatibility
-            self.sockets[sid] = ws
-            # Store metadata separately
-            self.sockets_metadata[sid] = {"feature_flags": {}}
+            sid = self._register_socket(ws, request.rel_url.query.get('clientId', ''))
 
             try:
                 # Send initial state to the new client
@@ -322,9 +312,7 @@ class PromptServer():
                         except Exception as e:
                             logging.error(f"Error processing WebSocket message: {e}")
             finally:
-                if self.sockets.get(sid) is ws:
-                    self.sockets.pop(sid, None)
-                    self.sockets_metadata.pop(sid, None)
+                self._release_socket(ws, sid)
             return ws
 
         @routes.get("/")
@@ -1281,6 +1269,25 @@ class PromptServer():
         exec_info['queue_remaining'] = self.prompt_queue.get_tasks_remaining()
         prompt_info['exec_info'] = exec_info
         return prompt_info
+
+    def _register_socket(self, ws, requested_sid):
+        # Only place a ws session id is claimed. Any future clientId ownership
+        # check (e.g. verifying a token alongside the requested sid) goes here.
+        sid = requested_sid
+        if sid:
+            # Reusing existing session, remove old
+            self.sockets.pop(sid, None)
+        else:
+            sid = uuid.uuid4().hex
+        self.sockets[sid] = ws
+        self.sockets_metadata[sid] = {"feature_flags": {}}
+        return sid
+
+    def _release_socket(self, ws, sid):
+        # The identity guard keeps a newer connection with the same sid alive.
+        if self.sockets.get(sid) is ws:
+            self.sockets.pop(sid, None)
+            self.sockets_metadata.pop(sid, None)
 
     async def send(self, event, data, sid=None):
         if event == BinaryEventTypes.UNENCODED_PREVIEW_IMAGE:
