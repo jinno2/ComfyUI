@@ -15,6 +15,7 @@ from enum import Enum
 from typing import Any, Callable, TypedDict
 
 from app.assets.event_log import emit, error_type
+from app.assets.lifecycle import purge_stale_missing_contents_safely
 from app.assets.scanner import (
     RootType,
     build_asset_specs,
@@ -617,6 +618,7 @@ class _AssetSeeder:
                 )
                 return
 
+            purge_stale_missing_contents_safely()
             emit("seeder.scan_started", phase=phase.value, root=root)
             assert self._scan_state is not None
             scan_state = self._scan_state

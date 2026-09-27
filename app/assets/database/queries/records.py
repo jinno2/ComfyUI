@@ -317,6 +317,8 @@ def mark_content_missing(session: Session, content_id: str) -> None:
     content = session.get(AssetContent, content_id)
     if content is None:
         raise LookupError(content_id)
+    if not content.is_missing:
+        content.missing_at = get_utc_now()
     content.is_missing = True
     ensure_tag(session, "missing")
     for record_id in session.scalars(sa.select(Asset.id).where(Asset.content_id == content_id)):
@@ -329,5 +331,6 @@ def unset_content_missing(session: Session, content_id: str) -> None:
     if content is None:
         raise LookupError(content_id)
     content.is_missing = False
+    content.missing_at = None
     session.execute(sa.delete(AssetTag).where(AssetTag.tag_name == "missing", AssetTag.asset_id.in_(sa.select(Asset.id).where(Asset.content_id == content_id))))
     session.flush()

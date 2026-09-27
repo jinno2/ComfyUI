@@ -1,16 +1,35 @@
-# AUTOMATION.md — ComfyUI
+# AUTOMATION.md — ComfyUI fork
 
-大ゴール: AIによる全自動開発の実現。人間より圧倒的に効率的に。(fleet共通)
+## Driver
 
-## 発火 (Driver)
-- crontab: 0本(2026-09-15 実測・全41行との突合)
-- GitHub Actions: 25本(上流由来・当repoでは運用しない)
+TAS autopilot が `~` 配下の本リポを発見し、自律開発を駆動する。Comfy-Org/ComfyUI には自動追従せず、上流の取り込みは所有者の明示指示時のみ行う。
 
-## 対象外宣言 (fork・upstreamのみ)
-本repoは https://github.com/jinno2/ComfyUI のlocal clone(jinnoのfork・上流追従対象)。発火・運用の正本は上流。fleet運用対象外。
+## Schedule
+
+`tas-autopilot.timer` は5分ごと。Woodpecker は PR と `main` への push で `.woodpecker.yml` を実行する。
+
+## Entrypoint
+
+開発タスクは TAS 制御平面から dispatch する。Woodpecker の自前エージェントで Ruff と `tests-unit` を実行する。
+
+## Stall Policy
+
+再試行と停滞検知は TAS が担当する。CI が失敗したらコードを直し、GitHub 提供ランナーへ切り替えない。
+
+## Coordination
+
+開発 dispatch は TAS、テストゲートは Woodpecker が担当する。このフォークでは GitHub Actions を無効化済み。残る上流由来の workflow は実行されない。
 
 ## Kill Switch
-該当する発火なし
+
+本リポの新規タスク停止は TAS 制御平面で設定する。`systemctl --user stop tas-autopilot.timer` はこのホストの全リポの dispatch を止める。
 
 ## Status
-2026-09-15 初版整備(実測: crontab突合・workflow列挙)。fleet台帳: /home/jinno/business_notes/AUTOMATION.md
+
+稼働中：TAS timer 有効、Woodpecker リポ有効、GitHub Actions 無効（2026-09-27）。
+
+## Notes
+
+worktree と branch の後処理は TAS が担当する。driver 変更時は本書を更新する。
+
+_最終更新: 2026-09-27_
