@@ -9,7 +9,14 @@ queued prompt still runs.
 import threading
 import time
 
-import main
+import torch
+
+from comfy.cli_args import args as cli_args
+
+if not torch.cuda.is_available():
+    cli_args.cpu = True
+
+import main  # noqa: E402
 
 
 class FakeExecutor:
