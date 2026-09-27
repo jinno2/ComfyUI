@@ -270,7 +270,7 @@ class PromptServer():
         async def websocket_handler(request):
             ws = web.WebSocketResponse(heartbeat=30.0)
             await ws.prepare(request)
-            sid = self._register_socket(ws, request.rel_url.query.get('clientId', ''))
+            sid = self._register_socket(ws, request)
 
             try:
                 # Send initial state to the new client
@@ -1270,17 +1270,24 @@ class PromptServer():
         prompt_info['exec_info'] = exec_info
         return prompt_info
 
-    def _register_socket(self, ws, requested_sid):
+    def _register_socket(self, ws, request):
         # Only place a ws session id is claimed. Any future clientId ownership
-        # check (e.g. verifying a token alongside the requested sid) goes here.
-        sid = requested_sid
+        # check (e.g. verifying a token or comparing the request source) goes here.
+        sid = request.rel_url.query.get('clientId', '')
         if sid:
             # Reusing existing session, remove old
+            old = self.sockets_metadata.get(sid)
+            if old is not None:
+                logging.info("ws session %s taken over: %s -> %s", sid, old.get("remote"), request.remote)
             self.sockets.pop(sid, None)
         else:
             sid = uuid.uuid4().hex
         self.sockets[sid] = ws
-        self.sockets_metadata[sid] = {"feature_flags": {}}
+        self.sockets_metadata[sid] = {
+            "feature_flags": {},
+            "remote": request.remote,
+            "origin": request.headers.get("Origin"),
+        }
         return sid
 
     def _release_socket(self, ws, sid):
