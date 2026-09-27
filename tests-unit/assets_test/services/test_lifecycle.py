@@ -2,20 +2,23 @@ import logging
 import os
 import tempfile
 from contextlib import contextmanager
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, update
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import Session as SASession
 
 from app.assets import lifecycle
-from app.assets.database.models import Asset, AssetContent, Base
-from app.assets.database.queries.records import create_content, create_record
+from app.assets.database.models import Asset, AssetContent, AssetMeta, AssetTag, Base
+from app.assets.database.queries.records import create_content, create_record, mark_content_missing, unset_content_missing
+from app.assets.helpers import get_utc_now
 from app.assets.lifecycle import (
     cleanup_temp_filesystem,
     get_excluded_scan_roots,
+    purge_stale_missing_contents,
     run_asset_shutdown_cleanup,
     run_asset_startup,
     run_startup,
@@ -84,6 +87,49 @@ def _seed_temp_rows(session: Session, temp_dir: Path) -> tuple[str, str]:
     record = create_record(session, content_id=content.id, name="preview.png")
     session.commit()
     return record.id, content.id
+
+
+def test_purge_stale_missing_contents_keeps_recent_and_live_rows(session):
+    stale = create_content(session, path="/tmp/stale")
+    stale_record = create_record(session, content_id=stale.id, name="stale", tags=["custom"])
+    session.add(AssetMeta(asset_id=stale_record.id, key="note", val_str="keep until purge"))
+    recent = create_content(session, path="/tmp/recent")
+    recent_record = create_record(session, content_id=recent.id, name="recent")
+    live = create_content(session, path="/tmp/live")
+    live_record = create_record(session, content_id=live.id, name="live")
+    mark_content_missing(session, stale.id)
+    mark_content_missing(session, recent.id)
+    session.execute(update(Asset).where(Asset.id == recent_record.id).values(preview_id=stale_record.id))
+    stale.missing_at = get_utc_now() - lifecycle.MISSING_CONTENT_MAX_AGE - timedelta(seconds=1)
+    live.created_at = stale.missing_at
+    session.commit()
+    stale_id, stale_record_id = stale.id, stale_record.id
+    recent_id, recent_record_id = recent.id, recent_record.id
+    live_record_id = live_record.id
+
+    assert purge_stale_missing_contents(session) == 1
+    session.commit()
+    session.expire_all()
+
+    assert session.get(AssetContent, stale_id) is None
+    assert session.get(Asset, stale_record_id) is None
+    assert session.get(AssetMeta, (stale_record_id, "note", 0)) is None
+    assert session.get(AssetTag, (stale_record_id, "custom")) is None
+    assert session.get(Asset, recent_record_id).preview_id is None
+    assert session.get(AssetContent, recent_id) is not None
+    assert session.get(Asset, live_record_id) is not None
+
+
+def test_missing_age_resets_after_recovery(session):
+    content = create_content(session, path="/tmp/restored")
+    mark_content_missing(session, content.id)
+    first_missing_at = content.missing_at
+    mark_content_missing(session, content.id)
+    assert content.missing_at == first_missing_at
+    unset_content_missing(session, content.id)
+    assert content.missing_at is None
+    mark_content_missing(session, content.id)
+    assert content.missing_at is not None and content.missing_at >= first_missing_at
 
 
 def test_startup_order_wipe_before_rmtree_before_seeder(mock_create_session):

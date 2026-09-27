@@ -268,7 +268,7 @@ class PromptServer():
 
         @routes.get('/ws')
         async def websocket_handler(request):
-            ws = web.WebSocketResponse()
+            ws = web.WebSocketResponse(heartbeat=30.0)
             await ws.prepare(request)
             sid = request.rel_url.query.get('clientId', '')
             if sid:
@@ -322,8 +322,9 @@ class PromptServer():
                         except Exception as e:
                             logging.error(f"Error processing WebSocket message: {e}")
             finally:
-                self.sockets.pop(sid, None)
-                self.sockets_metadata.pop(sid, None)
+                if self.sockets.get(sid) is ws:
+                    self.sockets.pop(sid, None)
+                    self.sockets_metadata.pop(sid, None)
             return ws
 
         @routes.get("/")

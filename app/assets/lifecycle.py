@@ -12,13 +12,14 @@ import logging
 import os
 import shutil
 import time
+from datetime import timedelta
 
 import folder_paths
-from sqlalchemy import select
+from sqlalchemy import delete, select, update
 
-from app.assets.database.models import Asset, AssetContent
+from app.assets.database.models import Asset, AssetContent, AssetMeta, AssetTag
 from app.assets.database.queries.records import delete_record
-from app.assets.helpers import sql_path_under_prefix
+from app.assets.helpers import get_utc_now, sql_path_under_prefix
 from app.assets.services.hash_mode_state import enqueue_transition_work
 from app.assets.services.hash_mode_state import record_transition_intent
 from app.database.db import can_create_session, create_session
@@ -95,6 +96,32 @@ def cleanup_temp_filesystem() -> bool:
 
 
 STALE_TEMP_MAX_AGE = 24 * 60 * 60
+MISSING_CONTENT_MAX_AGE = timedelta(days=30)
+
+
+def purge_stale_missing_contents(session) -> int:
+    cutoff = get_utc_now() - MISSING_CONTENT_MAX_AGE
+    stale_content_ids = select(AssetContent.id).where(
+        AssetContent.is_missing.is_(True), AssetContent.missing_at < cutoff
+    )
+    if session.scalar(stale_content_ids.limit(1)) is None:
+        return 0
+    stale_record_ids = select(Asset.id).where(Asset.content_id.in_(stale_content_ids))
+    session.execute(update(Asset).where(Asset.preview_id.in_(stale_record_ids)).values(preview_id=None))
+    session.execute(delete(AssetMeta).where(AssetMeta.asset_id.in_(stale_record_ids)))
+    session.execute(delete(AssetTag).where(AssetTag.asset_id.in_(stale_record_ids)))
+    session.execute(delete(Asset).where(Asset.id.in_(stale_record_ids)))
+    result = session.execute(delete(AssetContent).where(AssetContent.id.in_(stale_content_ids)))
+    return result.rowcount
+
+
+def purge_stale_missing_contents_safely() -> None:
+    try:
+        with create_session() as session:
+            purge_stale_missing_contents(session)
+            session.commit()
+    except Exception:
+        logging.exception("Stale missing asset cleanup failed")
 
 
 def cleanup_stale_temp_files(max_age_seconds: float = STALE_TEMP_MAX_AGE) -> int:
