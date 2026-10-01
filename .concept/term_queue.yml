@@ -201,3 +201,49 @@ queue:
     promoted_id: "TERM-VAE"
     expires_after_runs: 10
     created_run: "2026-10-01T15:05:32Z"
+  - id: "TP-000012"
+    proposed_canonical: "NodeRegistry"
+    proposed_layer: "aux"
+    term_raw_examples: ["NODE_CLASS_MAPPINGS", "node registration", "init_extra_nodes"]
+    reason: "ノード登録機構（nodes.py の全局 NODE_CLASS_MAPPINGS）。V2 モジュール dict 登録と V3 comfy_entrypoint/io.Schema node_id 登録の二経路、custom node によるコア名シャドウ禁止（ignore セット）を 2026-10-01T15:39:35Z run で実コード確認。CODEBASE_ANALYSIS.md 2.4 節が権威記述"
+    evidence:
+      - source: "nodes.py#L2073"
+        quote: "NODE_CLASS_MAPPINGS = {"
+      - source: "nodes.py#L2330-L2334"
+        quote: "schema = node_cls.GET_SCHEMA() ... NODE_CLASS_MAPPINGS[schema.node_id] = node_cls"
+      - source: "nodes.py#L2362"
+        quote: "base_node_names = set(NODE_CLASS_MAPPINGS.keys())"
+      - source: "nodes.py#L2386"
+        quote: "success = await load_custom_node(module_path, base_node_names, module_parent=\"custom_nodes\")"
+      - source: "nodes.py#L2579"
+        quote: "async def init_extra_nodes(init_custom_nodes=True, init_api_nodes=True):"
+    auto_merge_candidates:
+      - term: "CoreComfyUI"
+        similarity: 0.52
+    merge_review: "CoreComfyUI は本体コード全体の境界概念、NodeRegistry は NODE_CLASS_MAPPINGS 登録機構という具体機構。粒度が異なり統合せず related_terms でリンク予定"
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T15:39:35Z"
+  - id: "TP-000013"
+    proposed_canonical: "ModelDetection"
+    proposed_layer: "aux"
+    term_raw_examples: ["detect_unet_config", "model detection", "state_dict fingerprint"]
+    reason: "state_dict フィンガープリント→supported_models 照合のモデル検出境界。AGENTS.md のモデル検出規定（線形重みは第1次元のみ・検出署名の全キーガード・確立署名順）の帰着先。CODEBASE_ANALYSIS.md 1節・2.3節が権威記述、model_detection_test.py でテスト済み"
+    evidence:
+      - source: "comfy/model_detection.py#L44"
+        quote: "def detect_unet_config(state_dict, key_prefix, metadata=None):"
+      - source: "comfy/model_detection.py#L1313-L1314"
+        quote: "def model_config_from_unet_config(unet_config, state_dict=None, unet_key_prefix=\"\"): ... for model_config in comfy.supported_models.models:"
+      - source: "comfy/supported_models_base.py#L57"
+        quote: "def matches(s, unet_config, state_dict=None, unet_key_prefix=\"\"):"
+      - source: "comfy/supported_models.py#L2557"
+        quote: "models = ["
+      - source: "tests-unit/comfy_test/model_detection_test.py#L5"
+        quote: "from comfy.model_detection import detect_unet_config, model_config_from_unet, model_config_from_unet_config"
+    auto_merge_candidates:
+      - term: "ModelOps"
+        similarity: 0.4
+    merge_review: "ModelOps は op ファクトリ選定（comfy/ops.py）、ModelDetection はアーキテクチャ同定（model_detection.py→supported_models）。担当モジュールも責務も異なるため統合対象外"
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T15:39:35Z"
