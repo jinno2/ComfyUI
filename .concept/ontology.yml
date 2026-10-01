@@ -180,3 +180,45 @@ canonical_terms:
         quote: "optimized_attention = attention_basic ... optimized_attention = attention_pytorch"
       - source: "comfy/ops.py#L68-L96"
         quote: "SDPA_BACKEND_PRIORITY = [SDPBackend.FLASH_ATTENTION, SDPBackend.CUDNN_ATTENTION, SDPBackend.EFFICIENT_ATTENTION, SDPBackend.MATH]"
+  ModelOps:
+    id: "TERM-MODELOPS"
+    layer: "domain"
+    status: "stable"
+    definition: "dtype/fp8/量子化 op ファクトリの選定境界。pick_operations が weight_dtype/compute_dtype/load_device から使用する op 集合を選び、BaseModel/controlnet がそれを取得する。フォーク独自の safe_linear（per-device CUDA matmul フォールバック）の保持先。"
+    synonyms: ["model ops", "pick_operations", "op factory"]
+    boundaries:
+      includes: ["pick_operations による op 集合選定", "fp8/quantized/mixed-precision op の提供", "safe_linear CUDA フォールバック"]
+      excludes: ["量子化レイアウトクラス本体 (QuantOps)", "VRAM/ロード方針の判断 (ModelManagement)", "ノードからのモデル数学直接実装"]
+    related_terms: ["QuantOps", "ModelManagement", "CoreComfyUI"]
+    evidence:
+      - source: "comfy/ops.py#L1811"
+        quote: "def pick_operations(weight_dtype, compute_dtype, load_device=None, disable_fast_fp8=False, fp8_optimizations=False, model_config=None):"
+      - source: "comfy/model_base.py#L182"
+        quote: "operations = comfy.ops.pick_operations(unet_config.get(\"dtype\", None), self.manual_cast_dtype, fp8_optimizations=fp8, model_config=model_config)"
+      - source: "comfy/ops.py#L1372-L1373"
+        quote: "def safe_linear(input, weight, bias): ... if input.device in CUDA_LINEAR_FORCE_MATMUL_DEVICES and _can_use_cuda_linear_matmul_fallback(input, weight):"
+      - source: "tests-unit/comfy_test/test_safe_linear.py#L1"
+        quote: "\"\"\"safe_linear CUDA fallback behavior tests (all CPU-safe).\"\"\""
+      - source: "docs/CODEBASE_ANALYSIS.md#L65"
+        quote: "ops.py(dtype/fp8/quantized op ファクトリ + フォーク独自 `safe_linear`)"
+  VAE:
+    id: "TERM-VAE"
+    layer: "domain"
+    status: "stable"
+    definition: "潜在表現と画素を相互変換する encode/decode の所有者。comfy/vae.py は存在せず class VAE は comfy/sd.py に所在し、diffusers 形式変換と tiled encode/decode を内包する。VAEDecode/VAEEncode 群ノードは VAE インスタンスの消費者。"
+    synonyms: ["variational autoencoder", "encoder/decoder"]
+    boundaries:
+      includes: ["encode/decode（tiled 含む）", "first-stage VAE のインスタンス所有と初期化", "SeedVR2 VAE 状態辞書検出"]
+      excludes: ["潜在レイアウト定義 (LatentFormat)", "ノードの I/O 契約 (nodes.py の VAEDecode 等は消費者)"]
+    related_terms: ["LatentFormat", "Sampler"]
+    evidence:
+      - source: "comfy/sd.py#L492"
+        quote: "class VAE:"
+      - source: "comfy/sd.py#L1164"
+        quote: "def decode_tiled_(self, samples, tile_x=64, tile_y=64, overlap = 16):"
+      - source: "nodes.py#L316"
+        quote: "class VAEDecode:"
+      - source: "tests-unit/comfy_test/test_vae_decode_tiled_nested.py#L16"
+        quote: "def test_vae_decode_tiled_unwraps_nested_tensor():"
+      - source: "tests-unit/comfy_test/seedvr_vae_forward_test.py#L1"
+        quote: "\"\"\"Regression tests for the SeedVR2 VAE forward return contract.\"\"\""

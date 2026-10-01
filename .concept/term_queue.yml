@@ -175,7 +175,11 @@ queue:
     auto_merge_candidates:
       - term: "QuantOps"
         similarity: 0.65
-    decision: "pending"
+    merge_review: "QuantOps は量子化レイアウトクラス本体（comfy/quant_ops.py）、ModelOps は op ファクトリ選定境界（comfy/ops.py）と担当モジュールが異なるため統合せず related_terms で相互リンク"
+    decision: "accepted"
+    promoted_run: "2026-10-01T15:26:22Z"
+    promoted_layer: "domain"
+    promoted_id: "TERM-MODELOPS"
     expires_after_runs: 10
     created_run: "2026-10-01T15:05:32Z"
   - id: "TP-000011"
@@ -191,6 +195,9 @@ queue:
       - source: "nodes.py#L316-L412"
         quote: "class VAEDecode: ... class VAEEncode:"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
+    promoted_run: "2026-10-01T15:26:22Z"
+    promoted_layer: "domain"
+    promoted_id: "TERM-VAE"
     expires_after_runs: 10
     created_run: "2026-10-01T15:05:32Z"

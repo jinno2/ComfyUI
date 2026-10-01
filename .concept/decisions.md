@@ -31,3 +31,19 @@
 - Expires After Runs: 20
 - Linked: TP-000008, TP-000009
 - Revert Triggers: primary_evidence_contradiction
+
+## AUTO:ontology.layer_assignment:ops_vae_domain
+- Status: ACTIVE
+- Chosen: ModelOps (TP-000010) / VAE (TP-000011) を domain に採用。ModelOps は QuantOps と similarity 0.65 だが担当モジュールが ops.py / quant_ops.py で分離するため統合せず related_terms 相互リンク。mixed_precision_ops 経由の融合が進んだ場合は再審査
+- Policy: conservative_layering + module_ownership
+- Expires After Runs: 20
+- Linked: TP-000010, TP-000011, TERM-QUANTOPS
+- Revert Triggers: primary_evidence_contradiction
+
+## AUTO:claims.canonicalization:backfill_on_promotion
+- Status: ACTIVE
+- Chosen: 保持 claim の term_canonical のみを昇格済み term へ遡及正規化する（claim 本文・source は無傷、append-only の再生成基盤は維持）。根拠: Q5 unmapped率ゲートは追記専用では収束しないため
+- Policy: reversibility + metric_achievability
+- Expires After Runs: 20
+- Linked: Q5 品質基準
+- Revert Triggers: claim 内容の改変検出

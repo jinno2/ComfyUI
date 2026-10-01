@@ -61,3 +61,20 @@ mappings:
       - "comfy/ops.py::SDPA_BACKEND_PRIORITY"
     db: []
     api: []
+  ModelOps:
+    code_symbols:
+      - "comfy/ops.py::def pick_operations"
+      - "comfy/ops.py::def safe_linear"
+      - "comfy/ops.py::CUDA_LINEAR_FORCE_MATMUL_DEVICES"
+      - "comfy/model_base.py::comfy.ops.pick_operations call"
+    db: []
+    api: []
+  VAE:
+    code_symbols:
+      - "comfy/sd.py::class VAE"
+      - "comfy/sd.py::def decode_tiled_"
+      - "comfy/sd.py::def encode_tiled_"
+      - "nodes.py::class VAEDecode"
+      - "nodes.py::class VAEEncode"
+    db: []
+    api: []
