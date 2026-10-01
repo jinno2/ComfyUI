@@ -156,3 +156,41 @@ queue:
     promoted_id: "TERM-ATTNBACKEND"
     expires_after_runs: 10
     created_run: "2026-10-01T07:03:06Z"
+  - id: "TP-000010"
+    proposed_canonical: "ModelOps"
+    proposed_layer: "aux"
+    term_raw_examples: ["pick_operations", "model ops", "fp8 ops", "displaced ops"]
+    reason: "dtype/fp8/quantized op ファクトリ（comfy/ops.py）。BaseModel/controlnet が pick_operations 経由で op 集合を取得する境界と、フォーク改変 safe_linear（per-device CUDA フォールバック、専用テスト付き）の保持先。CODEBASE_ANALYSIS.md#L65 が権威記述"
+    evidence:
+      - source: "comfy/ops.py#L1811-L1816"
+        quote: "def pick_operations(weight_dtype, compute_dtype, load_device=None, disable_fast_fp8=False, fp8_optimizations=False, model_config=None):"
+      - source: "comfy/model_base.py#L182"
+        quote: "operations = comfy.ops.pick_operations(unet_config.get(\"dtype\", None), self.manual_cast_dtype, fp8_optimizations=fp8, model_config=model_config)"
+      - source: "comfy/ops.py#L1341-L1399"
+        quote: "def safe_linear(input, weight, bias): ... CUDA_LINEAR_FORCE_MATMUL_DEVICES ... discard_cuda_async_error"
+      - source: "tests-unit/comfy_test/test_safe_linear.py#L1"
+        quote: "\"\"\"safe_linear CUDA fallback behavior tests (all CPU-safe).\"\"\""
+      - source: "docs/CODEBASE_ANALYSIS.md#L65"
+        quote: "ops.py(dtype/fp8/quantized op ファクトリ + フォーク独自 safe_linear)"
+    auto_merge_candidates:
+      - term: "QuantOps"
+        similarity: 0.65
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T15:05:32Z"
+  - id: "TP-000011"
+    proposed_canonical: "VAE"
+    proposed_layer: "aux"
+    term_raw_examples: ["VAE", "variational autoencoder", "encoder/decoder"]
+    reason: "潜在→画素の encode/decode 所有者。comfy/vae.py は存在せず class VAE は comfy/sd.py#L492 に所在（surprising fact）。VAEDecode/VAEEncode 群ノードの消費先として LatentFormat と対になる概念"
+    evidence:
+      - source: "comfy/sd.py#L492-L496"
+        quote: "class VAE: ... is_seedvr2_vae = \"decoder.up_blocks.2.upsamplers.0.upscale_conv.weight\" in sd"
+      - source: "comfy/sd.py#L1164-L1228"
+        quote: "def decode_tiled_ ... def encode_tiled_"
+      - source: "nodes.py#L316-L412"
+        quote: "class VAEDecode: ... class VAEEncode:"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T15:05:32Z"
