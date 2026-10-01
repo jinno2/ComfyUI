@@ -1,0 +1,99 @@
+queue:
+  - id: "TP-000001"
+    proposed_canonical: "ExecutionGraph"
+    proposed_layer: "aux"
+    term_raw_examples: ["prompt", "prompt graph", "execution graph"]
+    reason: "execution.py の中核概念。AGENTS.md の execution.py 責務規定と対応するが、comfy_execution/ との分担が未確定"
+    evidence:
+      - source: "execution.py#L1128"
+        quote: "async def validate_prompt(prompt_id, prompt, partial_execution_list)"
+      - source: "AGENTS.md#L30-L56"
+        quote: "Treat execution.py as one example of this rule: it should consume the prompt graph and execution-relevant state"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T06:48:52Z"
+  - id: "TP-000002"
+    proposed_canonical: "ModelPatcher"
+    proposed_layer: "aux"
+    term_raw_examples: ["patcher", "model patching"]
+    reason: "モデルパッチの唯一の正規経路。ノードからモデル内部への直接パッチ禁止規定と対で管理したい"
+    evidence:
+      - source: "comfy/model_patcher.py#L340"
+        quote: "class ModelPatcher:"
+      - source: "AGENTS.md#L329-L372"
+        quote: "Any node behavior that modifies, wraps, hooks, or changes model behavior must go through the model patcher class"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T06:48:52Z"
+  - id: "TP-000003"
+    proposed_canonical: "ModelManagement"
+    proposed_layer: "aux"
+    term_raw_examples: ["VRAM policy", "offload", "model management"]
+    reason: "ロード・オフロード・VRAMポリシーの担当層。AGENTS.md がモデル実装内でのメモリ管理を禁じているため対概念として重要"
+    evidence:
+      - source: "comfy/model_management.py#L45"
+        quote: "class VRAMState(Enum):"
+      - source: "comfy/model_management.py#L939"
+        quote: "def load_models_gpu(models, memory_required=0, force_patch_weights=False)"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T06:48:52Z"
+  - id: "TP-000004"
+    proposed_canonical: "Sampler"
+    proposed_layer: "aux"
+    term_raw_examples: ["KSampler", "KSAMPLER", "sampling"]
+    reason: "サンプリング中核。ノード版 KSampler は synonym に吸収可能な可能性が高い"
+    evidence:
+      - source: "comfy/samplers.py#L919"
+        quote: "class KSAMPLER(Sampler):"
+      - source: "nodes.py#L1597"
+        quote: "class KSampler:"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T06:48:52Z"
+  - id: "TP-000005"
+    proposed_canonical: "LatentFormat"
+    proposed_layer: "aux"
+    term_raw_examples: ["latent format", "latent layout"]
+    reason: "モデル族ごとの潜在レイアウト所有者。AGENTS.md の latent layout ルール（モデル/latent-format 保有）と対応"
+    evidence:
+      - source: "comfy/latent_formats.py#L4"
+        quote: "class LatentFormat:"
+      - source: "comfy/latent_formats.py#L25"
+        quote: "class SD15(LatentFormat):"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T06:48:52Z"
+  - id: "TP-000006"
+    proposed_canonical: "PromptServer"
+    proposed_layer: "aux"
+    term_raw_examples: ["server", "API server", "websocket"]
+    reason: "API・WebSocket 表面の所有者。UI/API  concerns の境界規定の錨になる候補"
+    evidence:
+      - source: "server.py#L215"
+        quote: "class PromptServer():"
+      - source: "server.py#L270"
+        quote: "async def websocket_handler(request):"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T06:48:52Z"
+  - id: "TP-000007"
+    proposed_canonical: "QuantOps"
+    proposed_layer: "aux"
+    term_raw_examples: ["quantization", "quantized weight layout", "NVFP4"]
+    reason: "量子化レイアウトの共有実装。AGENTS.md が comfy.quant_ops の優先使用を義務化しているため対応を残したい"
+    evidence:
+      - source: "comfy/quant_ops.py#L125"
+        quote: "class TensorCoreMXFP8Layout(_CKMxfp8Layout):"
+      - source: "QUANTIZATION.md#L1"
+        quote: "quantization documentation at repository root"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T06:48:52Z"

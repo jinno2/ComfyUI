@@ -1,0 +1,35 @@
+ambiguities:
+  - id: "AMB-EXEC-001"
+    term: "ExecutionGraph"
+    topic: "execution.py と comfy_execution/ の責務分担"
+    severity: "low"
+    uncertainty: 0.13
+    candidates:
+      - "execution.py が検証・キャッシュ・実行結果生成を担当し comfy_execution/ はグラフデータ構造のみ"
+      - "comfy_execution/ が実行本体で execution.py は互換ファサード"
+    missing_info:
+      - "comfy_execution/graph.py, caching.py, validation.py の実際の責務対応"
+    linked_conflicts: []
+    last_touched_run: "2026-10-01T06:48:52Z"
+    evidence:
+      - source: "execution.py#L1128"
+        quote: "async def validate_prompt(prompt_id, prompt, partial_execution_list)"
+      - source: "comfy_execution/graph.py#L1"
+        quote: "graph module exists separately from execution.py"
+  - id: "AMB-TERM-001"
+    term: "model"
+    topic: "モデル概念の粒度（BaseModel / ModelPatcher / checkpoint / ModelManagement の関係）"
+    severity: "low"
+    uncertainty: 0.13
+    candidates:
+      - "ModelPatcher がユーザーに近い操作単位で BaseModel を包含する"
+      - "checkpoint ロード結果（sd.py）と ModelPatcher が別概念で BaseModel は共有実体"
+    missing_info:
+      - "comfy/sd.py の load_diffusion_model 戻り値と ModelPatcher 包含関係の確認"
+    linked_conflicts: []
+    last_touched_run: "2026-10-01T06:48:52Z"
+    evidence:
+      - source: "comfy/model_patcher.py#L340"
+        quote: "class ModelPatcher:"
+      - source: "AGENTS.md#L118-L131"
+        quote: "ComfyUI models are always treated as frozen for inference"
