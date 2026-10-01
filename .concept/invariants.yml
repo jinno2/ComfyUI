@@ -1,6 +1,6 @@
 invariants:
   - id: "INV-NOINET-001"
-    related_terms: []
+    related_terms: ["CoreComfyUI"]
     status: "stable"
     strength: "hard"
     statement: "Core ComfyUI は外部インターネットへの送信路径（telemetry・analytics・update check 等を含む）を持たない。モデルダウンロードはユーザーの明示開始時のみ許容される。"
@@ -41,7 +41,7 @@ invariants:
       - source: "AGENTS.md#L361-L363"
         quote: "Node-level code must not patch model code directly. Any node behavior that modifies, wraps, hooks, or changes model behavior must go through the model patcher class instead of reaching into model internals."
   - id: "INV-BACKEND-001"
-    related_terms: []
+    related_terms: ["AttentionBackend"]
     status: "stable"
     strength: "hard"
     statement: "最適化バックエンド関数・ディスパッチヘルパー・能力選択された callables は不透明であり、上位層は関数の同一性・名前・モジュール等の実装詳細を検査して挙動を決めてはならない。"

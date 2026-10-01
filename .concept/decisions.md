@@ -23,3 +23,11 @@
 - Expires After Runs: 20
 - Linked: TP-000001..TP-000007
 - Revert Triggers: primary_evidence_contradiction
+
+## AUTO:ontology.layer_assignment:infrastructure_terms_domain
+- Status: ACTIVE
+- Chosen: CoreComfyUI (TP-000008) / AttentionBackend (TP-000009) を domain に採用。core は実行・パッチ・デバイスメモリの 3 権威に留置（AGENTS.md 権威記述 + 実コード確認: nodes.py#L2349, comfy/ldm/modules/attention.py#L891-L904, comfy/ops.py#L68-L96）
+- Policy: spec_alignment + conservative_layering
+- Expires After Runs: 20
+- Linked: TP-000008, TP-000009
+- Revert Triggers: primary_evidence_contradiction

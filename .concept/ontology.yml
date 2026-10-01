@@ -142,3 +142,41 @@ canonical_terms:
         quote: "from comfy.quant_ops import QUANT_ALGOS, QuantizedTensor"
       - source: "docs/CODEBASE_ANALYSIS.md#L65"
         quote: "ops.py(dtype/fp8/quantized op ファクトリ + フォーク独自 `safe_linear`)"
+  CoreComfyUI:
+    id: "TERM-CORECOMFYUI"
+    layer: "domain"
+    status: "stable"
+    definition: "リポジトリ直下の本体コード（comfy/, comfy_execution/, execution.py, nodes.py, server.py 等）。custom_nodes/ は実行時に init_external_custom_nodes が動的ロードする外部プラグインであり本体に含まれない。INV-NOINET-001（外部通信禁止）の適用対象。"
+    synonyms: ["core", "本体", "core ComfyUI"]
+    boundaries:
+      includes: ["リポジトリ直下のモジュール（comfy/, comfy_execution/, execution.py, nodes.py, server.py）", "起動時の init_extra_nodes によるノード初期化"]
+      excludes: ["custom_nodes/ の動的ロードプラグイン", "models/・input/・output/ のユーザーデータ"]
+    related_terms: ["PromptServer", "ExecutionGraph"]
+    evidence:
+      - source: "AGENTS.md#L57-L74"
+        quote: "Do not add code to core ComfyUI that makes requests to the internet."
+      - source: "nodes.py#L2349"
+        quote: "async def init_external_custom_nodes():"
+      - source: "nodes.py#L2251"
+        quote: "async def load_custom_node(module_path: str, ignore=set(), module_parent=\"custom_nodes\") -> bool:"
+      - source: "folder_paths.py#L45"
+        quote: "folder_names_and_paths[\"custom_nodes\"] = ([os.path.join(base_path, \"custom_nodes\")], set())"
+      - source: "tests-unit/comfy_test/folder_path_test.py#L126"
+        quote: "assert os.path.join(test_dir, \"custom_nodes\") in folder_paths.get_folder_paths(\"custom_nodes\")"
+  AttentionBackend:
+    id: "TERM-ATTNBACKEND"
+    layer: "domain"
+    status: "stable"
+    definition: "能力検出により選択される最適化 attention 実装の総体。comfy/ldm/modules/attention.py が capability チェックで optimized_attention を選定し（basic/sage/flash/xformers/pytorch）、comfy/ops.py が SDPA バックエンド優先順位（FLASH→CUDNN→EFFICIENT→MATH）を制御する。選択結果は不透明（INV-BACKEND-001）。"
+    synonyms: ["optimized attention", "attention backend", "attention dispatch"]
+    boundaries:
+      includes: ["capability 選択 (xformers/flash/sage/pytorch/basic)", "SDPA バックエンド優先順位制御", "register/get_attention_function"]
+      excludes: ["呼び出し側による選択関数の同一性・実装検査 (INV-BACKEND-001)", "モデル数学の本体", "量子化重みレイアウト (QuantOps)"]
+    related_terms: ["QuantOps", "ModelManagement"]
+    evidence:
+      - source: "AGENTS.md#L178-L191"
+        quote: "All models should use the optimized attention function selected by ComfyUI. Treat optimized backend functions, dispatch helpers, and capability-selected callables as opaque."
+      - source: "comfy/ldm/modules/attention.py#L891-L904"
+        quote: "optimized_attention = attention_basic ... optimized_attention = attention_pytorch"
+      - source: "comfy/ops.py#L68-L96"
+        quote: "SDPA_BACKEND_PRIORITY = [SDPBackend.FLASH_ATTENTION, SDPBackend.CUDNN_ATTENTION, SDPBackend.EFFICIENT_ATTENTION, SDPBackend.MATH]"

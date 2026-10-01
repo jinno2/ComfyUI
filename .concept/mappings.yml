@@ -46,3 +46,18 @@ mappings:
       - "comfy/quant_ops.py::QUANT_ALGOS"
     db: []
     api: []
+  CoreComfyUI:
+    code_symbols:
+      - "nodes.py::async def init_external_custom_nodes"
+      - "nodes.py::async def load_custom_node"
+      - "folder_paths.py::folder_names_and_paths[custom_nodes]"
+    db: []
+    api: []
+  AttentionBackend:
+    code_symbols:
+      - "comfy/ldm/modules/attention.py::optimized_attention"
+      - "comfy/ldm/modules/attention.py::def get_attention_function"
+      - "comfy/ops.py::def scaled_dot_product_attention"
+      - "comfy/ops.py::SDPA_BACKEND_PRIORITY"
+    db: []
+    api: []
