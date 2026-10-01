@@ -10,7 +10,10 @@ queue:
       - source: "AGENTS.md#L30-L56"
         quote: "Treat execution.py as one example of this rule: it should consume the prompt graph and execution-relevant state"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
+    promoted_run: "2026-10-01T07:03:06Z"
+    promoted_layer: "core"
+    promoted_id: "TERM-EXECGRAPH"
     expires_after_runs: 10
     created_run: "2026-10-01T06:48:52Z"
   - id: "TP-000002"
@@ -24,7 +27,10 @@ queue:
       - source: "AGENTS.md#L329-L372"
         quote: "Any node behavior that modifies, wraps, hooks, or changes model behavior must go through the model patcher class"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
+    promoted_run: "2026-10-01T07:03:06Z"
+    promoted_layer: "core"
+    promoted_id: "TERM-MODELPATCHER"
     expires_after_runs: 10
     created_run: "2026-10-01T06:48:52Z"
   - id: "TP-000003"
@@ -36,9 +42,12 @@ queue:
       - source: "comfy/model_management.py#L45"
         quote: "class VRAMState(Enum):"
       - source: "comfy/model_management.py#L939"
-        quote: "def load_models_gpu(models, memory_required=0, force_patch_weights=False)"
+        quote: "def load_models_gpu(models, memory_required=0, force_patch_weights=False, minimum_memory_required=None, force_full_load=False):"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
+    promoted_run: "2026-10-01T07:03:06Z"
+    promoted_layer: "core"
+    promoted_id: "TERM-MODELMGMT"
     expires_after_runs: 10
     created_run: "2026-10-01T06:48:52Z"
   - id: "TP-000004"
@@ -52,7 +61,10 @@ queue:
       - source: "nodes.py#L1597"
         quote: "class KSampler:"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
+    promoted_run: "2026-10-01T07:03:06Z"
+    promoted_layer: "domain"
+    promoted_id: "TERM-SAMPLER"
     expires_after_runs: 10
     created_run: "2026-10-01T06:48:52Z"
   - id: "TP-000005"
@@ -66,7 +78,10 @@ queue:
       - source: "comfy/latent_formats.py#L25"
         quote: "class SD15(LatentFormat):"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
+    promoted_run: "2026-10-01T07:03:06Z"
+    promoted_layer: "domain"
+    promoted_id: "TERM-LATENTFORMAT"
     expires_after_runs: 10
     created_run: "2026-10-01T06:48:52Z"
   - id: "TP-000006"
@@ -80,7 +95,10 @@ queue:
       - source: "server.py#L270"
         quote: "async def websocket_handler(request):"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
+    promoted_run: "2026-10-01T07:03:06Z"
+    promoted_layer: "domain"
+    promoted_id: "TERM-PROMPTSERVER"
     expires_after_runs: 10
     created_run: "2026-10-01T06:48:52Z"
   - id: "TP-000007"
@@ -92,8 +110,35 @@ queue:
       - source: "comfy/quant_ops.py#L125"
         quote: "class TensorCoreMXFP8Layout(_CKMxfp8Layout):"
       - source: "QUANTIZATION.md#L1"
-        quote: "quantization documentation at repository root"
+        quote: "# The Comfy guide to Quantization"
+    auto_merge_candidates: []
+    decision: "accepted"
+    promoted_run: "2026-10-01T07:03:06Z"
+    promoted_layer: "domain"
+    promoted_id: "TERM-QUANTOPS"
+    expires_after_runs: 10
+    created_run: "2026-10-01T06:48:52Z"
+  - id: "TP-000008"
+    proposed_canonical: "CoreComfyUI"
+    proposed_layer: "aux"
+    term_raw_examples: ["core ComfyUI", "コア本体"]
+    reason: "INV-NOINET-001（外部通信禁止）のアンカー概念。AGENTS.md が『core ComfyUI』を反復使用するが、custom_nodes 等との境界の一次証拠（CI/テスト側の保証）が未確認のため pending"
+    evidence:
+      - source: "AGENTS.md#L57-L74"
+        quote: "Do not add code to core ComfyUI that makes requests to the internet."
     auto_merge_candidates: []
     decision: "pending"
     expires_after_runs: 10
-    created_run: "2026-10-01T06:48:52Z"
+    created_run: "2026-10-01T07:03:06Z"
+  - id: "TP-000009"
+    proposed_canonical: "AttentionBackend"
+    proposed_layer: "aux"
+    term_raw_examples: ["attention backend", "optimized attention"]
+    reason: "最適化 attention/backend dispatch の opacity 契約（INV-BACKEND-001）のアンカー候補。コード側シンボル（comfy/ops.py の dispatch 箇所）確認後に再審査"
+    evidence:
+      - source: "AGENTS.md#L185-L191"
+        quote: "Treat optimized backend functions, dispatch helpers, and capability-selected callables as opaque."
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-01T07:03:06Z"

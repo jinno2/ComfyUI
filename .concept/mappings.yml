@@ -1,1 +1,48 @@
-mappings: {}
+mappings:
+  ExecutionGraph:
+    code_symbols:
+      - "execution.py::async def validate_prompt"
+      - "execution.py::class CacheSet"
+      - "comfy_execution/graph.py::class DynamicPrompt"
+      - "comfy_execution/graph.py::class ExecutionList"
+    db: []
+    api: []
+  ModelPatcher:
+    code_symbols:
+      - "comfy/model_patcher.py::class ModelPatcher"
+      - "comfy/model_patcher.py::class ModelPatcherDynamic"
+      - "comfy/sd.py::ModelPatcher (load_diffusion_model_state_dict)"
+    db: []
+    api: []
+  ModelManagement:
+    code_symbols:
+      - "comfy/model_management.py::class VRAMState"
+      - "comfy/model_management.py::def load_models_gpu"
+      - "comfy/model_management.py::def free_memory"
+    db: []
+    api: []
+  Sampler:
+    code_symbols:
+      - "comfy/samplers.py::class KSAMPLER"
+      - "nodes.py::class KSampler"
+      - "nodes.py::class KSamplerAdvanced"
+    db: []
+    api: []
+  LatentFormat:
+    code_symbols:
+      - "comfy/latent_formats.py::class LatentFormat"
+      - "comfy/latent_formats.py::class SD15"
+    db: []
+    api: []
+  PromptServer:
+    code_symbols:
+      - "server.py::class PromptServer"
+      - "server.py::websocket_handler"
+    db: []
+    api: []
+  QuantOps:
+    code_symbols:
+      - "comfy/quant_ops.py::class TensorCoreMXFP8Layout"
+      - "comfy/quant_ops.py::QUANT_ALGOS"
+    db: []
+    api: []

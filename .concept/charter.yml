@@ -1,0 +1,52 @@
+version: "1.0"
+
+product_goal:
+  north_star: "モジュラー型 AI コンテンツ生成エンジン（上流 ComfyUI のローカル fork）として、画像生成研究に必要なローカル実行基盤を安定・自律的に維持する（推定）"
+  success_metrics:
+    - id: "MET-001"
+      name: "ユニットテスト全件合格維持"
+      target: "make test が常に PASS"
+    - id: "MET-002"
+      name: "概念SOT品質"
+      target: ".concept 品質基準 Q1-Q8 全項目 PASS"
+  non_goals:
+    - "upstream への PR / issue 操作・対外送信"
+    - "core での外部通信路径の追加（telemetry・tracking 他）"
+    - "大規模リファクタの単発 run 実施（時間分割規約に従う）"
+
+milestones:
+  - id: "MS-001"
+    name: "概念SOTの確立"
+    intent: "コードベースの主要概念・不変条件を .concept に確立し、自律 run の判断基盤にする"
+    deliverables: [".concept/ 配下の Source of Truth 一式（ontology/invariants/mappings/charter）"]
+    acceptance:
+      - type: "test"
+        target: "品質基準 Q1-Q8（11_repo_autopilot セクション4）全項目 PASS"
+    priority: "P0"
+    status: "active"
+  - id: "MS-002"
+    name: "無人稼働阻害要因の追跡・解消"
+    intent: "CODEBASE_ANALYSIS.md が指摘する信頼性課題のうち無人稼働を阻害するもの（例: prompt_worker の例外ガード欠如によるワーカー永久死滅）を追跡し解消する"
+    deliverables: ["該当課題の修正とテスト"]
+    acceptance:
+      - type: "test"
+        target: "make test"
+    priority: "P1"
+    status: "planned"
+  - id: "MS-003"
+    name: "概念同期の恒久運用"
+    intent: "各自律 run で claims → SOT 同期・肥大化制御を回し、概念とコードの乖離を持続的に埋める"
+    deliverables: ["claims/ontology/invariants の継続同期", "品質メトリクスの維持"]
+    acceptance:
+      - type: "test"
+        target: "ontology_metrics.json の全指標が予算内"
+    priority: "P2"
+    status: "planned"
+
+work_policy:
+  default_mode: "commit"
+  iteration_budget:
+    max_cycles: 5
+    max_files_changed: 25
+  quality_gates:
+    must_pass: ["lint", "test"]

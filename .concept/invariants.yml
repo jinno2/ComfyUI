@@ -1,1 +1,60 @@
-invariants: []
+invariants:
+  - id: "INV-NOINET-001"
+    related_terms: []
+    status: "stable"
+    strength: "hard"
+    statement: "Core ComfyUI は外部インターネットへの送信路径（telemetry・analytics・update check 等を含む）を持たない。モデルダウンロードはユーザーの明示開始時のみ許容される。"
+    rationale: "ローカル第一・プライバシー保証。AGENTS.md『No Internet Requests』節が全ての opt-in/opt-out ラベル付き路径も拒否すると定める。"
+    evidence:
+      - source: "AGENTS.md#L57-L74"
+        quote: "Do not add code to core ComfyUI that makes requests to the internet."
+  - id: "INV-EXEC-001"
+    related_terms: ["ExecutionGraph"]
+    status: "stable"
+    strength: "hard"
+    statement: "execution.py はプロンプトグラフと実行関連状態のみを消費し、workflow id・frontend id・persistence id・API 固有概念を知らない。"
+    rationale: "実行層とAPI/永続化層の境界保持（AGENTS.md Architecture Boundaries の規定例）。"
+    evidence:
+      - source: "AGENTS.md#L45-L46"
+        quote: "Treat `execution.py` as one example of this rule: it should consume the prompt graph and execution-relevant state"
+      - source: "execution.py#L1128"
+        quote: "async def validate_prompt(prompt_id, prompt, partial_execution_list: Union[list[str], None]):"
+    checks:
+      - type: "test"
+        target: "tests/execution/test_execution.py"
+  - id: "INV-FROZEN-001"
+    related_terms: ["ModelPatcher"]
+    status: "stable"
+    strength: "hard"
+    statement: "ComfyUI モデルは常に推論用 frozen として扱われる。freeze/unfreeze/trainability トグルと torch.no_grad/inference_mode ラッパの追加は禁止（学習路径向けのグローバル inference mode 解除のみ例外）。"
+    rationale: "推論専用実装の単純化。AGENTS.md『Autograd and Model Freezing』節の直接の規定。"
+    evidence:
+      - source: "AGENTS.md#L118-L131"
+        quote: "Do not add freeze, unfreeze, or trainability toggles to model classes. ComfyUI models are always treated as frozen for inference"
+  - id: "INV-PATCH-001"
+    related_terms: ["ModelPatcher"]
+    status: "stable"
+    strength: "hard"
+    statement: "ノードレベルコードはモデルコードを直接パッチしない。モデル挙動の変更はすべて ModelPatcher 経由で行う。"
+    rationale: "パッチ経路の一元化。ノードからモデル内部への到達を禁じる AGENTS.md の規定。"
+    evidence:
+      - source: "AGENTS.md#L361-L363"
+        quote: "Node-level code must not patch model code directly. Any node behavior that modifies, wraps, hooks, or changes model behavior must go through the model patcher class instead of reaching into model internals."
+  - id: "INV-BACKEND-001"
+    related_terms: []
+    status: "stable"
+    strength: "hard"
+    statement: "最適化バックエンド関数・ディスパッチヘルパー・能力選択された callables は不透明であり、上位層は関数の同一性・名前・モジュール等の実装詳細を検査して挙動を決めてはならない。"
+    rationale: "バックエンド選択の opacity 契約（attention 以外の同型パターンにも適用）。"
+    evidence:
+      - source: "AGENTS.md#L185-L191"
+        quote: "Treat optimized backend functions, dispatch helpers, and capability-selected callables as opaque. Higher-level code must not inspect function identity,"
+  - id: "INV-LATENT-001"
+    related_terms: ["LatentFormat"]
+    status: "stable"
+    strength: "soft"
+    statement: "モデル本来の latent レイアウト処理はモデル/latent-format 側に留め、nodes 等の呼び出し側で潜在次元の collapse/expand/pack/unpack を行わない。"
+    rationale: "レイアウト所有の単一化。ヘルパーノードへのレイアウト漏出を防ぐ。"
+    evidence:
+      - source: "AGENTS.md#L237-L240"
+        quote: "Keep model-native latent layout handling inside the model or latent-format owner, not in helper nodes."

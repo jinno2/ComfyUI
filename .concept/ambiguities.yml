@@ -3,33 +3,53 @@ ambiguities:
     term: "ExecutionGraph"
     topic: "execution.py と comfy_execution/ の責務分担"
     severity: "low"
-    uncertainty: 0.13
+    uncertainty: 0.05
     candidates:
-      - "execution.py が検証・キャッシュ・実行結果生成を担当し comfy_execution/ はグラフデータ構造のみ"
+      - "execution.py が検証・キャッシュ・実行結果生成を担当し comfy_execution/graph.py はグラフデータ構造のみ"
       - "comfy_execution/ が実行本体で execution.py は互換ファサード"
-    missing_info:
-      - "comfy_execution/graph.py, caching.py, validation.py の実際の責務対応"
+    missing_info: []
     linked_conflicts: []
-    last_touched_run: "2026-10-01T06:48:52Z"
+    auto_decision:
+      status: "applied"
+      decision_key: "AUTO:ExecutionGraph.responsibility:execution_py_orchestrates_graph_holds_data"
+      chosen: "execution.py が検証・キャッシュ・実行結果生成を担い、comfy_execution/graph.py が DynamicPrompt/TopologicalSort/ExecutionList 等のグラフデータ構造を提供する（候補1）。2026-10-01T07:03:06Z run で実コード確認済み。"
+      policy: "verified_evidence"
+      confidence_auto: 0.9
+      decided_at_run: "2026-10-01T07:03:06Z"
+      expires_after_runs: 20
+      revert_triggers:
+        - "primary_evidence_contradiction"
+    last_touched_run: "2026-10-01T07:03:06Z"
     evidence:
+      - source: "comfy_execution/graph.py#L21"
+        quote: "class DynamicPrompt:"
+      - source: "comfy_execution/graph.py#L212"
+        quote: "class ExecutionList(TopologicalSort):"
       - source: "execution.py#L1128"
-        quote: "async def validate_prompt(prompt_id, prompt, partial_execution_list)"
-      - source: "comfy_execution/graph.py#L1"
-        quote: "graph module exists separately from execution.py"
+        quote: "async def validate_prompt(prompt_id, prompt, partial_execution_list: Union[list[str], None]):"
   - id: "AMB-TERM-001"
-    term: "model"
+    term: "ModelPatcher"
     topic: "モデル概念の粒度（BaseModel / ModelPatcher / checkpoint / ModelManagement の関係）"
     severity: "low"
-    uncertainty: 0.13
+    uncertainty: 0.05
     candidates:
       - "ModelPatcher がユーザーに近い操作単位で BaseModel を包含する"
       - "checkpoint ロード結果（sd.py）と ModelPatcher が別概念で BaseModel は共有実体"
-    missing_info:
-      - "comfy/sd.py の load_diffusion_model 戻り値と ModelPatcher 包含関係の確認"
+    missing_info: []
     linked_conflicts: []
-    last_touched_run: "2026-10-01T06:48:52Z"
+    auto_decision:
+      status: "applied"
+      decision_key: "AUTO:ModelPatcher.definition:sd_loader_wraps_model_in_patcher"
+      chosen: "候補1を採用。comfy/sd.py の load_diffusion_model_state_dict は BaseModel を ModelPatcher に包んで返す（実コード確認済み）。候補2の『別概念』性は戻り値が ModelPatcher であることと整合しないため退ける。"
+      policy: "verified_evidence"
+      confidence_auto: 0.85
+      decided_at_run: "2026-10-01T07:03:06Z"
+      expires_after_runs: 20
+      revert_triggers:
+        - "primary_evidence_contradiction"
+    last_touched_run: "2026-10-01T07:03:06Z"
     evidence:
+      - source: "comfy/sd.py#L2390"
+        quote: "model_patcher = ModelPatcher(model, load_device=load_device, offload_device=offload_device, fast_disk=comfy.storage.state_dict_fast_disk(new_sd))"
       - source: "comfy/model_patcher.py#L340"
         quote: "class ModelPatcher:"
-      - source: "AGENTS.md#L118-L131"
-        quote: "ComfyUI models are always treated as frozen for inference"
