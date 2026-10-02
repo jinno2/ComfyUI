@@ -1,0 +1,67 @@
+queue:
+  - id: "TP-000001"
+    proposed_canonical: "NodeGraph"
+    proposed_layer: "aux"
+    term_raw_examples: ["node graph", "visual node graph", "ノードグラフ"]
+    reason: "Primary user-facing interface concept in README; may overlap with the generic workflow concept."
+    evidence:
+      - source: "README.md#L38"
+        quote: "Its powerful and modular node graph interface empowers creatives to generate images, videos, 3D models, audio, and more"
+      - source: "README.md#L65"
+        quote: "A visual node graph for building and reusing image, video, audio, 3D, and text workflows without code."
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-02T16:41:01Z"
+  - id: "TP-000002"
+    proposed_canonical: "ModelLoading"
+    proposed_layer: "aux"
+    term_raw_examples: ["model-loading behavior", "model offloading"]
+    reason: "Loading/offloading policy is heavily constrained in AGENTS.md; boundary against runtime VRAM management not yet clear."
+    evidence:
+      - source: "AGENTS.md#L20"
+        quote: "Preserve existing APIs, node names, model-loading behavior, file layout, and workflow compatibility"
+      - source: "README.md#L67"
+        quote: "Efficient local execution with asynchronous queueing, partial graph re-execution, smart VRAM and RAM management, model offloading, and support for quantized models."
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-02T16:41:01Z"
+  - id: "TP-000003"
+    proposed_canonical: "LatentFormat"
+    proposed_layer: "aux"
+    term_raw_examples: ["latent-format owner", "native latent shape", "latent layout"]
+    reason: "Ownership rule for latent layout exists (model or latent-format owner); mapping to concrete latent-format classes not yet done."
+    evidence:
+      - source: "AGENTS.md#L237-L240"
+        quote: "Keep model-native latent layout handling inside the model or latent-format owner, not in helper nodes."
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-02T16:41:01Z"
+  - id: "TP-000004"
+    proposed_canonical: "Quantization"
+    proposed_layer: "aux"
+    term_raw_examples: ["quantized models", "quantization metadata", "quant_ops"]
+    reason: "Dedicated guide doc exists and AGENTS.md constrains invalid quantization metadata handling; boundaries and code mappings pending."
+    evidence:
+      - source: "QUANTIZATION.md#L1"
+        quote: "# The Comfy guide to Quantization"
+      - source: "AGENTS.md#L147"
+        quote: "Let unsupported model formats, invalid quantization metadata, and bad states fail with clear errors instead of silently producing lower quality output."
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-02T16:41:01Z"
+  - id: "TP-000005"
+    proposed_canonical: "Run"
+    proposed_layer: "aux"
+    term_raw_examples: ["run", "自律 run", "1 run = 1 改善"]
+    reason: "Process concept of the autonomous improvement loop; needed to reason about run-scoped claims, strictly aux."
+    evidence:
+      - source: "LOOP.md#L5"
+        quote: "自律 run は**この文書だけを命令として**実行する。1 run = 1 改善。"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-02T16:41:01Z"
