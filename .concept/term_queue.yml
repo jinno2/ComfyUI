@@ -10,7 +10,7 @@ queue:
       - source: "README.md#L65"
         quote: "A visual node graph for building and reusing image, video, audio, 3D, and text workflows without code."
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
     expires_after_runs: 10
     created_run: "2026-10-02T16:41:01Z"
   - id: "TP-000002"
@@ -24,7 +24,7 @@ queue:
       - source: "README.md#L67"
         quote: "Efficient local execution with asynchronous queueing, partial graph re-execution, smart VRAM and RAM management, model offloading, and support for quantized models."
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
     expires_after_runs: 10
     created_run: "2026-10-02T16:41:01Z"
   - id: "TP-000003"
@@ -36,7 +36,7 @@ queue:
       - source: "AGENTS.md#L237-L240"
         quote: "Keep model-native latent layout handling inside the model or latent-format owner, not in helper nodes."
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
     expires_after_runs: 10
     created_run: "2026-10-02T16:41:01Z"
   - id: "TP-000004"
@@ -50,7 +50,7 @@ queue:
       - source: "AGENTS.md#L147"
         quote: "Let unsupported model formats, invalid quantization metadata, and bad states fail with clear errors instead of silently producing lower quality output."
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
     expires_after_runs: 10
     created_run: "2026-10-02T16:41:01Z"
   - id: "TP-000005"

@@ -1,1 +1,14 @@
-invariants: []
+invariants:
+  - id: "INV-CORE-001"
+    related_terms: []
+    status: "stable"
+    strength: "hard"
+    statement: "Core ComfyUI must not make outbound requests to the internet: no uploads, telemetry, analytics, tracking, crash reporting, update checks, remote config, feature flags, or opt-in/opt-out/anonymized request paths in core."
+    rationale: "Local-only execution is a core product contract; any outbound path is refused regardless of labeling."
+    assumptions: []
+    evidence:
+      - source: "AGENTS.md#L59-L70"
+        quote: "Do not add code to core ComfyUI that makes requests to the internet. ... These labels do not make internet access acceptable."
+    checks:
+      - type: "review"
+        target: "any PR touching network-capable code paths in core"

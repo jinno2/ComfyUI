@@ -1,2 +1,76 @@
 version: "0.3"
-canonical_terms: {}
+canonical_terms:
+  NodeGraph:
+    id: "TERM-NODEGRAPH"
+    layer: "aux"
+    status: "stable"
+    definition: "The declarative graph of nodes (DynamicPrompt) that ComfyUI expands and executes in topological order."
+    synonyms: ["node graph", "visual node graph", "ノードグラフ"]
+    boundaries:
+      includes: ["declarative prompt graph", "topological execution order", "partial re-execution of changed subgraph"]
+      excludes: ["user-facing saved workflow artifact (frontend JSON)", "VRAM/device load policy (ModelLoading)", "individual node implementations"]
+    lifecycle: ["Built", "Expanded", "TopologicallySorted", "Executing", "Done"]
+    related_terms: ["ModelLoading"]
+    assumptions: []
+    evidence:
+      - source: "README.md#L38"
+        quote: "Its powerful and modular node graph interface empowers creatives to generate images, videos, 3D models, audio, and more"
+      - source: "README.md#L65"
+        quote: "A visual node graph for building and reusing image, video, audio, 3D, and text workflows without code."
+      - source: "comfy_execution/graph.py#L21-L212"
+        quote: "class DynamicPrompt ... class TopologicalSort ... class ExecutionList(TopologicalSort)"
+  ModelLoading:
+    id: "TERM-MODELLOADING"
+    layer: "aux"
+    status: "stable"
+    definition: "The policy layer that decides when and where models are loaded, partially loaded, or offloaded across VRAM/RAM."
+    synonyms: ["model-loading behavior", "model offloading", "VRAM management"]
+    boundaries:
+      includes: ["VRAMState-driven load/offload decisions", "memory estimation", "asynchronous model loading"]
+      excludes: ["model forward math and dtype init in model implementations", "quantized weight layouts (Quantization)", "native latent layout (LatentFormat)"]
+    lifecycle: ["Unloaded", "PartiallyLoaded", "Loaded", "Offloaded"]
+    related_terms: ["Quantization", "NodeGraph"]
+    assumptions: []
+    evidence:
+      - source: "AGENTS.md#L20"
+        quote: "Preserve existing APIs, node names, model-loading behavior, file layout, and workflow compatibility"
+      - source: "README.md#L67"
+        quote: "Efficient local execution with asynchronous queueing, partial graph re-execution, smart VRAM and RAM management, model offloading, and support for quantized models."
+      - source: "comfy/model_management.py#L45-L939"
+        quote: "class VRAMState ... def load_models_gpu(...)"
+  LatentFormat:
+    id: "TERM-LATENTFORMAT"
+    layer: "aux"
+    status: "draft"
+    definition: "The per-model-family owner of native latent layout (channel count, scaling, packing) inside the model/latent-format layer."
+    synonyms: ["latent layout", "latent-format owner", "native latent shape"]
+    boundaries:
+      includes: ["native latent shape and scaling factors", "per-family latent parameters (SD15, SDXL, SD3, Flux)"]
+      excludes: ["caller-side latent collapse/expand/pack/unpack in nodes", "pixel-space images"]
+    lifecycle: []
+    related_terms: []
+    assumptions: []
+    evidence:
+      - source: "AGENTS.md#L237-L240"
+        quote: "Keep model-native latent layout handling inside the model or latent-format owner, not in helper nodes."
+      - source: "comfy/latent_formats.py#L4-L197"
+        quote: "class LatentFormat ... class SD15(LatentFormat) ... class Flux2(LatentFormat)"
+  Quantization:
+    id: "TERM-QUANTIZATION"
+    layer: "aux"
+    status: "stable"
+    definition: "The 4/8-bit weight layout and metadata system (FP8, MXFP8, NVFP4) served by optimized shared kernels."
+    synonyms: ["quantized models", "quantization metadata", "quant_ops"]
+    boundaries:
+      includes: ["FP8/MXFP8/NVFP4 weight layouts", "quantization metadata validation", "optimized shared kernel dispatch"]
+      excludes: ["plain fp16/bf16 compute-dtype selection (ModelLoading policy)", "local reimplementations of existing optimized ops"]
+    lifecycle: []
+    related_terms: ["ModelLoading"]
+    assumptions: []
+    evidence:
+      - source: "QUANTIZATION.md#L1"
+        quote: "# The Comfy guide to Quantization"
+      - source: "AGENTS.md#L147"
+        quote: "Let unsupported model formats, invalid quantization metadata, and bad states fail with clear errors instead of silently producing lower quality output."
+      - source: "comfy/quant_ops.py#L90-L183"
+        quote: "class TensorCoreMXFP8Layout ... class TensorCoreNVFP4Layout ... class TensorCoreFP8E4M3Layout"
