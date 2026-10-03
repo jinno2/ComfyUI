@@ -63,7 +63,8 @@ Platform-conditional:
 
 | Target                  | What it does                       |
 | ----------------------- | ---------------------------------- |
-| `make test`             | unit + integration                 |
+| `make test`             | `tests-unit/` only (fast default)  |
+| `make test-all`         | unit + integration                 |
 | `make test-unit`        | `tests-unit/` only                 |
 | `make test-integration` | `tests/` only                      |
 
