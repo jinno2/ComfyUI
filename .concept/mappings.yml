@@ -1,1 +1,18 @@
-mappings: {}
+mappings:
+  NodeGraph:
+    code_symbols:
+      - "comfy_execution/graph.py::class DynamicPrompt"
+      - "comfy_execution/graph.py::class ExecutionList"
+  ModelLoading:
+    code_symbols:
+      - "comfy/model_management.py::def load_models_gpu"
+      - "comfy/model_management.py::class VRAMState"
+      - "comfy/model_management.py::class LoadedModel"
+  LatentFormat:
+    code_symbols:
+      - "comfy/latent_formats.py::class LatentFormat"
+  Quantization:
+    code_symbols:
+      - "comfy/quant_ops.py::class TensorCoreMXFP8Layout"
+      - "comfy/quant_ops.py::class TensorCoreNVFP4Layout"
+      - "comfy/quant_ops.py::class TensorCoreFP8E4M3Layout"

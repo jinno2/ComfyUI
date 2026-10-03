@@ -1,1 +1,19 @@
-ambiguities: []
+ambiguities:
+  - id: "AMB-GRAPH-001"
+    term: "NodeGraph"
+    topic: "Relationship between the backend NodeGraph and the user-facing saved workflow artifact"
+    severity: "low"
+    uncertainty: 0.13
+    candidates:
+      - "NodeGraph = backend executable graph only; saved workflow JSON is a separate frontend-owned concept"
+      - "NodeGraph and workflow are the same concept at different layers"
+    missing_info:
+      - "Whether the saved workflow JSON format deserves its own queued term owned by the frontend/API layer"
+    linked_conflicts: []
+    auto_decision: null
+    last_touched_run: "2026-10-03T20:24:34Z"
+    evidence:
+      - source: "comfy_execution/graph.py#L21"
+        quote: "class DynamicPrompt:"
+      - source: "README.md#L65"
+        quote: "A visual node graph for building and reusing image, video, audio, 3D, and text workflows without code."
