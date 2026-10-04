@@ -1,5 +1,6 @@
 import torch
 from comfy.ldm.modules.attention import optimized_attention_for_device
+import comfy.model_management
 import comfy.ops
 import math
 
@@ -142,7 +143,7 @@ class CLIPEmbeddings(torch.nn.Module):
         self.position_embedding = operations.Embedding(num_positions, embed_dim, dtype=dtype, device=device)
 
     def forward(self, input_tokens, dtype=torch.float32):
-        return self.token_embedding(input_tokens, out_dtype=dtype) + comfy.ops.cast_to(self.position_embedding.weight, dtype=dtype, device=input_tokens.device)
+        return self.token_embedding(input_tokens, out_dtype=dtype) + comfy.model_management.cast_to(self.position_embedding.weight, dtype=dtype, device=input_tokens.device)
 
 
 class CLIPTextModel_(torch.nn.Module):
@@ -162,7 +163,7 @@ class CLIPTextModel_(torch.nn.Module):
 
     def forward(self, input_tokens=None, attention_mask=None, embeds=None, num_tokens=None, intermediate_output=None, final_layer_norm_intermediate=True, dtype=torch.float32, embeds_info=[]):
         if embeds is not None:
-            x = embeds + comfy.ops.cast_to(self.embeddings.position_embedding.weight, dtype=dtype, device=embeds.device)
+            x = embeds + comfy.model_management.cast_to(self.embeddings.position_embedding.weight, dtype=dtype, device=embeds.device)
         else:
             x = self.embeddings(input_tokens, dtype=dtype)
 

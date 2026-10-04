@@ -9,6 +9,7 @@ import torch.nn.functional as F
 from einops import rearrange
 # from flash_attn import flash_attn_varlen_qkvpacked_func
 from comfy.ldm.modules.attention import optimized_attention
+import comfy.model_management
 
 from .layers import (
     FeedForward,
@@ -471,7 +472,7 @@ class AsymmDiTJoint(nn.Module):
             T, pH=pH, pW=pW, device=x.device, dtype=torch.float32
         )  # (N, 3)
         rope_cos, rope_sin = compute_mixed_rotation(
-            freqs=comfy.ops.cast_to(self.pos_frequencies, dtype=x.dtype, device=x.device), pos=pos
+            freqs=comfy.model_management.cast_to(self.pos_frequencies, dtype=x.dtype, device=x.device), pos=pos
         )  # Each are (N, num_heads, dim // 2)
 
         c_t = self.t_embedder(1 - sigma, out_dtype=x.dtype)  # (B, D)

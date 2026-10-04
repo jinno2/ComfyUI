@@ -62,6 +62,6 @@ queue:
       - source: "LOOP.md#L5"
         quote: "自律 run は**この文書だけを命令として**実行する。1 run = 1 改善。"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "rejected"
     expires_after_runs: 10
     created_run: "2026-10-02T16:41:01Z"
