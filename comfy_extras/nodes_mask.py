@@ -74,7 +74,6 @@ class LatentCompositeMasked(IO.ComfyNode):
         output["samples"] = composite(destination, source, x, y, mask, 8, resize_source)
         return IO.NodeOutput(output)
 
-    composite = execute  # TODO: remove
 
 
 class ImageCompositeMasked(IO.ComfyNode):
@@ -103,7 +102,6 @@ class ImageCompositeMasked(IO.ComfyNode):
         output = composite(destination, source.movedim(-1, 1), x, y, mask, 1, resize_source).movedim(1, -1)
         return IO.NodeOutput(output)
 
-    composite = execute  # TODO: remove
 
 
 class MaskToImage(IO.ComfyNode):
@@ -125,7 +123,6 @@ class MaskToImage(IO.ComfyNode):
         result = mask.reshape((-1, 1, mask.shape[-2], mask.shape[-1])).movedim(1, -1).expand(-1, -1, -1, 3)
         return IO.NodeOutput(result)
 
-    mask_to_image = execute  # TODO: remove
 
 
 class ImageToMask(IO.ComfyNode):
@@ -149,7 +146,6 @@ class ImageToMask(IO.ComfyNode):
         mask = image[:, :, :, channels.index(channel)]
         return IO.NodeOutput(mask)
 
-    image_to_mask = execute  # TODO: remove
 
 
 class ImageColorToMask(IO.ComfyNode):
@@ -174,7 +170,6 @@ class ImageColorToMask(IO.ComfyNode):
         mask = torch.where(temp == color, 1.0, 0).float()
         return IO.NodeOutput(mask)
 
-    image_to_mask = execute  # TODO: remove
 
 
 class SolidMask(IO.ComfyNode):
@@ -197,7 +192,6 @@ class SolidMask(IO.ComfyNode):
         out = torch.full((1, height, width), value, dtype=torch.float32, device=comfy.model_management.intermediate_device())
         return IO.NodeOutput(out)
 
-    solid = execute  # TODO: remove
 
 
 class InvertMask(IO.ComfyNode):
@@ -219,7 +213,6 @@ class InvertMask(IO.ComfyNode):
         out = 1.0 - mask
         return IO.NodeOutput(out)
 
-    invert = execute  # TODO: remove
 
 
 class CropMask(IO.ComfyNode):
@@ -246,7 +239,6 @@ class CropMask(IO.ComfyNode):
         out = mask[:, y:y + height, x:x + width]
         return IO.NodeOutput(out)
 
-    crop = execute  # TODO: remove
 
 
 class MaskComposite(IO.ComfyNode):
@@ -297,7 +289,6 @@ class MaskComposite(IO.ComfyNode):
 
         return IO.NodeOutput(output)
 
-    combine = execute  # TODO: remove
 
 
 class FeatherMask(IO.ComfyNode):
@@ -345,7 +336,6 @@ class FeatherMask(IO.ComfyNode):
 
         return IO.NodeOutput(output)
 
-    feather = execute  # TODO: remove
 
 
 class GrowMask(IO.ComfyNode):
@@ -383,7 +373,6 @@ class GrowMask(IO.ComfyNode):
             out.append(output)
         return IO.NodeOutput(torch.stack(out, dim=0))
 
-    expand_mask = execute  # TODO: remove
 
 class ThresholdMask(IO.ComfyNode):
     @classmethod
@@ -404,8 +393,6 @@ class ThresholdMask(IO.ComfyNode):
     def execute(cls, mask, value) -> IO.NodeOutput:
         mask = (mask > value).float()
         return IO.NodeOutput(mask)
-
-    image_to_mask = execute  # TODO: remove
 
 
 # Mask Preview - original implement from
