@@ -167,7 +167,7 @@ class PhotoMakerEncode(io.ComfyNode):
     @classmethod
     def execute(cls, photomaker, image, clip, text):
         special_token = "photomaker"
-        pixel_values = comfy.clip_vision.clip_preprocess(image.to(photomaker.load_device)).float()
+        pixel_values = comfy.clip_model.clip_preprocess(image.to(photomaker.load_device)).float()
         try:
             index = text.split(" ").index(special_token) + 1
         except ValueError:

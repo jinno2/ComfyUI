@@ -18,8 +18,6 @@ class Output:
     def __setitem__(self, key, item):
         setattr(self, key, item)
 
-clip_preprocess = comfy.clip_model.clip_preprocess  # Prevent some stuff from breaking, TODO: remove eventually
-
 IMAGE_ENCODERS = {
     "clip_vision_model": comfy.clip_model.CLIPVisionModelProjection,
     "siglip_vision_model": comfy.clip_model.CLIPVisionModelProjection,
