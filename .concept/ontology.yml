@@ -74,3 +74,20 @@ canonical_terms:
         quote: "Let unsupported model formats, invalid quantization metadata, and bad states fail with clear errors instead of silently producing lower quality output."
       - source: "comfy/quant_ops.py#L90-L183"
         quote: "class TensorCoreMXFP8Layout ... class TensorCoreNVFP4Layout ... class TensorCoreFP8E4M3Layout"
+  CiEvidence:
+    id: "TERM-CIEVIDENCE"
+    layer: "aux"
+    status: "stable"
+    definition: "Machine-checkable CI log evidence recording the actual worker allocation (serial process or xdist workers) of unit-test runs."
+    synonyms: ["ci_evidence", "CI evidence", "serial runtime evidence"]
+    boundaries:
+      includes: ["'pytest serial runtime: process=<pid> collected=<N>' line emitted at session finish in serial runs", "native xdist 'N workers [M items]' collection lines as the xdist-side evidence", "Woodpecker unit-tests step grepping the evidence line plus summary on success"]
+      excludes: ["test pass/fail outcomes themselves", "lint step output", "other CI steps' logs"]
+    lifecycle: []
+    related_terms: []
+    assumptions: []
+    evidence:
+      - source: "tests-unit/conftest.py#L25-L29"
+        quote: "pytest_sessionfinish prints 'pytest serial runtime: process=<pid> collected=<N>' only when the xdist plugin is absent"
+      - source: ".woodpecker.yml#L34"
+        quote: "grep -E \"^pytest serial runtime: \" /tmp/pytest.log || true"

@@ -16,3 +16,7 @@ mappings:
       - "comfy/quant_ops.py::class TensorCoreMXFP8Layout"
       - "comfy/quant_ops.py::class TensorCoreNVFP4Layout"
       - "comfy/quant_ops.py::class TensorCoreFP8E4M3Layout"
+  CiEvidence:
+    code_symbols:
+      - "tests-unit/conftest.py::pytest_sessionfinish"
+      - ".woodpecker.yml::steps.unit-tests"
