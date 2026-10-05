@@ -171,10 +171,9 @@ def string_to_seed(data):
 class LowVramPatch:
     is_lowvram_patch = True
 
-    def __init__(self, key, patches, convert_func=None, set_func=None):
+    def __init__(self, key, patches, set_func=None):
         self.key = key
         self.patches = patches
-        self.convert_func = convert_func # TODO: remove
         self.set_func = set_func
         self.prepared_patches = None
 
@@ -1027,14 +1026,14 @@ class ModelPatcher:
                             self.patch_weight_to_device(weight_key)
                         else:
                             _, set_func, convert_func = get_key_weight(self.model, weight_key)
-                            m.weight_function = [LowVramPatch(weight_key, self.patches, convert_func, set_func)]
+                            m.weight_function = [LowVramPatch(weight_key, self.patches, set_func)]
                             patch_counter += 1
                     if bias_key in self.patches:
                         if force_patch_weights or comfy.lora.calculate_shape(self.patches[bias_key], m.bias, bias_key) != m.bias.shape:
                             self.patch_weight_to_device(bias_key)
                         else:
                             _, set_func, convert_func = get_key_weight(self.model, bias_key)
-                            m.bias_function = [LowVramPatch(bias_key, self.patches, convert_func, set_func)]
+                            m.bias_function = [LowVramPatch(bias_key, self.patches, set_func)]
                             patch_counter += 1
 
                     cast_weight = True
@@ -1230,7 +1229,7 @@ class ModelPatcher:
                                     _, set_func, convert_func = get_key_weight(self.model, weight_key)
                                     if "weight_function" not in m.__dict__:
                                         m.weight_function = []
-                                    m.weight_function.append(LowVramPatch(weight_key, self.patches, convert_func, set_func))
+                                    m.weight_function.append(LowVramPatch(weight_key, self.patches, set_func))
                                     patch_counter += 1
                             if bias_key in self.patches:
                                 if force_patch_weights or comfy.lora.calculate_shape(self.patches[bias_key], m.bias, bias_key) != m.bias.shape:
@@ -1239,7 +1238,7 @@ class ModelPatcher:
                                     _, set_func, convert_func = get_key_weight(self.model, bias_key)
                                     if "bias_function" not in m.__dict__:
                                         m.bias_function = []
-                                    m.bias_function.append(LowVramPatch(bias_key, self.patches, convert_func, set_func))
+                                    m.bias_function.append(LowVramPatch(bias_key, self.patches, set_func))
                                     patch_counter += 1
                             cast_weight = True
 
