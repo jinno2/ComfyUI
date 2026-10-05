@@ -12,3 +12,18 @@ invariants:
     checks:
       - type: "review"
         target: "any PR touching network-capable code paths in core"
+  - id: "INV-COMPAT-001"
+    related_terms: []
+    status: "stable"
+    strength: "hard"
+    statement: "Backward compatibility is out of scope by default in this fork: compatibility-only aliases, legacy entry points, and TODO:remove wrappers are removed once they have no in-repo consumers, and breakage of external consumers of removed aliases is accepted."
+    rationale: "The fork develops permanently and autonomously without upstream tracking; retained dead compatibility paths block the cleanup workstream and contradict the aggressive-deletion engineering style."
+    assumptions: []
+    evidence:
+      - source: "AGENTS.md#L13-L25"
+        quote: "Delete obsolete code aggressively when newer infrastructure makes it useless. ... When compatibility is explicitly out of scope, remove compatibility-only aliases, duplicate nodes, legacy entry points, and preset wrappers instead of retaining parallel ways to perform the same operation."
+      - source: "commit a00eb338"
+        quote: "External custom nodes calling these class attributes would break, which is accepted per fork policy (no backward compatibility)."
+    checks:
+      - type: "review"
+        target: "any PR adding compatibility aliases, deprecation shims, or fallback branches for removed APIs"
