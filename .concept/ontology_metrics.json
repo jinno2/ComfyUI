@@ -1,10 +1,69 @@
 {
-  "run_id": "2026-10-05T21:40:41Z",
-  "total_terms": 4,
-  "by_layer": { "core": 0, "domain": 0, "aux": 4 },
-  "draft_ratio": 0.25,
+  "run_id": "2026-10-05T21:57:47Z",
+  "total_terms": 11,
+  "by_layer": { "core": 0, "domain": 0, "aux": 11 },
+  "draft_ratio": 0.09,
   "queue_pending": 0,
-  "claims_retained_lines": 24,
+  "claims_retained_lines": 31,
   "decisions_md_lines": 1,
-  "gc_actions": { "merged": 0, "deleted": 0, "deprecated": 0 }
+  "gc_actions": { "merged": 0, "deleted": 0, "deprecated": 0 },
+  "quality_gate": {
+    "evaluated_at": "2026-10-05T21:57:47Z",
+    "Q1_ontology_coverage": {
+      "raw_terms_vs_class_defs": 0.001,
+      "class_defs_in_main_source": 11752,
+      "class_bearing_modules": 381,
+      "arch_component_coverage": "11/11 identified execution-architecture components",
+      "threshold": ">=80%",
+      "pass": false,
+      "note": "Raw formula (terms/classes+defs) is structurally unattainable for a ~3900-class codebase while budget caps terms at 80; gate tracks arch-component coverage as the meaningful proxy."
+    },
+    "Q2_mapping_coverage": {
+      "terms_with_code_symbols": 11,
+      "total_terms": 11,
+      "ratio": 1.0,
+      "threshold": ">=90%",
+      "pass": true
+    },
+    "Q3_invariant_extraction": {
+      "invariants": 3,
+      "test_files": 126,
+      "ratio": 0.024,
+      "threshold": ">=50%",
+      "pass": false,
+      "note": "63 invariants would be needed at 50% of 126 test files but invariants cap is 60; extract high-value invariants first (execution, fork-specific tests)."
+    },
+    "Q4_draft_ratio": {
+      "draft_terms": 1,
+      "total_terms": 11,
+      "ratio": 0.09,
+      "threshold": "<=0.30",
+      "pass": true
+    },
+    "Q5_unmapped_claims": {
+      "unmapped_claims": 18,
+      "total_claims": 31,
+      "ratio": 0.58,
+      "threshold": "<=0.20",
+      "pass": false,
+      "note": "Historical claims predate the term set and claims.ndjson is append-only; ratio improves only through new precisely-anchored claims."
+    },
+    "Q6_terms_budget": {
+      "terms": 11,
+      "max": 80,
+      "pass": true
+    },
+    "Q7_charter_completeness": {
+      "north_star_present": true,
+      "milestones": 1,
+      "pass": true
+    },
+    "Q8_evidence_coverage": {
+      "terms_with_evidence": 11,
+      "total_terms": 11,
+      "ratio": 1.0,
+      "threshold": "100%",
+      "pass": true
+    }
+  }
 }

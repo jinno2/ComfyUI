@@ -11,7 +11,7 @@ ambiguities:
       - "Whether the saved workflow JSON format deserves its own queued term owned by the frontend/API layer"
     linked_conflicts: []
     auto_decision: null
-    last_touched_run: "2026-10-03T20:24:34Z"
+    last_touched_run: "2026-10-05T21:57:47Z"
     evidence:
       - source: "comfy_execution/graph.py#L21"
         quote: "class DynamicPrompt:"

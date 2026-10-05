@@ -1,0 +1,39 @@
+version: "1.0"
+
+product_goal:
+  north_star: "ローカル環境で動くモジュラー型ノードグラフエンジンとして、画像・動画・3D・音声のAIコンテンツ生成を効率的に実行できる状態を維持する（推定）"
+  success_metrics:
+    - id: "MET-001"
+      name: "unit tests green"
+      target: "make test (tests-unit) が全件パス"
+    - id: "MET-002"
+      name: "behavior compatibility"
+      target: "既存ノード名・モデル読み込み・ワークフロー互換を維持"
+    - id: "MET-003"
+      name: "local-only execution"
+      target: "core に外部インターネット通信経路を追加しない"
+  non_goals:
+    - "core からの外部通信（telemetry/upload/analytics 等、AGENTS.md 契約により拒否）"
+    - "上流 Comfy-Org/ComfyUI への追従（fork は恒久自律開発・後方互換 shim は保持しない）"
+    - "モデル実装内でのメモリ管理・推論モードラッパの追加"
+
+milestones:
+  - id: "MS-001"
+    name: "Concept dictionary coverage of the execution architecture"
+    intent: "graph/sampling/model-load/queue/server の実行アーキテクチャを概念辞書と対応表で捉え、fork 固有改修の安全性の土台を作る"
+    deliverables:
+      - ".concept/ontology.yml に主要実行アーキ概念の canonical terms"
+      - ".concept/mappings.yml の code_symbols 紐付け"
+    acceptance:
+      - type: "test"
+        target: ".concept/ontology_metrics.json の quality_gate"
+    priority: "P0"
+    status: "active"
+
+work_policy:
+  default_mode: "commit"
+  iteration_budget:
+    max_cycles: 5
+    max_files_changed: 25
+  quality_gates:
+    must_pass: ["lint", "test"]

@@ -79,3 +79,101 @@ queue:
     decision: "rejected"
     expires_after_runs: 10
     created_run: "2026-10-05T15:44:43Z"
+  - id: "TP-000007"
+    proposed_canonical: "Sampler"
+    proposed_layer: "aux"
+    term_raw_examples: ["sampler", "denoising loop", "CFG guider"]
+    reason: "Accepted: dedicated module with distinct sampler/scheduler/CFG objects; no existing term covers the denoising loop."
+    evidence:
+      - source: "comfy/samplers.py#L918-L933"
+        quote: "class Sampler: ... class KSAMPLER(Sampler):"
+      - source: "comfy/samplers.py#L1306"
+        quote: "def sample(model, noise, positive, negative, cfg, device, sampler, sigmas, ...)"
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-05T21:57:47Z"
+  - id: "TP-000008"
+    proposed_canonical: "ModelPatcher"
+    proposed_layer: "aux"
+    term_raw_examples: ["model patcher", "weight patching"]
+    reason: "Accepted: AGENTS.md names the model patcher class as the only sanctioned patch path; concrete class now mapped."
+    evidence:
+      - source: "comfy/model_patcher.py#L340"
+        quote: "class ModelPatcher:"
+      - source: "AGENTS.md#L361-L363"
+        quote: "Any node behavior that modifies, wraps, hooks, or changes model behavior must go through the model patcher class instead of reaching into model internals."
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-05T21:57:47Z"
+  - id: "TP-000009"
+    proposed_canonical: "VAE"
+    proposed_layer: "aux"
+    term_raw_examples: ["VAE", "encode/decode", "taesd"]
+    reason: "Accepted: VAE wrapper is a distinct model-layer owner (pixel/latent boundary); not covered by LatentFormat (layout params only)."
+    evidence:
+      - source: "comfy/sd.py#L492"
+        quote: "class VAE:"
+      - source: "AGENTS.md#L275"
+        quote: "Follow the Wan VAE temporal cache pattern for temporary caches"
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-05T21:57:47Z"
+  - id: "TP-000010"
+    proposed_canonical: "Conditioning"
+    proposed_layer: "aux"
+    term_raw_examples: ["condition", "positive/negative conditioning", "COND*"]
+    reason: "Accepted: container system plus node output contract constrained in AGENTS.md; distinct from CFG math."
+    evidence:
+      - source: "comfy/conds.py#L26"
+        quote: "class CONDRegular:"
+      - source: "AGENTS.md#L350"
+        quote: "Conditioning nodes should normally output conditioning only."
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-05T21:57:47Z"
+  - id: "TP-000011"
+    proposed_canonical: "PromptQueue"
+    proposed_layer: "aux"
+    term_raw_examples: ["execution queue", "async queue", "job queue"]
+    reason: "Accepted: concrete queue class with server ownership and ExecutionStatus lifecycle; distinct from NodeGraph execution."
+    evidence:
+      - source: "execution.py#L1286"
+        quote: "class PromptQueue:"
+      - source: "server.py#L227"
+        quote: "self.prompt_queue = execution.PromptQueue(self)"
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-05T21:57:47Z"
+  - id: "TP-000012"
+    proposed_canonical: "PromptServer"
+    proposed_layer: "aux"
+    term_raw_examples: ["server", "HTTP API", "WebSocket server"]
+    reason: "Accepted: transport/API boundary with test-covered userdata endpoints; distinct from queue and execution."
+    evidence:
+      - source: "server.py#L215"
+        quote: "class PromptServer():"
+      - source: "tests-unit/prompt_server_test/system_user_endpoint_test.py#L49-L60"
+        quote: "class TestSystemUserEndpointBlocking: ... async def test_userdata_get_blocks_system_user("
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-05T21:57:47Z"
+  - id: "TP-000013"
+    proposed_canonical: "NodeRegistry"
+    proposed_layer: "aux"
+    term_raw_examples: ["NODE_CLASS_MAPPINGS", "node registration", "node mappings"]
+    reason: "Accepted: startup registry merging builtin and custom node modules; distinct from the graph it feeds."
+    evidence:
+      - source: "nodes.py#L2073"
+        quote: "NODE_CLASS_MAPPINGS = {"
+      - source: "nodes.py#L2300-L2303"
+        quote: "for name, node_cls in module.NODE_CLASS_MAPPINGS.items(): ... NODE_CLASS_MAPPINGS[name] = node_cls"
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-05T21:57:47Z"

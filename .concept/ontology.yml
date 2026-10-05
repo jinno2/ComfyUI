@@ -74,3 +74,130 @@ canonical_terms:
         quote: "Let unsupported model formats, invalid quantization metadata, and bad states fail with clear errors instead of silently producing lower quality output."
       - source: "comfy/quant_ops.py#L90-L183"
         quote: "class TensorCoreMXFP8Layout ... class TensorCoreNVFP4Layout ... class TensorCoreFP8E4M3Layout"
+  Sampler:
+    id: "TERM-SAMPLER"
+    layer: "aux"
+    status: "stable"
+    definition: "The sampler strategy objects, scheduler/sigma handling, CFG guidance, and the sample() driver that run the iterative denoising loop over a latent."
+    synonyms: ["sampler", "denoising loop", "CFG guider", "sigmas/scheduler"]
+    boundaries:
+      includes: ["sampler algorithm objects (Sampler/KSAMPLER)", "sigma schedule calculation", "CFG guidance (CFGGuider)", "the sample() driver"]
+      excludes: ["model forward math inside the denoise step (model implementations)", "latent layout (LatentFormat)", "node-facing UI presets"]
+    lifecycle: []
+    related_terms: ["NodeGraph", "ModelLoading", "Conditioning"]
+    assumptions: []
+    evidence:
+      - source: "comfy/samplers.py#L918-L933"
+        quote: "class Sampler: ... class KSAMPLER(Sampler):"
+      - source: "comfy/samplers.py#L1144"
+        quote: "class CFGGuider:"
+      - source: "comfy/samplers.py#L1306"
+        quote: "def sample(model, noise, positive, negative, cfg, device, sampler, sigmas, ...)"
+  ModelPatcher:
+    id: "TERM-MODELPATCHER"
+    layer: "aux"
+    status: "stable"
+    definition: "The object that owns weight patching, wrapping, and low-VRAM weight access for a loaded model; the only sanctioned path for changing model behavior from outside the model implementation."
+    synonyms: ["model patcher", "weight patching", "ModelPatcherDynamic"]
+    boundaries:
+      includes: ["weight patches and module wrapping", "low-VRAM partial weight access", "ModelPatcherDynamic subclass"]
+      excludes: ["node-level direct patching of model internals (forbidden)", "load/offload policy decisions (ModelLoading)", "quantized weight layouts (Quantization)"]
+    lifecycle: []
+    related_terms: ["ModelLoading", "Sampler"]
+    assumptions: []
+    evidence:
+      - source: "comfy/model_patcher.py#L340"
+        quote: "class ModelPatcher:"
+      - source: "comfy/model_patcher.py#L1760"
+        quote: "class ModelPatcherDynamic(ModelPatcher):"
+      - source: "AGENTS.md#L361-L363"
+        quote: "Node-level code must not patch model code directly. Any node behavior that modifies, wraps, hooks, or changes model behavior must go through the model patcher class instead of reaching into model internals."
+  VAE:
+    id: "TERM-VAE"
+    layer: "aux"
+    status: "stable"
+    definition: "The variational autoencoder wrapper that encodes pixel images to latents and decodes latents back to pixels, owned by the model layer (comfy/sd.py)."
+    synonyms: ["variational autoencoder", "VAE encode/decode", "taesd preview"]
+    boundaries:
+      includes: ["pixel-to-latent encode and latent-to-pixel decode", "per-family VAE configuration", "taesd fast preview path"]
+      excludes: ["latent layout parameters (LatentFormat)", "preview image transport to the client (PromptServer)"]
+    lifecycle: []
+    related_terms: ["LatentFormat", "ModelLoading"]
+    assumptions: []
+    evidence:
+      - source: "comfy/sd.py#L492"
+        quote: "class VAE:"
+      - source: "AGENTS.md#L275"
+        quote: "Follow the Wan VAE temporal cache pattern for temporary caches: create a local cache such as feat_map for the encode/decode operation"
+  Conditioning:
+    id: "TERM-CONDITIONING"
+    layer: "aux"
+    status: "stable"
+    definition: "The condition container system (CONDRegular and subclasses) and the conditioning nodes whose output contract is conditioning only, feeding positive/negative guidance into sampling."
+    synonyms: ["condition", "positive/negative conditioning", "COND* containers"]
+    boundaries:
+      includes: ["condition containers (comfy/conds.py)", "conditioning combine/concat/set-mask nodes", "output conditioning only"]
+      excludes: ["CFG math in the sampling loop (Sampler)", "model cross-attention implementation"]
+    lifecycle: []
+    related_terms: ["Sampler", "NodeGraph"]
+    assumptions: []
+    evidence:
+      - source: "comfy/conds.py#L26"
+        quote: "class CONDRegular:"
+      - source: "nodes.py#L80-L134"
+        quote: "class ConditioningCombine: ... class ConditioningConcat:"
+      - source: "AGENTS.md#L350"
+        quote: "Conditioning nodes should normally output conditioning only. Do not expose input or intermediate images as convenience outputs"
+  PromptQueue:
+    id: "TERM-PROMPTQUEUE"
+    layer: "aux"
+    status: "stable"
+    definition: "The async job queue owned by the server that holds pending prompt executions and their running/finished state between the HTTP API and the execution engine."
+    synonyms: ["execution queue", "job queue", "async queue"]
+    boundaries:
+      includes: ["queue put/get/task tracking", "cancellation state", "ExecutionStatus updates"]
+      excludes: ["graph expansion and execution itself (NodeGraph)", "HTTP/WebSocket transport (PromptServer)"]
+    lifecycle: ["Queued", "Running", "Finished"]
+    related_terms: ["NodeGraph", "PromptServer"]
+    assumptions: []
+    evidence:
+      - source: "execution.py#L1286"
+        quote: "class PromptQueue:"
+      - source: "server.py#L227"
+        quote: "self.prompt_queue = execution.PromptQueue(self)"
+      - source: "README.md#L67"
+        quote: "Efficient local execution with asynchronous queueing, partial graph re-execution, smart VRAM and RAM management, model offloading, and support for quantized models."
+  PromptServer:
+    id: "TERM-PROMPTSERVER"
+    layer: "aux"
+    status: "stable"
+    definition: "The HTTP/WebSocket server that exposes the node graph API to clients: accepts prompts, reports execution status, streams progress/previews, and serves node/object info."
+    synonyms: ["server", "HTTP API", "WebSocket server"]
+    boundaries:
+      includes: ["/prompt /queue /object_info routes", "WebSocket status/progress messages", "userdata endpoints"]
+      excludes: ["execution engine and graph expansion (NodeGraph)", "queue storage (PromptQueue)"]
+    lifecycle: []
+    related_terms: ["PromptQueue", "NodeGraph"]
+    assumptions: []
+    evidence:
+      - source: "server.py#L215"
+        quote: "class PromptServer():"
+      - source: "tests-unit/prompt_server_test/system_user_endpoint_test.py#L49-L60"
+        quote: "class TestSystemUserEndpointBlocking: ... async def test_userdata_get_blocks_system_user("
+  NodeRegistry:
+    id: "TERM-NODEREGISTRY"
+    layer: "aux"
+    status: "stable"
+    definition: "The runtime registry (NODE_CLASS_MAPPINGS) mapping node class names to implementations, built from builtin nodes and merged from custom node modules at startup."
+    synonyms: ["node mappings", "NODE_CLASS_MAPPINGS", "node registration"]
+    boundaries:
+      includes: ["NODE_CLASS_MAPPINGS registration", "custom node module loading and merging", "V3 schema node_id registration"]
+      excludes: ["individual node implementations", "frontend node definitions", "graph execution order (NodeGraph)"]
+    lifecycle: []
+    related_terms: ["NodeGraph"]
+    assumptions: []
+    evidence:
+      - source: "nodes.py#L2073"
+        quote: "NODE_CLASS_MAPPINGS = {"
+      - source: "nodes.py#L2300-L2303"
+        quote: "for name, node_cls in module.NODE_CLASS_MAPPINGS.items(): ... NODE_CLASS_MAPPINGS[name] = node_cls"

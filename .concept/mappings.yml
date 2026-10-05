@@ -16,3 +16,31 @@ mappings:
       - "comfy/quant_ops.py::class TensorCoreMXFP8Layout"
       - "comfy/quant_ops.py::class TensorCoreNVFP4Layout"
       - "comfy/quant_ops.py::class TensorCoreFP8E4M3Layout"
+  Sampler:
+    code_symbols:
+      - "comfy/samplers.py::class Sampler"
+      - "comfy/samplers.py::class KSAMPLER"
+      - "comfy/samplers.py::class CFGGuider"
+      - "comfy/samplers.py::def sample"
+  ModelPatcher:
+    code_symbols:
+      - "comfy/model_patcher.py::class ModelPatcher"
+      - "comfy/model_patcher.py::class ModelPatcherDynamic"
+  VAE:
+    code_symbols:
+      - "comfy/sd.py::class VAE"
+  Conditioning:
+    code_symbols:
+      - "comfy/conds.py::class CONDRegular"
+      - "nodes.py::class ConditioningCombine"
+      - "nodes.py::class ConditioningConcat"
+  PromptQueue:
+    code_symbols:
+      - "execution.py::class PromptQueue"
+  PromptServer:
+    code_symbols:
+      - "server.py::class PromptServer"
+  NodeRegistry:
+    code_symbols:
+      - "nodes.py::NODE_CLASS_MAPPINGS"
+      - "nodes.py::def init_extra_nodes"
