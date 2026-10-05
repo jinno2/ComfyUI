@@ -31,3 +31,18 @@ invariants:
     checks:
       - type: "review"
         target: "any PR re-adding a compatibility alias, wrapper, or deprecation warning path"
+  - id: "INV-CI-001"
+    related_terms: []
+    status: "stable"
+    strength: "soft"
+    statement: "Unit test runs must emit machine-checkable evidence of the actual worker allocation: serial runs print 'pytest serial runtime: process=<pid> collected=<N>' at session end (silenced under xdist where native worker lines are the evidence), and the Woodpecker unit-tests step surfaces that line plus the summary in CI logs on success."
+    rationale: "CI logs must carry the real serial/xdist worker allocation so fleet observability can distinguish serial from parallel runs; evidence is greppable, not inferred."
+    assumptions: []
+    evidence:
+      - source: "tests-unit/conftest.py#L25-L29"
+        quote: "if session.config.pluginmanager.getplugin(\"xdist\") is None: print(f\"\\npytest serial runtime: process={os.getpid()} collected={_collected}\")"
+      - source: ".woodpecker.yml#L34"
+        quote: "grep -E \"^pytest serial runtime: \" /tmp/pytest.log || true"
+    checks:
+      - type: "test"
+        target: "tests-unit (session-finish evidence line present in serial runs)"
