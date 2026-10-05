@@ -65,3 +65,17 @@ queue:
     decision: "rejected"
     expires_after_runs: 10
     created_run: "2026-10-02T16:41:01Z"
+  - id: "TP-000006"
+    proposed_canonical: "ci_evidence"
+    proposed_layer: "aux"
+    term_raw_examples: ["ci_evidence", "CI evidence", "serial runtime evidence"]
+    reason: "Cross-cutting CI observability rule: unit-test runs must emit machine-checkable evidence of the actual serial/xdist worker allocation; no existing term covers CI log evidence."
+    evidence:
+      - source: "tests-unit/conftest.py#L29"
+        quote: "print(f\"\\npytest serial runtime: process={os.getpid()} collected={_collected}\")  # noqa: T201"
+      - source: ".woodpecker.yml#L34"
+        quote: "grep -E \"^pytest serial runtime: \" /tmp/pytest.log || true"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-05T15:44:43Z"

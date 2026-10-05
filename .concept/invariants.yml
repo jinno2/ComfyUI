@@ -13,19 +13,21 @@ invariants:
       - type: "review"
         target: "any PR touching network-capable code paths in core"
   - id: "INV-FORK-001"
-    related_terms: []
+    related_terms: ["ModelLoading"]
     status: "stable"
     strength: "soft"
     statement: "This fork does not retain backward-compatibility shims: deprecated wrappers, legacy aliases, and compatibility-only entry points are removed aggressively; breakage of external consumers is accepted per fork policy."
     rationale: "Fork does permanent autonomous development without upstream tracking; compat baggage becomes gravity against evolution."
     assumptions: []
     evidence:
-      - source: "AGENTS.md#L17-L18"
+      - source: "AGENTS.md#L22-L24"
         quote: "When compatibility is explicitly out of scope, remove compatibility-only aliases, duplicate nodes, legacy entry points, and preset wrappers instead of retaining parallel ways to perform the same operation."
       - source: "commit:a00eb338"
-        quote: "refactor: remove deprecated calc_cond_uncond_batch wrapper / remove legacy execute aliases in nodes_mask.py"
+        quote: "refactor: remove deprecated calc_cond_uncond_batch wrapper"
+      - source: "commit:a00eb338"
+        quote: "refactor: remove legacy execute aliases in nodes_mask.py"
       - source: "commit:8986b64f"
-        quote: "The comfy.clip_vision.clip_preprocess alias (TODO: remove eventually) was removed; sole consumer calls comfy.clip_model.clip_preprocess directly."
+        quote: "Remove comfy.clip_vision.clip_preprocess alias"
     checks:
       - type: "review"
         target: "any PR re-adding a compatibility alias, wrapper, or deprecation warning path"
