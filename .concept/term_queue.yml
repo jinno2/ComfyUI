@@ -76,6 +76,7 @@ queue:
       - source: ".woodpecker.yml#L34"
         quote: "grep -E \"^pytest serial runtime: \" /tmp/pytest.log || true"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "rejected"
+    reason: "Process/CI-observability concept, not a codebase domain concept (same rationale as rejected TP-000005 Run); the underlying facts stay in claims.ndjson (run 2026-10-05T15:44:43Z), evidence re-verified on 2026-10-07."
     expires_after_runs: 10
     created_run: "2026-10-05T15:44:43Z"
