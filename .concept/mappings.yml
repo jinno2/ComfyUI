@@ -16,3 +16,7 @@ mappings:
       - "comfy/quant_ops.py::class TensorCoreMXFP8Layout"
       - "comfy/quant_ops.py::class TensorCoreNVFP4Layout"
       - "comfy/quant_ops.py::class TensorCoreFP8E4M3Layout"
+  ci_evidence:
+    code_symbols:
+      - "tests-unit/conftest.py::pytest_sessionfinish"
+      - ".woodpecker.yml::unit-tests step serial runtime grep"

@@ -2,7 +2,7 @@ version: "0.3"
 canonical_terms:
   NodeGraph:
     id: "TERM-NODEGRAPH"
-    layer: "aux"
+    layer: "core"
     status: "stable"
     definition: "The declarative graph of nodes (DynamicPrompt) that ComfyUI expands and executes in topological order."
     synonyms: ["node graph", "visual node graph", "ノードグラフ"]
@@ -21,7 +21,7 @@ canonical_terms:
         quote: "class DynamicPrompt ... class TopologicalSort ... class ExecutionList(TopologicalSort)"
   ModelLoading:
     id: "TERM-MODELLOADING"
-    layer: "aux"
+    layer: "core"
     status: "stable"
     definition: "The policy layer that decides when and where models are loaded, partially loaded, or offloaded across VRAM/RAM."
     synonyms: ["model-loading behavior", "model offloading", "VRAM management"]
@@ -40,7 +40,7 @@ canonical_terms:
         quote: "class VRAMState ... def load_models_gpu(...)"
   LatentFormat:
     id: "TERM-LATENTFORMAT"
-    layer: "aux"
+    layer: "domain"
     status: "draft"
     definition: "The per-model-family owner of native latent layout (channel count, scaling, packing) inside the model/latent-format layer."
     synonyms: ["latent layout", "latent-format owner", "native latent shape"]
@@ -57,7 +57,7 @@ canonical_terms:
         quote: "class LatentFormat ... class SD15(LatentFormat) ... class Flux2(LatentFormat)"
   Quantization:
     id: "TERM-QUANTIZATION"
-    layer: "aux"
+    layer: "domain"
     status: "stable"
     definition: "The 4/8-bit weight layout and metadata system (FP8, MXFP8, NVFP4) served by optimized shared kernels."
     synonyms: ["quantized models", "quantization metadata", "quant_ops"]
@@ -74,3 +74,20 @@ canonical_terms:
         quote: "Let unsupported model formats, invalid quantization metadata, and bad states fail with clear errors instead of silently producing lower quality output."
       - source: "comfy/quant_ops.py#L90-L183"
         quote: "class TensorCoreMXFP8Layout ... class TensorCoreNVFP4Layout ... class TensorCoreFP8E4M3Layout"
+  ci_evidence:
+    id: "TERM-CIEVIDENCE"
+    layer: "aux"
+    status: "stable"
+    definition: "The CI log contract that unit-test runs must leave machine-checkable evidence of the actual serial worker allocation: conftest emits a parseable line at session end and the CI pipeline greps it into the job log."
+    synonyms: ["CI evidence", "serial runtime evidence"]
+    boundaries:
+      includes: ["'pytest serial runtime: process=<pid> collected=<N>' emission at session end", "CI-side grep of the emitted line into the job log", "silence under xdist where native worker lines are the evidence"]
+      excludes: ["test pass/fail status itself", "coverage, performance, or artifact metrics"]
+    lifecycle: []
+    related_terms: []
+    assumptions: []
+    evidence:
+      - source: "tests-unit/conftest.py#L25-L29"
+        quote: "def pytest_sessionfinish(session, exitstatus): ... print(f\"\\npytest serial runtime: process={os.getpid()} collected={_collected}\")"
+      - source: ".woodpecker.yml#L34"
+        quote: "grep -E \"^pytest serial runtime: \" /tmp/pytest.log || true"
