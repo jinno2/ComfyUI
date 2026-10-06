@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   spectral:
+    if: github.repository == 'Comfy-Org/ComfyUI'
     name: Run Spectral
     runs-on: ubuntu-latest
 

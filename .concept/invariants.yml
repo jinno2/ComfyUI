@@ -12,6 +12,42 @@ invariants:
     checks:
       - type: "review"
         target: "any PR touching network-capable code paths in core"
+  - id: "INV-CI-001"
+    related_terms: []
+    status: "stable"
+    strength: "soft"
+    statement: "Unit-test CI runs must emit machine-checkable evidence of the actual serial/xdist worker allocation: tests-unit conftest prints 'pytest serial runtime: process=<pid> collected=<N>' at session finish when xdist is absent, and the Woodpecker unit-tests step greps that line into the CI log on success."
+    rationale: "CI logs must carry the real worker allocation instead of an assumed one; removing the conftest line or the grep silently degrades CI observability."
+    assumptions: []
+    evidence:
+      - source: "tests-unit/conftest.py#L24-L30"
+        quote: "CI evidence consumers need the actual allocation: under xdist the native \"N workers [M items]\" collection lines are that evidence, so stay silent."
+      - source: ".woodpecker.yml#L34"
+        quote: "grep -E \"^pytest serial runtime: \" /tmp/pytest.log || true"
+      - source: "commit:20b3e40c"
+        quote: "ci: emit actual serial worker allocation evidence (#17)"
+    checks:
+      - type: "review"
+        target: "any PR removing or renaming the conftest serial-runtime line or the Woodpecker grep"
+  - id: "INV-CI-002"
+    related_terms: []
+    status: "stable"
+    strength: "hard"
+    statement: "Auto-triggered upstream GitHub Actions workflows must not execute on this fork: every workflow with push/pull_request/schedule triggers carries a job-level `if: github.repository == 'Comfy-Org/ComfyUI'` gate, and CI runs through Woodpecker (.woodpecker.yml) instead."
+    rationale: "This fork's CI policy is Woodpecker-only; unguarded upstream workflows burn GitHub-hosted runners on every push/PR and some auto-commit (update-version) or require upstream-only secrets (detect-unreviewed-merge)."
+    assumptions: []
+    evidence:
+      - source: ".woodpecker.yml#L19"
+        quote: "- ruff check ."
+      - source: ".woodpecker.yml#L29-L34"
+        quote: "python -u -X faulthandler -m pytest tests-unit -q --maxfail=1 --tb=short > /tmp/pytest.log 2>&1 || status=$?"
+      - source: "commit:4e0219aa"
+        quote: "Guard upstream test workflows and add Woodpecker gate"
+      - source: "commit:35d42c4f"
+        quote: "Fix fork CI: gate upstream-only checks, drop unused import (#5)"
+    checks:
+      - type: "review"
+        target: "any new upstream workflow file with push/pull_request/schedule triggers added without the repository gate"
   - id: "INV-FORK-001"
     related_terms: ["ModelLoading"]
     status: "stable"

@@ -18,6 +18,7 @@ on:
 
 jobs:
   test-stable:
+    if: github.repository == 'Comfy-Org/ComfyUI'
     strategy:
       fail-fast: false
       matrix:
@@ -72,6 +73,7 @@ jobs:
   #         comfyui_flags: ${{ matrix.flags }}
 
   test-unix-nightly:
+    if: github.repository == 'Comfy-Org/ComfyUI'
     strategy:
       fail-fast: false
       matrix:

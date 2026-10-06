@@ -76,6 +76,7 @@ queue:
       - source: ".woodpecker.yml#L34"
         quote: "grep -E \"^pytest serial runtime: \" /tmp/pytest.log || true"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "rejected"
+    reason: "REJECTED 2026-10-06: CI-ops process concept, not a product concept (same family as rejected TP-000005 'Run'); primary-source count insufficient (1 test + 1 CI config, no spec/design/db); durable rule persisted as invariant INV-CI-001 and claim 2026-10-05T15:35:16Z instead of a term."
     expires_after_runs: 10
     created_run: "2026-10-05T15:44:43Z"

@@ -1,13 +1,13 @@
 {
-  "run_id": "2026-10-05T19:43:56Z",
+  "run_id": "2026-10-06T15:34:36Z",
   "total_terms": 4,
   "by_layer": {
     "core": 0,
     "domain": 0,
     "aux": 4
   },
-  "draft_ratio": 0.25,
-  "queue_pending": 1,
+  "draft_ratio": 0.0,
+  "queue_pending": 0,
   "claims_retained_lines": 25,
   "decisions_md_lines": 1,
   "gc_actions": {
