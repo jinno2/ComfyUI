@@ -7,6 +7,7 @@ on:
 
 jobs:
   generate-models:
+    if: github.repository == 'Comfy-Org/ComfyUI'
     runs-on: ubuntu-latest
     
     steps:

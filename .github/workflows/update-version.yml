@@ -10,6 +10,7 @@ on:
 
 jobs:
   update-version:
+    if: github.repository == 'Comfy-Org/ComfyUI'
     runs-on: ubuntu-latest
     # Don't run on fork PRs
     if: github.event.pull_request.head.repo.full_name == github.repository

@@ -29,6 +29,25 @@ invariants:
     checks:
       - type: "review"
         target: "any PR removing or renaming the conftest serial-runtime line or the Woodpecker grep"
+  - id: "INV-CI-002"
+    related_terms: []
+    status: "stable"
+    strength: "hard"
+    statement: "Auto-triggered upstream GitHub Actions workflows must not execute on this fork: every workflow with push/pull_request/schedule triggers carries a job-level `if: github.repository == 'Comfy-Org/ComfyUI'` gate, and CI runs through Woodpecker (.woodpecker.yml) instead."
+    rationale: "This fork's CI policy is Woodpecker-only; unguarded upstream workflows burn GitHub-hosted runners on every push/PR and some auto-commit (update-version) or require upstream-only secrets (detect-unreviewed-merge)."
+    assumptions: []
+    evidence:
+      - source: ".woodpecker.yml#L19"
+        quote: "- ruff check ."
+      - source: ".woodpecker.yml#L29-L34"
+        quote: "python -u -X faulthandler -m pytest tests-unit -q --maxfail=1 --tb=short > /tmp/pytest.log 2>&1 || status=$?"
+      - source: "commit:4e0219aa"
+        quote: "Guard upstream test workflows and add Woodpecker gate"
+      - source: "commit:35d42c4f"
+        quote: "Fix fork CI: gate upstream-only checks, drop unused import (#5)"
+    checks:
+      - type: "review"
+        target: "any new upstream workflow file with push/pull_request/schedule triggers added without the repository gate"
   - id: "INV-FORK-001"
     related_terms: ["ModelLoading"]
     status: "stable"
