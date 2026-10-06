@@ -41,7 +41,7 @@ canonical_terms:
   LatentFormat:
     id: "TERM-LATENTFORMAT"
     layer: "aux"
-    status: "draft"
+    status: "stable"
     definition: "The per-model-family owner of native latent layout (channel count, scaling, packing) inside the model/latent-format layer."
     synonyms: ["latent layout", "latent-format owner", "native latent shape"]
     boundaries:
