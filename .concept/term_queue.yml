@@ -76,6 +76,6 @@ queue:
       - source: ".woodpecker.yml#L34"
         quote: "grep -E \"^pytest serial runtime: \" /tmp/pytest.log || true"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
     expires_after_runs: 10
     created_run: "2026-10-05T15:44:43Z"
