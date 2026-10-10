@@ -4,7 +4,7 @@
 - 対象: jinno2/ComfyUI(tracked 961ファイル、Python 約9.3MB ≒ 約230万トークン)
 - 手法: 6領域に分解した並列エージェント分析(実行エンジン / モデル管理 / ldm アーキテクチャ / ノード定義 / API ノード / 開発インフラ・フォーク独自部分)。主要指摘8件は本体セッションで実コードを再読して裏取り検証済み(§4)。
 - 更新: 2026-10-10 再検証。解決済み指摘は §0 / §2.2 / §2.6 / §3 に反映。フォーク独自コミットは 13 → 40 件に増加(`a402fd40^2..HEAD` 実測)。
-- 性格: このフォークはほぼ最新の upstream ComfyUI(最終同期 2026-06-20 頃)。フォーク独自コミットは13件で、実質的に Makefile 群・`scripts/`・`comfy/ops.py` の `safe_linear`・Pipfile/mise・docs のみ。
+- 性格: このフォークはほぼ最新の upstream ComfyUI(最終同期 2026-06-20 頃)。フォーク独自コミットは 40 件超(`a402fd40^2..HEAD` 実測、自動コミットで増加しうる)で、実質的に Makefile 群・`scripts/`・`comfy/ops.py` の `safe_linear`・Pipfile/mise・docs のみ。
 
 ---
 
@@ -115,7 +115,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 ### 2.6 開発インフラ・フォーク独自部分
 
-**フォーク独自13コミットの内容**: Makefile(528行、macOS launchd / Linux systemd 方針、arm64 venv ガード、torch 2.4 以上への自動更新)、`scripts/generate_one.py`(stdlib-only のワンショット生成)、WAI-ANIMA ワークフロー自動化(`setup-anima`/`smoke-anima`、Civitai トークンは env/`~/.civitai_token` のみで健全、バイト数完全照合)、`safe_linear`。
+**フォーク独自コミットの内容**(40件超): Makefile(528行、macOS launchd / Linux systemd 方針、arm64 venv ガード、torch 2.4 以上への自動更新)、`scripts/generate_one.py`(stdlib-only のワンショット生成)、WAI-ANIMA ワークフロー自動化(`setup-anima`/`smoke-anima`、Civitai トークンは env/`~/.civitai_token` のみで健全、バイト数完全照合)、`safe_linear`。
 
 **評価(再実測 2026-10-10)**:
 - ユニットスイート: **1930 passed / 0 failed / 74 skipped / 約8分**(2004 collected)。旧レッド `nodes_math_test.py:190` は期待メッセージ追従済みで解消
