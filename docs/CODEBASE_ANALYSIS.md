@@ -3,7 +3,8 @@
 - 日付: 2026-09-20
 - 対象: jinno2/ComfyUI(tracked 961ファイル、Python 約9.3MB ≒ 約230万トークン)
 - 手法: 6領域に分解した並列エージェント分析(実行エンジン / モデル管理 / ldm アーキテクチャ / ノード定義 / API ノード / 開発インフラ・フォーク独自部分)。主要指摘8件は本体セッションで実コードを再読して裏取り検証済み(§4)。
-- 性格: このフォークはほぼ最新の upstream ComfyUI(最終同期 2026-06-20 頃)。フォーク独自コミットは13件で、実質的に Makefile 群・`scripts/`・`comfy/ops.py` の `safe_linear`・Pipfile/mise・docs のみ。
+- 更新: 2026-10-10 再検証。解決済み指摘は §0 / §2.2 / §2.6 / §3 に反映。フォーク独自コミットは 13 → 40 件に増加(`a402fd40^2..HEAD` 実測)。
+- 性格: このフォークはほぼ最新の upstream ComfyUI(最終同期 2026-06-20 頃)。フォーク独自コミットは 40 件超(`a402fd40^2..HEAD` 実測、自動コミットで増加しうる)で、実質的に Makefile 群・`scripts/`・`comfy/ops.py` の `safe_linear`・Pipfile/mise・docs のみ。
 
 ---
 
@@ -17,8 +18,8 @@
 |---|---|
 | セキュリティ | API 認証ヘッダが無マスクで平文ログ化(`comfy_api_nodes/util/client.py:701` → `request_logger.py:103`)。/ws の clientId 乗っ取り(`server.py:270-278`) |
 | 信頼性 | `prompt_worker` に例外ガードが無く、ワーカー永久死滅 → キュー詰まり(`main.py:337-407`)。`/interrupt` のTOCTOU(`server.py:1136-1148`) |
-| フォーク保守性 | `safe_linear` のプロセス全局フラグはマルチGPUで過剰退化(`ops.py:1150/1214`)。マルチGPUcond経路の230行重複(`samplers.py:357`) |
-| テスト | 既知レッド1件が `continue-on-error: true` で隠蔽(`test-unit.yml:15`)。`comfy/ldm/` と `safe_linear` のテストゼロ |
+| フォーク保守性 | ~~`safe_linear` のプロセス全局フラグ~~ 解決済み(デバイス別 set 化、`fdfb9395`)。残る課題はマルチGPUcond経路の230行重複(`samplers.py:357`) |
+| テスト | 解決済み(2026-10-10 再実測): レッド0件・CI は upstream ガード化。`safe_linear` テスト追加済み、`comfy/ldm/` は seedvr2 系テストが部分カバー |
 
 ---
 
@@ -34,7 +35,7 @@ comfy_api_nodes/  1.68MB  外部APIノード36ファイル + リクエスト基�
 comfy_api/        0.22MB  バージョン付き公開SDK(latest/v0_0_2/v0_0_1)
 app/              0.31MB  ユーザ管理・アセット(SQLAlchemy+Alembic)・サブグラフ管理
 ルート .py         0.27MB  main / server / execution / nodes / protocol / folder_paths
-tests-unit/       0.51MB  61テストファイル(実測 918 passed / 1 failed / 10 skipped / 約30秒)
+tests-unit/       0.51MB  62テストファイル(実測 1930 passed / 0 failed / 74 skipped / 約8分、2026-10-10)
 tests/            0.20MB  統合テスト660件(実サーバ起動型)
 blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 ```
@@ -66,10 +67,10 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 **評価**: managed-weight 抽象(共有モジュール + `patches_uuid` でフォーク、weakref ライフサイクル)は意図が良いが、`ModelPatcher` は2000行のゴッドクラス。数値衛生は良好(推論結果は fp32 で返す `model_base.py:238`、fp8 書き込みは seeded stochastic rounding)。
 
-**フォーク改変 `safe_linear` の評価(裏取り済み)**: `ops.py:1146-1215`。cuBLAS のリトライ可能エラー2種のみを捕捉(allowlist 方式で保守的、ホットパスのオーバーヘドゼロ、matmul 置換は数学的に同型で数値健全)。問題は:
-- `CUDA_LINEAR_FORCE_MATMUL` が**プロセス全局・永続**。マルチGPU対応フォークで、GPU1 の一時的障害が全 GPU の GEMM を恒久退化させる
-- `discard_cuda_async_error()` がカレントデバイスに投げるため、テンソルの実デバイスとズレると sticky-error 解放が別 GPU に向かう(推測レベル)
-- フォーク最大のリスク改変でありながら**テストゼロ**
+**フォーク改変 `safe_linear` の評価(2026-10-10 更新)**: cuBLAS のリトライ可能エラー2種のみを捕捉(allowlist 方式で保守的、ホットパスのオーバーヘドゼロ、matmul 置換は数学的に同型で数値健全)。旧指摘3件は解決済み:
+- フラグはデバイス別 set `CUDA_LINEAR_FORCE_MATMUL_DEVICES` に改修済み(`fdfb9395`)。一時的障害は当該 GPU だけに退化
+- `discard_cuda_async_error(device)` が実テンソルのデバイスを受け取るよう改修済み(`ops.py` が `input.device` を渡す)
+- 単体テスト追加済み: `tests-unit/comfy_test/test_safe_linear.py`
 
 **構造的負債**:
 - レガシーVRAM管理と DynamicVRAM(AIMDO)の**二重体制**。`ModelPatcherDynamic` は hook 系を `assert False` / 例外で拒否(`model_patcher.py:2035,2041`)し、hooks 付き conds は `CFGGuider` が静かに非 dynamic clone へ委譲(`samplers.py:1197-1198`) — 挙動がサイレントに切り替わる
@@ -114,17 +115,17 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 ### 2.6 開発インフラ・フォーク独自部分
 
-**フォーク独自13コミットの内容**: Makefile(528行、macOS launchd / Linux systemd 方針、arm64 venv ガード、torch 2.4 以上への自動更新)、`scripts/generate_one.py`(stdlib-only のワンショット生成)、WAI-ANIMA ワークフロー自動化(`setup-anima`/`smoke-anima`、Civitai トークンは env/`~/.civitai_token` のみで健全、バイト数完全照合)、`safe_linear`。
+**フォーク独自コミットの内容**(40件超): Makefile(528行、macOS launchd / Linux systemd 方針、arm64 venv ガード、torch 2.4 以上への自動更新)、`scripts/generate_one.py`(stdlib-only のワンショット生成)、WAI-ANIMA ワークフロー自動化(`setup-anima`/`smoke-anima`、Civitai トークンは env/`~/.civitai_token` のみで健全、バイト数完全照合)、`safe_linear`。
 
-**評価(実測)**:
-- ユニットスイート: **918 passed / 1 failed / 10 skipped / 約30秒**。失敗は `nodes_math_test.py:190` がエラーメッセージ変更に未追従(裏取り: 実行して再現 "expected 'math domain error' / got 'expected a nonnegative input, got -1.0'")
-- CI の `test-unit.yml:15` / `test-execution.yml:15` が `continue-on-error: true` — **赤が握り消される**
-- `test-launch.yml:16` は Comfy-Org/ComfyUI(本家)を checkout — フォークのコードを検査していない
-- **`comfy/ldm/` のテストは皆零**(tests/ tests-unit/ のどこからも import されない)
-- Linux `make start` が参照する systemd unit ファイルがリポジトリに存在しない(`Makefile:410`)
-- `generate_one.py:102` に `/Users/jinno/ComfyUI/output/...` のハードコード(裏取り済み)
-- ComfyUI-Manager が pip パッケージと custom_nodes コピーの**二重導入**
-- Pipfile/mise.toml は uv 管理 の .venv と並行する第二の依存源として放置
+**評価(再実測 2026-10-10)**:
+- ユニットスイート: **1930 passed / 0 failed / 74 skipped / 約8分**(2004 collected)。旧レッド `nodes_math_test.py:190` は期待メッセージ追従済みで解消
+- `test-unit.yml` / `test-execution.yml` は `if: github.repository == 'Comfy-Org/ComfyUI'` の upstream ガード付き(フォークでは実行されず、フォーク独自 CI は Woodpecker)。`continue-on-error` は除去済み
+- `test-launch.yml:16` は Comfy-Org/ComfyUI(本家)を checkout — フォークのコードを検査していない(現存・upstream ファイルのため維持)
+- `comfy/ldm/` は seedvr2 系テスト5ファイルが部分カバー。`safe_linear` は `tests-unit/comfy_test/test_safe_linear.py` でカバー済み
+- Linux `make start` 用 systemd unit は `scripts/comfyui.service.example` を同梱(`82ec6364`)
+- `generate_one.py` の出力パスは `Path(__file__)` ベースへ相対化済み(`82ec6364`)
+- ComfyUI-Manager は pip パッケージ(`manager_requirements.txt`)のみ。custom_nodes コピーは解消済み
+- Pipfile/mise.toml は uv 管理 の .venv と並行する第二の依存源として放置(現存)
 
 ---
 
@@ -137,8 +138,8 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 | H1 | API リクエストログの `Authorization`/`X-API-KEY`/`Cookie` ヘッダをマスク | `request_logger.py` | upstream 継承(要パッチ or 上流PR) |
 | H2 | `prompt_worker` ループを try/except でガード(ログ + `task_done` エラー処理 + 継続) | `main.py:337-407` | upstream 継承 |
 | H3 | `/interrupt` を既存の `interrupt_if_running` に置換(コードは実装済み・実証済み) | `server.py:1136-1148` | upstream 継承 |
-| H4 | 赤テスト修正(`nodes_math_test.py:190` の期待メッセージ更新)+ fork の CI から `continue-on-error: true` を除去 | `tests-unit/`, `.github/workflows/` | **フォーク対応** |
-| H5 | `safe_linear` のフラグをデバイス別 dict 化 + `discard_cuda_async_error` に失敗テンソルのデバイスを渡す | `ops.py:1150/1214`, `model_management.py:1505` | **フォーク対応** |
+| H4 | 赤テスト修正(`nodes_math_test.py:190` の期待メッセージ更新)+ fork の CI から `continue-on-error: true` を除去 → **解決済み**(メッセージ追従済み・CI は upstream ガード化) | `tests-unit/`, `.github/workflows/` | **フォーク対応** |
+| H5 | `safe_linear` のフラグをデバイス別 dict 化 + `discard_cuda_async_error` に失敗テンソルのデバイスを渡す → **解決済み**(`fdfb9395` デバイス別 set 化 + `input.device` 渡し + 単体テスト追加) | `ops.py`, `model_management.py` | **フォーク対応** |
 | H6 | DB マイグレーションをファイルロック取得後に実行 | `app/database/db.py:151-184` | upstream 継承 |
 | H7 | `LoadImage`: スキップフレームの警告化 + 全フレーム消失時の明示的エラー | `nodes.py:1734-1747` | upstream 継承 |
 | H8 | ldm の F821 潜在クラッシュ3件修正(実装 or 死んだ分岐削除)+ CI に F821 チェック | `sub_quadratic_attention.py:175` ほか | upstream 継承 |
@@ -149,15 +150,15 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 - **M2** extras 120行手書きリストを sorted glob 化(`init_builtin_api_nodes` と同じ方式、今日ゼロ挙動変更)
 - **M3** `CastWeightBiasOp` の可変クラス属性をインスタンス初期化に(`ops.py:406-409`)
 - **M4** `progress_state` ブロードキャストの増分化/レート制限(`progress.py:160-185`)
-- **M5** `make test` を unit だけの高速デフォルトに、統合テストは `test-all` へ
-- **M6** `safe_linear` の最小単体テスト(CPU でフラグ+matmul経路をモニキーパッチ検証)を追加 — フォーク最大リスク改変の唯一の保険
-- **M7** `generate_one.py` のパス相対化(`Path(__file__)` ベース)+ systemd unit の同梱または廃止
+- **M5** `make test` を unit だけの高速デフォルトに、統合テストは `test-all` へ → **解決済み**
+- **M6** `safe_linear` の最小単体テスト(CPU でフラグ+matmul経路をモニキーパッチ検証)を追加 → **解決済み**(`tests-unit/comfy_test/test_safe_linear.py`)
+- **M7** `generate_one.py` のパス相対化(`Path(__file__)` ベース)+ systemd unit の同梱または廃止 → **解決済み**(相対化 + `scripts/comfyui.service.example` 同梱、`82ec6364`)
 - **M8** API 型付きエラー階層(`ApiTaskFailed` 等)+ 生成スキーマ層の再現可能化(.provider 毎分割)
 - **M9** リクエストランナー統合(アップロード PUT を `_request_base` へ、`_monitor` の単一化)
 - **M10** `ModelPatcherDynamic` の hook ギャップ解消(実装 or 明示的エラー化、サイレント委譲の除去)
 - **M11** ldm 共通プリミティブ抽出(timestep_embedding ×9、RoPE ×8、FeedForward ×12)— 次に触るモデルから日和見的に
-- **M12** `/ws` clientId 乗っ取りへの所有証明(ワンタイムトークン)
-- **M13** ComfyUI-Manager 二重導入の解消
+- **M12** `/ws` clientId 乗っ取りへの所有証明(ワンタイムトークン) → **導入見送り決定済み**(所有者決定、構造準備のみ実施 `7b063601`)。再提案不要
+- **M13** ComfyUI-Manager 二重導入の解消 → **解決済み**(custom_nodes コピー削除、pip のみ)
 
 ### Low
 
