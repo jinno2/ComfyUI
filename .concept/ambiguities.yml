@@ -29,7 +29,7 @@ ambiguities:
       - "Whether AGENTS.md intends prompt_id to fall under the excluded 'workflow ids'"
     linked_conflicts: []
     auto_decision: null
-    last_touched_run: "2026-10-11T17:22:53Z"
+    last_touched_run: "2026-10-11T17:34:12Z"
     evidence:
       - source: "AGENTS.md#L44-L47"
         quote: "not know about workflow ids, frontend ids, persistence ids, or API-only concepts"

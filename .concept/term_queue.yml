@@ -100,10 +100,12 @@ queue:
     term_raw_examples: ["asset database", "asset persistence", "asset store"]
     reason: "Asset state is persisted in a dedicated SQLAlchemy schema (six tables) with Alembic-owned migrations; persistence bookkeeping belongs to its owner layer per AGENTS.md architecture boundaries."
     evidence:
-      - source: "app/assets/database/models.py#L36-L187"
-        quote: "class AssetContent(Base): __tablename__ = \"asset_contents\" ... \"assets\" ... \"asset_meta\" ... \"asset_tags\" ... \"tags\" ... \"asset_system_state\""
-      - source: "alembic_db/versions"
-        quote: "0001_assets.py .. 0008_missing_content_age.py"
+      - source: "app/assets/database/models.py#L36-L37"
+        quote: "class AssetContent(Base):\n    __tablename__ = \"asset_contents\""
+      - source: "alembic_db/versions/0001_assets.py#L1-L2"
+        quote: "Initial assets schema\nRevision ID: 0001_assets"
+      - source: "alembic_db/versions/0008_missing_content_age.py#L1"
+        quote: "\"\"\"Track when content becomes missing for age-based catalog cleanup.\"\"\""
     auto_merge_candidates: []
     decision: "accepted"
     expires_after_runs: 10

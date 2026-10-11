@@ -1,0 +1,52 @@
+version: "1.0"
+
+product_goal:
+  north_star: "ローカルで完結するモジュラーなノードグラフ型 AI コンテンツ生成エンジンとして、画像・動画・3D・音声生成を上流に自動追従しない恒久自律開発で安定提供する ComfyUI fork であり続ける（推定）"
+  success_metrics:
+    - id: "MET-001"
+      name: "unit suite health"
+      target: "make test で 0 failed を維持（最新計測 2026-10-10: 1930 passed / 0 failed / 74 skipped）"
+    - id: "MET-002"
+      name: "CI gate"
+      target: "Woodpecker（Ruff + tests-unit）が PR と main への push で green"
+  non_goals:
+    - "上流 Comfy-Org/ComfyUI への自動追従（merge は所有者の明示指示時のみ: AUTOMATION.md Driver）"
+    - "core への外部通信 path の追加（telemetry/analytics/update check 等一切禁止: AGENTS.md No Internet Requests）"
+    - "後方互換レイヤの保持（fork は互換シム・レガシーエイリアスを積極削除: AGENTS.md）"
+
+milestones:
+  - id: "MS-001"
+    name: "Fork infrastructure stability"
+    intent: "無人稼働の阻害要因を排除し、fork 固有基盤（Makefile 標準化・クロスプラットフォーム対応・Woodpecker gate と upstream workflow ガード）を安定させる"
+    deliverables: ["Makefile 標準ターゲット（install/build/run/start/test/lint）", ".woodpecker.yml gate", "upstream テスト workflow のガード"]
+    acceptance:
+      - type: "test"
+        target: "make test"
+    priority: "P0"
+    status: "done"
+  - id: "MS-002"
+    name: "Asset persistence layer integrity"
+    intent: "fork 固有のアセット永続化レイヤ（app/assets/database の SQLAlchemy スキーマと alembic_db/versions のマイグレーション）の整合を保ち、文書と実装の乖離を解消する"
+    deliverables: ["app/assets/database/models.py の 6 テーブル", "alembic_db/versions 0001..0008", "alembic_db/README.md の実態一致（CFLT-ASSETPERSIST-001 の解消）"]
+    acceptance:
+      - type: "test"
+        target: "make test"
+    priority: "P1"
+    status: "active"
+  - id: "MS-003"
+    name: "Concept synchronization"
+    intent: ".concept/ 辞書を実コード・テストと同期させ、autopilot 品質基準（Q1-Q8）を満たし続ける"
+    deliverables: [".concept/ の固定 14 ファイル構成", "ontology/invariants/mappings の保守"]
+    acceptance:
+      - type: "test"
+        target: "yaml parse of .concept/*.yml"
+    priority: "P2"
+    status: "active"
+
+work_policy:
+  default_mode: "commit"
+  iteration_budget:
+    max_cycles: 5
+    max_files_changed: 25
+  quality_gates:
+    must_pass: ["lint", "test"]
