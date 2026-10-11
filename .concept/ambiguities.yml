@@ -17,3 +17,21 @@ ambiguities:
         quote: "class DynamicPrompt:"
       - source: "README.md#L65"
         quote: "A visual node graph for building and reusing image, video, audio, 3D, and text workflows without code."
+  - id: "AMB-EXEC-001"
+    term: "ExecutionOrchestration"
+    topic: "How the AGENTS.md 'no workflow/frontend/persistence ids' boundary applies to prompt_id in execute()"
+    severity: "low"
+    uncertainty: 0.17
+    candidates:
+      - "prompt_id is execution-relevant state (queue identity for progress and result routing) and allowed inside execution.py"
+      - "prompt_id is a workflow id and violates the AGENTS.md boundary"
+    missing_info:
+      - "Whether AGENTS.md intends prompt_id to fall under the excluded 'workflow ids'"
+    linked_conflicts: []
+    auto_decision: null
+    last_touched_run: "2026-10-11T17:34:12Z"
+    evidence:
+      - source: "AGENTS.md#L44-L47"
+        quote: "not know about workflow ids, frontend ids, persistence ids, or API-only concepts"
+      - source: "execution.py#L727"
+        quote: "def execute(self, prompt, prompt_id, extra_data={}, execute_outputs=[]):"

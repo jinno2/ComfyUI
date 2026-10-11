@@ -1,1 +1,13 @@
-conflicts: []
+conflicts:
+  - id: "CFLT-ASSETPERSIST-001"
+    term: "AssetPersistence"
+    about: "boundary"
+    severity: "low"
+    nli: "contradiction"
+    items:
+      - claim: "The documented migration workflow says step 1 is to update models in /app/database/models.py."
+        source: "alembic_db/README.md#L3"
+      - claim: "app/database/models.py holds only the shared naming-convention Base plus a literal '# TODO: Define models here' placeholder; the six asset table models live in app/assets/database/models.py."
+        source: "app/database/models.py#L14-L30"
+    status: "open"
+    active_workaround: null

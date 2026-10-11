@@ -74,3 +74,43 @@ canonical_terms:
         quote: "Let unsupported model formats, invalid quantization metadata, and bad states fail with clear errors instead of silently producing lower quality output."
       - source: "comfy/quant_ops.py#L90-L183"
         quote: "class TensorCoreMXFP8Layout ... class TensorCoreNVFP4Layout ... class TensorCoreFP8E4M3Layout"
+  ExecutionOrchestration:
+    id: "TERM-EXECORCH"
+    layer: "aux"
+    status: "stable"
+    definition: "The owner layer (execution.py + comfy_execution) that consumes the prompt graph and execution-relevant state, applies pluggable node-output caching, and produces execution results and errors."
+    synonyms: ["execution orchestration", "PromptExecutor", "graph execution"]
+    boundaries:
+      includes: ["prompt-graph consumption and topological driving (via NodeGraph)", "pluggable node-output caching (Null/Basic/Hierarchical/LRU/RAMPressure)", "ExecutionResult outcomes (SUCCESS/FAILURE/PENDING)"]
+      excludes: ["workflow ids, frontend ids, persistence ids, or API-only concepts (AGENTS.md boundary)", "VRAM load/offload policy (ModelLoading)", "persistence bookkeeping (AssetPersistence)"]
+    lifecycle: ["Executing", "Success", "Failure", "Pending"]
+    related_terms: ["NodeGraph", "ModelLoading", "AssetPersistence"]
+    assumptions: []
+    evidence:
+      - source: "AGENTS.md#L44-L47"
+        quote: "Treat `execution.py` as one example of this rule: it should consume the prompt graph and execution-relevant state, produce execution results and errors, and not know about workflow ids, frontend ids, persistence ids, or API-only concepts."
+      - source: "execution.py#L56-L727"
+        quote: "class ExecutionResult(Enum): ... class PromptExecutor: ... def execute(self, prompt, prompt_id, extra_data={}, execute_outputs=[]):"
+      - source: "comfy_execution/caching.py#L151-L440"
+        quote: "class BasicCache ... class HierarchicalCache(BasicCache) ... class NullCache ... class LRUCache(BasicCache)"
+  AssetPersistence:
+    id: "TERM-ASSETPERSIST"
+    layer: "aux"
+    status: "stable"
+    definition: "The owner layer that persists asset state in a SQLAlchemy schema of six asset tables, with schema evolution owned by Alembic migrations."
+    synonyms: ["asset database", "asset persistence", "asset store"]
+    boundaries:
+      includes: ["SQLAlchemy ORM models under app/assets/database/", "Alembic schema migrations in alembic_db/versions", "shared naming-convention Base in app/database/models.py"]
+      excludes: ["execution-time bookkeeping inside execution.py", "workflow/prompt graph state"]
+    lifecycle: []
+    related_terms: ["ExecutionOrchestration"]
+    assumptions: []
+    evidence:
+      - source: "app/assets/database/models.py#L1-L7"
+        quote: "Declares the asset schema: content rows describing bytes on disk, records describing what a user sees, and the tag and metadata tables hanging off them."
+      - source: "app/assets/database/models.py#L36-L37"
+        quote: "class AssetContent(Base):\n    __tablename__ = \"asset_contents\""
+      - source: "alembic_db/versions/0001_assets.py#L1-L2"
+        quote: "Initial assets schema\nRevision ID: 0001_assets"
+      - source: "alembic_db/versions/0008_missing_content_age.py#L1"
+        quote: "\"\"\"Track when content becomes missing for age-based catalog cleanup.\"\"\""
