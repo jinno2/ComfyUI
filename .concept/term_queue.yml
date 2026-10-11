@@ -80,3 +80,31 @@ queue:
     reason: "Process/CI-observability concept, not a codebase domain concept (same rationale as rejected TP-000005 Run); the underlying facts stay in claims.ndjson (run 2026-10-05T15:44:43Z), evidence re-verified on 2026-10-07."
     expires_after_runs: 10
     created_run: "2026-10-05T15:44:43Z"
+  - id: "TP-000007"
+    proposed_canonical: "ExecutionOrchestration"
+    proposed_layer: "aux"
+    term_raw_examples: ["execution orchestration", "PromptExecutor", "graph execution"]
+    reason: "execution.py is the AGENTS.md-named owner layer that consumes the prompt graph and drives execution with pluggable caching; distinct from NodeGraph (the graph itself) and ModelLoading (VRAM policy)."
+    evidence:
+      - source: "AGENTS.md#L44-L47"
+        quote: "Treat `execution.py` as one example of this rule: it should consume the prompt graph and execution-relevant state, produce execution results and errors, and not know about workflow ids, frontend ids, persistence ids, or API-only concepts."
+      - source: "execution.py#L663-L727"
+        quote: "class PromptExecutor: ... def execute(self, prompt, prompt_id, extra_data={}, execute_outputs=[]):"
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-11T17:22:53Z"
+  - id: "TP-000008"
+    proposed_canonical: "AssetPersistence"
+    proposed_layer: "aux"
+    term_raw_examples: ["asset database", "asset persistence", "asset store"]
+    reason: "Asset state is persisted in a dedicated SQLAlchemy schema (six tables) with Alembic-owned migrations; persistence bookkeeping belongs to its owner layer per AGENTS.md architecture boundaries."
+    evidence:
+      - source: "app/assets/database/models.py#L36-L187"
+        quote: "class AssetContent(Base): __tablename__ = \"asset_contents\" ... \"assets\" ... \"asset_meta\" ... \"asset_tags\" ... \"tags\" ... \"asset_system_state\""
+      - source: "alembic_db/versions"
+        quote: "0001_assets.py .. 0008_missing_content_age.py"
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-11T17:22:53Z"
