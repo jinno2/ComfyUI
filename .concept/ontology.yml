@@ -104,11 +104,7 @@ canonical_terms:
       excludes: ["execution-time bookkeeping inside execution.py", "workflow/prompt graph state"]
     lifecycle: []
     related_terms: ["ExecutionOrchestration"]
-    assumptions:
-      - id: "ASM-ASSETPERSIST-001"
-        text: "AUTO: asset ORM models live in app/assets/database/models.py (shared Base in app/database/models.py); alembic_db/README.md step-1 pointer is stale"
-        decision_key: "AUTO:AssetPersistence.model_location:app_assets_database"
-        expires_after_runs: 20
+    assumptions: []
     evidence:
       - source: "app/assets/database/models.py#L1-L7"
         quote: "Declares the asset schema: content rows describing bytes on disk, records describing what a user sees, and the tag and metadata tables hanging off them."
@@ -118,3 +114,7 @@ canonical_terms:
         quote: "Initial assets schema\nRevision ID: 0001_assets"
       - source: "alembic_db/versions/0008_missing_content_age.py#L1"
         quote: "\"\"\"Track when content becomes missing for age-based catalog cleanup.\"\"\""
+      - source: "alembic_db/env.py#L11-L12"
+        quote: "from app.database.models import Base, NAMING_CONVENTION\nimport app.assets.database.models  # noqa: F401 — register models with Base.metadata"
+      - source: "alembic_db/README.md#L3"
+        quote: "1. Update models in `/app/assets/database/models.py`"

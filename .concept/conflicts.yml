@@ -9,7 +9,7 @@ conflicts:
         source: "alembic_db/README.md#L3"
       - claim: "app/database/models.py holds only the shared naming-convention Base plus a literal '# TODO: Define models here' placeholder; the six asset table models live in app/assets/database/models.py."
         source: "app/database/models.py#L14-L30"
-    status: "open"
+    status: "resolved"
     active_workaround:
       decision_key: "AUTO:AssetPersistence.model_location:app_assets_database"
-      summary: "AUTO: treat app/assets/database/models.py as the asset ORM model owner (imports the shared naming-convention Base from app/database/models.py); the alembic_db/README.md step-1 pointer is stale. The one-line README fix remains deferred to the improvement lane, so the conflict stays open."
+      summary: "Resolved 2026-10-12T15:17:55Z: alembic_db/README.md step 1 now points to /app/assets/database/models.py and alembic_db/env.py imports app.assets.database.models (same pattern as app/database/db.py) so Base.metadata registers all six asset tables. Verified on a fresh sqlite DB: upgrade head creates all six tables and a following revision --autogenerate emits an empty diff. The AUTO decision (model_location=app/assets/database/models.py) is now materialized in code and docs."
