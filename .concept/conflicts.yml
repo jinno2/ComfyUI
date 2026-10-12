@@ -9,5 +9,8 @@ conflicts:
         source: "alembic_db/README.md#L3"
       - claim: "app/database/models.py holds only the shared naming-convention Base plus a literal '# TODO: Define models here' placeholder; the six asset table models live in app/assets/database/models.py."
         source: "app/database/models.py#L14-L30"
-    status: "open"
+    status: "resolved"
     active_workaround: null
+    resolution:
+      fixed_at_run: "2026-10-12T15:36:31Z"
+      change: "alembic_db/README.md step 1 now points to /app/assets/database/models.py; alembic_db/env.py imports app.assets.database.models so Base.metadata carries the six asset tables for autogenerate (verified by execution; test_migrations.py 4 passed)."
