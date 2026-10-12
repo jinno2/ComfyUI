@@ -9,5 +9,5 @@ conflicts:
         source: "alembic_db/README.md#L3"
       - claim: "app/database/models.py holds only the shared naming-convention Base plus a literal '# TODO: Define models here' placeholder; the six asset table models live in app/assets/database/models.py."
         source: "app/database/models.py#L14-L30"
-    status: "open"
+    status: "resolved"
     active_workaround: null

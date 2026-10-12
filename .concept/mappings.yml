@@ -24,4 +24,9 @@ mappings:
   AssetPersistence:
     code_symbols:
       - "app/assets/database/models.py::class AssetContent"
+      - "app/assets/database/models.py::class Asset"
+      - "app/assets/database/models.py::class AssetMeta"
+      - "app/assets/database/models.py::class AssetTag"
+      - "app/assets/database/models.py::class Tag"
+      - "app/assets/database/models.py::class AssetSystemState"
       - "app/database/models.py::class Base"
