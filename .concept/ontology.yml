@@ -104,7 +104,11 @@ canonical_terms:
       excludes: ["execution-time bookkeeping inside execution.py", "workflow/prompt graph state"]
     lifecycle: []
     related_terms: ["ExecutionOrchestration"]
-    assumptions: []
+    assumptions:
+      - id: "ASM-ASSETPERSIST-001"
+        text: "AUTO: asset ORM models live in app/assets/database/models.py (shared Base in app/database/models.py); alembic_db/README.md step-1 pointer is stale"
+        decision_key: "AUTO:AssetPersistence.model_location:app_assets_database"
+        expires_after_runs: 20
     evidence:
       - source: "app/assets/database/models.py#L1-L7"
         quote: "Declares the asset schema: content rows describing bytes on disk, records describing what a user sees, and the tag and metadata tables hanging off them."

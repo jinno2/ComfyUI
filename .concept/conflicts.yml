@@ -10,4 +10,6 @@ conflicts:
       - claim: "app/database/models.py holds only the shared naming-convention Base plus a literal '# TODO: Define models here' placeholder; the six asset table models live in app/assets/database/models.py."
         source: "app/database/models.py#L14-L30"
     status: "open"
-    active_workaround: null
+    active_workaround:
+      decision_key: "AUTO:AssetPersistence.model_location:app_assets_database"
+      summary: "AUTO: treat app/assets/database/models.py as the asset ORM model owner (imports the shared naming-convention Base from app/database/models.py); the alembic_db/README.md step-1 pointer is stale. The one-line README fix remains deferred to the improvement lane, so the conflict stays open."
