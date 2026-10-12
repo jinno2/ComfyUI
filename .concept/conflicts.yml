@@ -14,3 +14,4 @@ conflicts:
     resolution:
       fixed_at_run: "2026-10-12T15:36:31Z"
       change: "alembic_db/README.md step 1 now points to /app/assets/database/models.py; alembic_db/env.py imports app.assets.database.models so Base.metadata carries the six asset tables for autogenerate (verified by execution; test_migrations.py 4 passed)."
+      cleanup: "stale '# TODO: Define models here' placeholder removed from app/database/models.py at run 2026-10-12T15:43:27Z; the canonical models location is app/assets/database/models.py."
