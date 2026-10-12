@@ -114,3 +114,7 @@ canonical_terms:
         quote: "Initial assets schema\nRevision ID: 0001_assets"
       - source: "alembic_db/versions/0008_missing_content_age.py#L1"
         quote: "\"\"\"Track when content becomes missing for age-based catalog cleanup.\"\"\""
+      - source: "alembic_db/env.py#L11-L12"
+        quote: "from app.database.models import Base, NAMING_CONVENTION\nimport app.assets.database.models  # noqa: F401 — register models with Base.metadata"
+      - source: "alembic_db/README.md#L3"
+        quote: "1. Update models in `/app/assets/database/models.py`"

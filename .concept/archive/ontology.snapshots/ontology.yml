@@ -106,9 +106,11 @@ canonical_terms:
     related_terms: ["ExecutionOrchestration"]
     assumptions: []
     evidence:
-      - source: "app/assets/database/models.py#L36-L187"
-        quote: "class AssetContent(Base): __tablename__ = \"asset_contents\" (six tables: asset_contents, assets, asset_meta, asset_tags, tags, asset_system_state)"
-      - source: "alembic_db/README.md#L1-L4"
-        quote: "1. Update models in `/app/database/models.py` 2. Run `alembic revision --autogenerate -m \"{your message}\""
-      - source: "alembic_db/versions"
-        quote: "0001_assets.py .. 0008_missing_content_age.py"
+      - source: "app/assets/database/models.py#L1-L7"
+        quote: "Declares the asset schema: content rows describing bytes on disk, records describing what a user sees, and the tag and metadata tables hanging off them."
+      - source: "app/assets/database/models.py#L36-L37"
+        quote: "class AssetContent(Base):\n    __tablename__ = \"asset_contents\""
+      - source: "alembic_db/versions/0001_assets.py#L1-L2"
+        quote: "Initial assets schema\nRevision ID: 0001_assets"
+      - source: "alembic_db/versions/0008_missing_content_age.py#L1"
+        quote: "\"\"\"Track when content becomes missing for age-based catalog cleanup.\"\"\""

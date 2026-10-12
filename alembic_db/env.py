@@ -9,6 +9,7 @@ config = context.config
 
 
 from app.database.models import Base, NAMING_CONVENTION
+import app.assets.database.models  # noqa: F401 — register models with Base.metadata
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
