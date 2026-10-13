@@ -30,4 +30,5 @@ mappings:
       - "server.py::class PromptServer"
       - "api_server/routes/internal/internal_routes.py::class InternalRoutes"
       - "protocol.py::class BinaryEventTypes"
-      - "middleware/cache_middleware.py::create_cors_middleware"
+      - "server.py::def create_cors_middleware"
+      - "middleware/cache_middleware.py::cache_control"
