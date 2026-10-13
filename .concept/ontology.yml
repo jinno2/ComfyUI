@@ -72,7 +72,7 @@ canonical_terms:
         quote: "# The Comfy guide to Quantization"
       - source: "AGENTS.md#L147"
         quote: "Let unsupported model formats, invalid quantization metadata, and bad states fail with clear errors instead of silently producing lower quality output."
-      - source: "comfy/quant_ops.py#L90-L183"
+      - source: "comfy/quant_ops.py#L125-L183"
         quote: "class TensorCoreMXFP8Layout ... class TensorCoreNVFP4Layout ... class TensorCoreFP8E4M3Layout"
   ExecutionOrchestration:
     id: "TERM-EXECORCH"
@@ -129,7 +129,7 @@ canonical_terms:
     evidence:
       - source: "AGENTS.md#L32-L38"
         quote: "Keep each layer focused on the concepts it owns. Do not leak UI, API, workflow, queue, persistence, telemetry, model-loading, node, or execution concerns into unrelated layers"
-      - source: "server.py#L215-L232"
+      - source: "server.py#L215-L227"
         quote: "class PromptServer(): ... self.asset_manager = asset_manager ... self.prompt_queue = execution.PromptQueue(self)"
       - source: "protocol.py#L2-L6"
         quote: "class BinaryEventTypes:\n    PREVIEW_IMAGE = 1\n    UNENCODED_PREVIEW_IMAGE = 2\n    TEXT = 3\n    PREVIEW_IMAGE_WITH_METADATA = 4"
