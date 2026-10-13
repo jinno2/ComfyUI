@@ -110,3 +110,21 @@ queue:
     decision: "accepted"
     expires_after_runs: 10
     created_run: "2026-10-11T17:22:53Z"
+  - id: "TP-000009"
+    proposed_canonical: "ApiLayer"
+    proposed_layer: "aux"
+    term_raw_examples: ["HTTP API", "server layer", "PromptServer"]
+    reason: "PromptServer + api_server routes + middleware form the serving boundary that owns the prompt queue and exposes the engine over HTTP/WS; AGENTS.md names API as a distinct layer concern; covered by security regression tests. Distinct from ExecutionOrchestration (graph execution) and AssetPersistence (schema ownership, though the server composes AssetManager)."
+    evidence:
+      - source: "AGENTS.md#L32-L38"
+        quote: "Keep each layer focused on the concepts it owns. Do not leak UI, API, workflow, queue, persistence, telemetry, model-loading, node, or execution concerns into unrelated layers"
+      - source: "server.py#L215-L232"
+        quote: "class PromptServer(): ... self.asset_manager = asset_manager ... self.prompt_queue = execution.PromptQueue(self)"
+      - source: "tests-unit/security_test/test_ghsa_779p_02_preview_traversal.py#L1-L6"
+        quote: "\"\"\"CI unit tests for FIX #2 of GHSA-779p-m5rp-r4h4.\n\nPath traversal / hardening in app/model_manager.py get_model_preview"
+      - source: "protocol.py#L3-L8"
+        quote: "class BinaryEventTypes:\n    PREVIEW_IMAGE = 1\n    UNENCODED_PREVIEW_IMAGE = 2\n    TEXT = 3\n    PREVIEW_IMAGE_WITH_METADATA = 4"
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-13T15:34:50Z"

@@ -114,3 +114,24 @@ canonical_terms:
         quote: "Initial assets schema\nRevision ID: 0001_assets"
       - source: "alembic_db/versions/0008_missing_content_age.py#L1"
         quote: "\"\"\"Track when content becomes missing for age-based catalog cleanup.\"\"\""
+  ApiLayer:
+    id: "TERM-APILAYER"
+    layer: "aux"
+    status: "stable"
+    definition: "The serving boundary (PromptServer, api_server routes, middleware, protocol) that exposes the execution engine to clients over HTTP/WebSocket and owns the prompt queue."
+    synonyms: ["HTTP API", "server layer", "PromptServer"]
+    boundaries:
+      includes: ["HTTP/WS request handling and routing (PromptServer, InternalRoutes)", "CORS/origin and cache middleware", "binary preview event streaming (protocol.py BinaryEventTypes)", "prompt queue ownership bridging to execution"]
+      excludes: ["graph execution itself (ExecutionOrchestration)", "VRAM load/offload policy (ModelLoading)", "asset persistence schema ownership (AssetPersistence)", "node implementations"]
+    lifecycle: ["Listening", "Queued", "Streaming", "Closed"]
+    related_terms: ["ExecutionOrchestration", "AssetPersistence", "NodeGraph"]
+    assumptions: []
+    evidence:
+      - source: "AGENTS.md#L32-L38"
+        quote: "Keep each layer focused on the concepts it owns. Do not leak UI, API, workflow, queue, persistence, telemetry, model-loading, node, or execution concerns into unrelated layers"
+      - source: "server.py#L215-L232"
+        quote: "class PromptServer(): ... self.asset_manager = asset_manager ... self.prompt_queue = execution.PromptQueue(self)"
+      - source: "protocol.py#L3-L8"
+        quote: "class BinaryEventTypes:\n    PREVIEW_IMAGE = 1\n    UNENCODED_PREVIEW_IMAGE = 2\n    TEXT = 3\n    PREVIEW_IMAGE_WITH_METADATA = 4"
+      - source: "tests-unit/security_test/test_ghsa_779p_02_preview_traversal.py#L1-L6"
+        quote: "\"\"\"CI unit tests for FIX #2 of GHSA-779p-m5rp-r4h4.\n\nPath traversal / hardening in app/model_manager.py get_model_preview"
