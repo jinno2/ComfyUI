@@ -131,6 +131,8 @@ canonical_terms:
         quote: "Keep each layer focused on the concepts it owns. Do not leak UI, API, workflow, queue, persistence, telemetry, model-loading, node, or execution concerns into unrelated layers"
       - source: "server.py#L215-L232"
         quote: "class PromptServer(): ... self.asset_manager = asset_manager ... self.prompt_queue = execution.PromptQueue(self)"
+      - source: "app/assets/api/routes.py#L125-L135"
+        quote: "def register_assets_routes(app: web.Application, user_manager: UserManager | None = None) -> None:"
       - source: "protocol.py#L3-L8"
         quote: "class BinaryEventTypes:\n    PREVIEW_IMAGE = 1\n    UNENCODED_PREVIEW_IMAGE = 2\n    TEXT = 3\n    PREVIEW_IMAGE_WITH_METADATA = 4"
       - source: "tests-unit/security_test/test_ghsa_779p_02_preview_traversal.py#L1-L6"

@@ -44,12 +44,16 @@ ambiguities:
       - "ApiLayer ends at request handling/routing/queueing; composed managers (AssetManager, UserManager, ModelFileManager) belong to their own owner layers"
       - "Everything PromptServer composes is part of the serving layer"
     missing_info:
-      - "Whether AssetManager lives in AssetPersistence or ApiLayer (its module path and tests are under app/assets and tests-unit/assets_test)"
+      - "Whether to model AssetManager as an asset-feature adapter distinct from both ApiLayer and AssetPersistence"
     linked_conflicts: []
     auto_decision: null
-    last_touched_run: "2026-10-13T15:34:50Z"
     evidence:
       - source: "server.py#L216-L224"
         quote: "def __init__(self, loop, asset_manager: \"AssetManager\"): ... self.asset_manager = asset_manager ... self.prompt_queue = execution.PromptQueue(self)"
+      - source: "app/assets/manager.py#L22-L60"
+        quote: "class AssetManager(Protocol): ... register_routes ... register_upload ... register_executed_output ..."
+      - source: "app/assets/api/routes.py#L125-L135"
+        quote: "def register_assets_routes(app: web.Application, user_manager: UserManager | None = None) -> None:"
       - source: "AGENTS.md#L32-L38"
         quote: "Keep each layer focused on the concepts it owns. Do not leak UI, API, workflow, queue, persistence, telemetry, model-loading, node, or execution concerns into unrelated layers"
+    last_touched_run: "2026-10-13T18:36:10Z"
