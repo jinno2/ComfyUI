@@ -26,15 +26,19 @@ ambiguities:
       - "prompt_id is execution-relevant state (queue identity for progress and result routing) and allowed inside execution.py"
       - "prompt_id is a workflow id and violates the AGENTS.md boundary"
     missing_info:
-      - "Whether AGENTS.md intends prompt_id to fall under the excluded 'workflow ids'"
-    linked_conflicts: []
+      - "Whether the execution boundary should be changed so the queue's prompt_id is not passed into execution.py"
+    linked_conflicts: ["CFLT-EXEC-001"]
     auto_decision: null
-    last_touched_run: "2026-10-11T17:34:12Z"
+    last_touched_run: "2026-10-13T19:20:12Z"
     evidence:
       - source: "AGENTS.md#L44-L47"
         quote: "not know about workflow ids, frontend ids, persistence ids, or API-only concepts"
       - source: "execution.py#L727"
         quote: "def execute(self, prompt, prompt_id, extra_data={}, execute_outputs=[]):"
+      - source: "main.py#L349-L364"
+        quote: "The queue worker reads prompt_id from the queue item and passes it to e.execute."
+      - source: "execution.py#L742-L755"
+        quote: "PromptExecutor emits prompt_id and uses it for progress reset and IsChangedCache."
   - id: "AMB-API-001"
     term: "ApiLayer"
     topic: "Where the serving boundary ends given PromptServer composes AssetManager and other manager objects"
