@@ -15,3 +15,15 @@ conflicts:
       fixed_at_run: "2026-10-12T15:36:31Z"
       change: "alembic_db/README.md step 1 now points to /app/assets/database/models.py; alembic_db/env.py imports app.assets.database.models so Base.metadata carries the six asset tables for autogenerate (verified by execution; test_migrations.py 4 passed)."
       cleanup: "stale '# TODO: Define models here' placeholder removed from app/database/models.py at run 2026-10-12T15:43:27Z; the canonical models location is app/assets/database/models.py."
+  - id: "CFLT-EXEC-001"
+    term: "ExecutionOrchestration"
+    about: "boundary"
+    severity: "low"
+    nli: "contradiction"
+    items:
+      - claim: "execution.py should not know about workflow ids, frontend ids, persistence ids, or API-only concepts."
+        source: "AGENTS.md#L45-L48"
+      - claim: "The API queue worker passes its prompt_id into PromptExecutor, which emits it in execution events and uses it for progress and cache setup."
+        source: "main.py#L349-L364; execution.py#L727-L755"
+    status: "open"
+    active_workaround: null
