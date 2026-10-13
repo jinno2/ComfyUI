@@ -24,6 +24,7 @@ mappings:
   AssetPersistence:
     code_symbols:
       - "app/assets/database/models.py::class AssetContent"
+      - "app/assets/manager.py::class AssetManager"
       - "app/database/models.py::class Base"
   ApiLayer:
     code_symbols:

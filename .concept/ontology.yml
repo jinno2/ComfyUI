@@ -97,13 +97,13 @@ canonical_terms:
     id: "TERM-ASSETPERSIST"
     layer: "aux"
     status: "stable"
-    definition: "The owner layer that persists asset state in a SQLAlchemy schema of six asset tables, with schema evolution owned by Alembic migrations."
+    definition: "The owner layer that persists asset state (SQLAlchemy schema of six asset tables, Alembic-owned schema evolution) and owns the asset service surface: the AssetManager protocol, scanning, ingest, and lifecycle in app/assets/."
     synonyms: ["asset database", "asset persistence", "asset store"]
     boundaries:
-      includes: ["SQLAlchemy ORM models under app/assets/database/", "Alembic schema migrations in alembic_db/versions", "shared naming-convention Base in app/database/models.py"]
-      excludes: ["execution-time bookkeeping inside execution.py", "workflow/prompt graph state"]
+      includes: ["SQLAlchemy ORM models under app/assets/database/", "Alembic schema migrations in alembic_db/versions", "shared naming-convention Base in app/database/models.py", "AssetManager protocol and default_asset_manager factory in app/assets/manager.py"]
+      excludes: ["execution-time bookkeeping inside execution.py", "workflow/prompt graph state", "HTTP/WS serving and prompt queue ownership (ApiLayer composes AssetManager by injection)"]
     lifecycle: []
-    related_terms: ["ExecutionOrchestration"]
+    related_terms: ["ExecutionOrchestration", "ApiLayer"]
     assumptions: []
     evidence:
       - source: "app/assets/database/models.py#L1-L7"
@@ -114,6 +114,10 @@ canonical_terms:
         quote: "Initial assets schema\nRevision ID: 0001_assets"
       - source: "alembic_db/versions/0008_missing_content_age.py#L1"
         quote: "\"\"\"Track when content becomes missing for age-based catalog cleanup.\"\"\""
+      - source: "app/assets/manager.py#L22-L34"
+        quote: "class AssetManager(Protocol): ... def register_routes(self, app: web.Application, user_manager: UserManager | None) -> None: ..."
+      - source: "main.py#L516"
+        quote: "asset_manager: AssetManager = default_asset_manager()"
   ApiLayer:
     id: "TERM-APILAYER"
     layer: "aux"
@@ -122,7 +126,7 @@ canonical_terms:
     synonyms: ["HTTP API", "server layer", "PromptServer"]
     boundaries:
       includes: ["HTTP/WS request handling and routing (PromptServer, InternalRoutes)", "CORS/origin and cache middleware", "binary preview event streaming (protocol.py BinaryEventTypes)", "prompt queue ownership bridging to execution"]
-      excludes: ["graph execution itself (ExecutionOrchestration)", "VRAM load/offload policy (ModelLoading)", "asset persistence schema ownership (AssetPersistence)", "node implementations"]
+      excludes: ["graph execution itself (ExecutionOrchestration)", "VRAM load/offload policy (ModelLoading)", "asset ownership (AssetManager protocol/services live in app/assets and are injected; AssetPersistence)", "node implementations"]
     lifecycle: ["Listening", "Queued", "Streaming", "Closed"]
     related_terms: ["ExecutionOrchestration", "AssetPersistence", "NodeGraph"]
     assumptions: []
@@ -131,6 +135,8 @@ canonical_terms:
         quote: "Keep each layer focused on the concepts it owns. Do not leak UI, API, workflow, queue, persistence, telemetry, model-loading, node, or execution concerns into unrelated layers"
       - source: "server.py#L215-L232"
         quote: "class PromptServer(): ... self.asset_manager = asset_manager ... self.prompt_queue = execution.PromptQueue(self)"
+      - source: "server.py#L258-L260"
+        quote: "self.asset_manager.register_routes(self.app, self.user_manager) ... self.asset_manager.set_event_sink(self.send_sync)"
       - source: "protocol.py#L3-L8"
         quote: "class BinaryEventTypes:\n    PREVIEW_IMAGE = 1\n    UNENCODED_PREVIEW_IMAGE = 2\n    TEXT = 3\n    PREVIEW_IMAGE_WITH_METADATA = 4"
       - source: "tests-unit/security_test/test_ghsa_779p_02_preview_traversal.py#L1-L6"
