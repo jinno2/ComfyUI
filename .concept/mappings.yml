@@ -25,6 +25,14 @@ mappings:
     code_symbols:
       - "app/assets/database/models.py::class AssetContent"
       - "app/database/models.py::class Base"
+  AssetManager:
+    code_symbols:
+      - "app/assets/manager.py::class AssetManager"
+      - "app/assets/manager.py::class NoAssets"
+      - "app/assets/manager.py::class AssetsEnabled"
+    db: []
+    api:
+      - "app/assets/api/routes.py::register_assets_routes"
   ApiLayer:
     code_symbols:
       - "server.py::class PromptServer"

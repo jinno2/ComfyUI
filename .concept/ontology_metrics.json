@@ -1,18 +1,48 @@
 {
-  "run_id": "2026-10-13T18:36:10Z",
-  "total_terms": 7,
+  "run_id": "2026-10-14T00:00:00Z",
+  "total_terms": 8,
   "by_layer": {
     "core": 0,
-    "domain": 0,
+    "domain": 1,
     "aux": 7
   },
   "draft_ratio": 0.0,
   "queue_pending": 0,
-  "claims_retained_lines": 57,
+  "claims_retained_lines": 58,
   "decisions_md_lines": 1,
   "gc_actions": {
     "merged": 0,
     "deleted": 0,
     "deprecated": 0
+  },
+  "mapped_terms": 8,
+  "mapping_coverage": 1.0,
+  "evidence_coverage": 1.0,
+  "unmapped_claims": 34,
+  "source_scan": {
+    "fallback_dirs": [
+      "app",
+      "comfy",
+      "comfy_api",
+      "comfy_api_nodes",
+      "comfy_execution",
+      "middleware",
+      "utils"
+    ],
+    "python_files": 507,
+    "class_def_declarations": 11938
+  },
+  "test_python_files": 217,
+  "invariants": 2,
+  "unmapped_claim_ratio": 0.5862068965517241,
+  "quality_checks": {
+    "Q1_ontology_coverage_proxy": 0.0006701289998324678,
+    "Q2_mapping_coverage": 1.0,
+    "Q3_invariants_per_test_file_proxy": 0.009216589861751152,
+    "Q4_draft_ratio": 0.0,
+    "Q5_unmapped_claim_ratio": 0.5862068965517241,
+    "Q6_terms_max_80": true,
+    "Q7_charter_complete": true,
+    "Q8_evidence_coverage": 1.0
   }
 }

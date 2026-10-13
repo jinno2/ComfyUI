@@ -114,6 +114,25 @@ canonical_terms:
         quote: "Initial assets schema\nRevision ID: 0001_assets"
       - source: "alembic_db/versions/0008_missing_content_age.py#L1"
         quote: "\"\"\"Track when content becomes missing for age-based catalog cleanup.\"\"\""
+  AssetManager:
+    id: "TERM-ASSETMANAGER"
+    layer: "domain"
+    status: "stable"
+    definition: "The asset feature interface that owns asset lifecycle operations and delegates HTTP route registration to the asset API module."
+    synonyms: ["asset feature interface"]
+    boundaries:
+      includes: ["asset startup and shutdown", "upload and output registration", "background scan control", "asset route registration delegation"]
+      excludes: ["HTTP/WS serving composition (ApiLayer)", "asset database schema and migrations (AssetPersistence)", "general API middleware"]
+    lifecycle: []
+    related_terms: ["ApiLayer", "AssetPersistence"]
+    assumptions: []
+    evidence:
+      - source: "app/assets/manager.py#L22-L60"
+        quote: "class AssetManager(Protocol): ... startup ... register_routes ... register_upload ... register_executed_output"
+      - source: "tests-unit/assets_test/services/test_noassets_parity.py#L182-L202"
+        quote: "Tests select NoAssets or AssetsEnabled from dependency availability."
+      - source: "tests-unit/execution_test/test_inmemory_assets.py#L129-L131"
+        quote: "manager: AssetManager = InMemoryAssets()"
   ApiLayer:
     id: "TERM-APILAYER"
     layer: "aux"

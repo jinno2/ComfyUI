@@ -128,3 +128,17 @@ queue:
     decision: "accepted"
     expires_after_runs: 10
     created_run: "2026-10-13T15:34:50Z"
+  - id: "TP-000010"
+    proposed_canonical: "AssetManager"
+    proposed_layer: "domain"
+    term_raw_examples: ["AssetManager", "asset feature interface"]
+    reason: "The asset manager protocol owns lifecycle and registration operations independently of serving composition and schema persistence; existing tests cover its dependency-based implementation and its in-memory implementation contract."
+    evidence:
+      - source: "tests-unit/assets_test/services/test_noassets_parity.py#L182-L202"
+        quote: "Tests select NoAssets or AssetsEnabled based on dependency availability."
+      - source: "tests-unit/execution_test/test_inmemory_assets.py#L129-L131"
+        quote: "manager: AssetManager = InMemoryAssets()"
+    auto_merge_candidates: []
+    decision: "accepted"
+    expires_after_runs: 10
+    created_run: "2026-10-14T00:00:00Z"

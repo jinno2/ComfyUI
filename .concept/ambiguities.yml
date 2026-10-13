@@ -37,16 +37,25 @@ ambiguities:
         quote: "def execute(self, prompt, prompt_id, extra_data={}, execute_outputs=[]):"
   - id: "AMB-API-001"
     term: "ApiLayer"
-    topic: "Where the serving boundary ends given PromptServer composes AssetManager and other manager objects"
+    topic: "Ownership boundary between ApiLayer and the asset feature interface"
     severity: "low"
-    uncertainty: 0.2
+    uncertainty: 0.08
     candidates:
-      - "ApiLayer ends at request handling/routing/queueing; composed managers (AssetManager, UserManager, ModelFileManager) belong to their own owner layers"
-      - "Everything PromptServer composes is part of the serving layer"
-    missing_info:
-      - "Whether to model AssetManager as an asset-feature adapter distinct from both ApiLayer and AssetPersistence"
+      - "AssetManager owns asset lifecycle operations and exposes route registration; ApiLayer owns serving composition and HTTP/WS request handling"
+      - "AssetManager is part of ApiLayer because PromptServer composes it"
+    missing_info: []
     linked_conflicts: []
-    auto_decision: null
+    auto_decision:
+      status: "applied"
+      decision_key: "AUTO:ApiLayer.asset_manager:feature_boundary"
+      chosen: "AssetManager is a domain interface for asset lifecycle and route registration; ApiLayer composes it and owns serving, while AssetPersistence owns the database schema and migrations."
+      policy: "layer_ownership + smallest_boundary"
+      confidence_auto: 0.92
+      decided_at_run: "2026-10-14T00:00:00Z"
+      expires_after_runs: 20
+      revert_triggers:
+        - "primary_evidence_contradiction"
+        - "security_risk"
     evidence:
       - source: "server.py#L216-L224"
         quote: "def __init__(self, loop, asset_manager: \"AssetManager\"): ... self.asset_manager = asset_manager ... self.prompt_queue = execution.PromptQueue(self)"
@@ -56,4 +65,8 @@ ambiguities:
         quote: "def register_assets_routes(app: web.Application, user_manager: UserManager | None = None) -> None:"
       - source: "AGENTS.md#L32-L38"
         quote: "Keep each layer focused on the concepts it owns. Do not leak UI, API, workflow, queue, persistence, telemetry, model-loading, node, or execution concerns into unrelated layers"
-    last_touched_run: "2026-10-13T18:36:10Z"
+      - source: "tests-unit/assets_test/services/test_noassets_parity.py#L182-L202"
+        quote: "def test_default_asset_manager_disables_assets_when_dependencies_are_unavailable ... def test_default_asset_manager_enables_assets_when_dependencies_are_available"
+      - source: "tests-unit/execution_test/test_inmemory_assets.py#L129-L131"
+        quote: "manager: AssetManager = InMemoryAssets()"
+    last_touched_run: "2026-10-14T00:00:00Z"
