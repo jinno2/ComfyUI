@@ -116,6 +116,8 @@ canonical_terms:
         quote: "\"\"\"Track when content becomes missing for age-based catalog cleanup.\"\"\""
       - source: "alembic_db/env.py#L12-L17"
         quote: "# The mapped tables live in app.assets.database.models; import them so they register on Base.metadata and autogenerate can see them."
+      - source: "tests-unit/app_test/test_migrations.py#L49-L64"
+        quote: "Tests exercise migration upgrade, downgrade, and a repeated upgrade cycle."
   ApiLayer:
     id: "TERM-APILAYER"
     layer: "aux"

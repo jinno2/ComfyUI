@@ -31,3 +31,18 @@ invariants:
     checks:
       - type: "review"
         target: "any PR re-adding a compatibility alias, wrapper, or deprecation warning path"
+  - id: "INV-ASSETPERSIST-001"
+    related_terms: ["AssetPersistence"]
+    status: "stable"
+    strength: "soft"
+    statement: "Asset schema changes are represented by Alembic revisions, and the migration suite exercises upgrade to head, downgrade to the baseline, and a repeated upgrade cycle."
+    rationale: "The asset schema is migration-owned; round-trip coverage catches broken schema evolution paths."
+    assumptions: []
+    evidence:
+      - source: "alembic_db/README.md#L1-L3"
+        quote: "Update models in /app/assets/database/models.py; run alembic revision --autogenerate."
+      - source: "tests-unit/app_test/test_migrations.py#L49-L64"
+        quote: "Tests upgrade to head, downgrade to baseline, and upgrade again."
+    checks:
+      - type: "test"
+        target: "tests-unit/app_test/test_migrations.py"
