@@ -39,21 +39,3 @@ ambiguities:
         quote: "The queue worker reads prompt_id from the queue item and passes it to e.execute."
       - source: "execution.py#L742-L755"
         quote: "PromptExecutor emits prompt_id and uses it for progress reset and IsChangedCache."
-  - id: "AMB-API-001"
-    term: "ApiLayer"
-    topic: "Where the serving boundary ends given PromptServer composes AssetManager and other manager objects"
-    severity: "low"
-    uncertainty: 0.2
-    candidates:
-      - "ApiLayer ends at request handling/routing/queueing; composed managers (AssetManager, UserManager, ModelFileManager) belong to their own owner layers"
-      - "Everything PromptServer composes is part of the serving layer"
-    missing_info:
-      - "Whether AssetManager lives in AssetPersistence or ApiLayer (its module path and tests are under app/assets and tests-unit/assets_test)"
-    linked_conflicts: []
-    auto_decision: null
-    last_touched_run: "2026-10-13T15:34:50Z"
-    evidence:
-      - source: "server.py#L216-L224"
-        quote: "def __init__(self, loop, asset_manager: \"AssetManager\"): ... self.asset_manager = asset_manager ... self.prompt_queue = execution.PromptQueue(self)"
-      - source: "AGENTS.md#L32-L38"
-        quote: "Keep each layer focused on the concepts it owns. Do not leak UI, API, workflow, queue, persistence, telemetry, model-loading, node, or execution concerns into unrelated layers"
