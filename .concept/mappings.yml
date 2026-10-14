@@ -30,6 +30,13 @@ mappings:
       - "app/assets/database/models.py::class Tag"
       - "app/assets/database/models.py::class AssetSystemState"
       - "alembic_db/env.py::target_metadata"
+    db:
+      - "asset_contents"
+      - "assets"
+      - "asset_meta"
+      - "asset_tags"
+      - "tags"
+      - "asset_system_state"
   ApiLayer:
     code_symbols:
       - "server.py::class PromptServer"

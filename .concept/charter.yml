@@ -1,7 +1,7 @@
 version: "1.0"
 
 product_goal:
-  north_star: "ローカルで完結するモジュラーなノードグラフ型 AI コンテンツ生成エンジンとして、画像・動画・3D・音声生成を上流に自動追従しない恒久自律開発で安定提供する ComfyUI fork であり続ける（推定）"
+  north_star: "モジュラーなノードグラフ型 AI コンテンツ生成エンジンとして、画像・動画・3D・音声生成を上流に自動追従しない恒久自律開発で安定提供する ComfyUI fork であり続ける（推定）"
   success_metrics:
     - id: "MET-001"
       name: "unit suite health"
