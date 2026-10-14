@@ -114,6 +114,8 @@ canonical_terms:
         quote: "Initial assets schema\nRevision ID: 0001_assets"
       - source: "alembic_db/versions/0008_missing_content_age.py#L1"
         quote: "\"\"\"Track when content becomes missing for age-based catalog cleanup.\"\"\""
+      - source: "alembic_db/env.py#L12-L17"
+        quote: "# The mapped tables live in app.assets.database.models; import them so they register on Base.metadata and autogenerate can see them."
   ApiLayer:
     id: "TERM-APILAYER"
     layer: "aux"
