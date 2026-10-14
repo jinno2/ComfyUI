@@ -25,6 +25,7 @@ mappings:
     code_symbols:
       - "app/assets/database/models.py::class AssetContent"
       - "app/database/models.py::class Base"
+      - "alembic_db/env.py::target_metadata"
   ApiLayer:
     code_symbols:
       - "server.py::class PromptServer"
