@@ -23,6 +23,7 @@ mappings:
       - "comfy_execution/caching.py::class BasicCache"
   AssetPersistence:
     code_symbols:
+      - "app/assets/manager.py::class AssetManager"
       - "app/assets/database/models.py::class AssetContent"
       - "app/assets/database/models.py::class Asset"
       - "app/assets/database/models.py::class AssetMeta"
