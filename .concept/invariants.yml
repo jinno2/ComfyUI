@@ -31,3 +31,24 @@ invariants:
     checks:
       - type: "review"
         target: "any PR re-adding a compatibility alias, wrapper, or deprecation warning path"
+  - id: "INV-ASSETPERSIST-001"
+    related_terms: ["AssetPersistence"]
+    status: "stable"
+    strength: "soft"
+    statement: "Alembic revisions represent asset schema changes; migration tests verify upgrade to head, downgrade to the shipped baseline, a repeated upgrade cycle, and tag normalization when downgrading to the case-insensitive revision."
+    rationale: "These checks cover schema lifecycle and preserve canonical tag names across a downgrade that restores the case-insensitive constraint."
+    assumptions: []
+    evidence:
+      - source: "alembic_db/README.md#L1-L3"
+        quote: "Update models in /app/assets/database/models.py; run alembic revision --autogenerate."
+      - source: "tests-unit/app_test/test_migrations.py#L49-L83"
+        quote: "test_upgrade_to_head, test_downgrade_to_baseline, and test_upgrade_downgrade_cycle exercise the migration lifecycle."
+    checks:
+      - type: "test"
+        target: "tests-unit/app_test/test_migrations.py::test_upgrade_to_head"
+      - type: "test"
+        target: "tests-unit/app_test/test_migrations.py::test_downgrade_to_baseline"
+      - type: "test"
+        target: "tests-unit/app_test/test_migrations.py::test_upgrade_downgrade_cycle"
+      - type: "test"
+        target: "tests-unit/app_test/test_migrations.py::test_case_sensitive_tags_downgrade_normalizes_existing_tags"
