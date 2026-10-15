@@ -85,7 +85,11 @@ canonical_terms:
       excludes: ["workflow ids, frontend ids, persistence ids, or API-only concepts (AGENTS.md boundary)", "VRAM load/offload policy (ModelLoading)", "persistence bookkeeping (AssetPersistence)"]
     lifecycle: ["Executing", "Success", "Failure", "Pending"]
     related_terms: ["NodeGraph", "ModelLoading", "AssetPersistence"]
-    assumptions: []
+    assumptions:
+      - id: "ASM-EXECORCH-001"
+        text: "AUTO: prompt_id is execution-relevant queue identity; the AGENTS.md id exclusion refers to frontend workflow document ids"
+        decision_key: "AUTO:ExecutionOrchestration.boundary:prompt_id_is_execution_state"
+        expires_after_runs: 20
     evidence:
       - source: "AGENTS.md#L44-L47"
         quote: "Treat `execution.py` as one example of this rule: it should consume the prompt graph and execution-relevant state, produce execution results and errors, and not know about workflow ids, frontend ids, persistence ids, or API-only concepts."
