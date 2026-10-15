@@ -2,7 +2,7 @@ version: "0.3"
 canonical_terms:
   NodeGraph:
     id: "TERM-NODEGRAPH"
-    layer: "aux"
+    layer: "core"
     status: "stable"
     definition: "The declarative graph of nodes (DynamicPrompt) that ComfyUI expands and executes in topological order."
     synonyms: ["node graph", "visual node graph", "ノードグラフ"]
@@ -21,7 +21,7 @@ canonical_terms:
         quote: "class DynamicPrompt ... class TopologicalSort ... class ExecutionList(TopologicalSort)"
   ModelLoading:
     id: "TERM-MODELLOADING"
-    layer: "aux"
+    layer: "core"
     status: "stable"
     definition: "The policy layer that decides when and where models are loaded, partially loaded, or offloaded across VRAM/RAM."
     synonyms: ["model-loading behavior", "model offloading", "VRAM management"]
@@ -40,7 +40,7 @@ canonical_terms:
         quote: "class VRAMState ... def load_models_gpu(...)"
   LatentFormat:
     id: "TERM-LATENTFORMAT"
-    layer: "aux"
+    layer: "domain"
     status: "stable"
     definition: "The per-model-family owner of native latent layout (channel count, scaling, packing) inside the model/latent-format layer."
     synonyms: ["latent layout", "latent-format owner", "native latent shape"]
@@ -57,7 +57,7 @@ canonical_terms:
         quote: "class LatentFormat ... class SD15(LatentFormat) ... class Flux2(LatentFormat)"
   Quantization:
     id: "TERM-QUANTIZATION"
-    layer: "aux"
+    layer: "domain"
     status: "stable"
     definition: "The 4/8-bit weight layout and metadata system (FP8, MXFP8, NVFP4) served by optimized shared kernels."
     synonyms: ["quantized models", "quantization metadata", "quant_ops"]
@@ -76,7 +76,7 @@ canonical_terms:
         quote: "class TensorCoreMXFP8Layout ... class TensorCoreNVFP4Layout ... class TensorCoreFP8E4M3Layout"
   ExecutionOrchestration:
     id: "TERM-EXECORCH"
-    layer: "aux"
+    layer: "core"
     status: "stable"
     definition: "The owner layer (execution.py + comfy_execution) that consumes the prompt graph and execution-relevant state, applies pluggable node-output caching, and produces execution results and errors."
     synonyms: ["execution orchestration", "PromptExecutor", "graph execution"]
@@ -99,7 +99,7 @@ canonical_terms:
         quote: "class BasicCache ... class HierarchicalCache(BasicCache) ... class NullCache ... class LRUCache(BasicCache)"
   AssetPersistence:
     id: "TERM-ASSETPERSIST"
-    layer: "aux"
+    layer: "domain"
     status: "stable"
     definition: "The asset catalog's persistence model is defined by six SQLAlchemy tables and evolved by Alembic migrations. AssetManager coordinates asset lifecycle, route registration, and asset registration, delegating persistence to asset services."
     synonyms: ["asset database", "asset persistence", "asset store"]
@@ -128,7 +128,7 @@ canonical_terms:
         quote: "# The mapped tables live in app.assets.database.models; import them so they register on Base.metadata and autogenerate can see them."
   ApiLayer:
     id: "TERM-APILAYER"
-    layer: "aux"
+    layer: "core"
     status: "stable"
     definition: "The serving boundary (PromptServer, api_server routes, middleware, protocol) that exposes the execution engine to clients over HTTP/WebSocket and owns the prompt queue."
     synonyms: ["HTTP API", "server layer", "PromptServer"]
