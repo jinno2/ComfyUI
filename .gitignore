@@ -29,3 +29,10 @@ uv.lock
 # auto-added by instructions/10_storage/100_audit_storage_policy.md
 .audit/development_direction.yml
 
+# AI-harness metadata: commit only durable seeds, ignore generated runtime.
+# Policy: git:auto-meta-policy / contracts agent-artifact-tracking. Files stay on disk.
+.concept/*
+!.concept/charter.yml
+!.concept/autopilot.yml
+!.concept/ontology_budget.yml
+
