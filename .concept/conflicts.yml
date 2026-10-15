@@ -26,4 +26,6 @@ conflicts:
       - claim: "The API queue worker passes its prompt_id into PromptExecutor, which emits it in execution events and uses it for progress and cache setup."
         source: "main.py#L349-L364; execution.py#L727-L755"
     status: "open"
-    active_workaround: null
+    active_workaround:
+      decision_key: "AUTO:ExecutionOrchestration.boundary:prompt_id_is_execution_state"
+      summary: "AUTO treats prompt_id as the execution queue's identity (progress reset, events, cache invalidation), reading the AGENTS.md exclusion as frontend workflow document ids; execution.py keeps its signature."

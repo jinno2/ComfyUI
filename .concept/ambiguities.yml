@@ -28,8 +28,19 @@ ambiguities:
     missing_info:
       - "Whether the execution boundary should be changed so the queue's prompt_id is not passed into execution.py"
     linked_conflicts: ["CFLT-EXEC-001"]
-    auto_decision: null
-    last_touched_run: "2026-10-13T19:20:12Z"
+    auto_decision:
+      status: "applied"
+      decision_key: "AUTO:ExecutionOrchestration.boundary:prompt_id_is_execution_state"
+      chosen: "prompt_id is execution-relevant queue identity (progress reset, execution events, cache invalidation); the AGENTS.md id exclusion refers to frontend workflow document ids"
+      policy: "reversibility + blast_radius_minimization"
+      confidence_auto: 0.7
+      decided_at_run: "2026-10-15T20:27:25Z"
+      expires_after_runs: 20
+      revert_triggers:
+        - "primary_evidence_contradiction"
+        - "owner_decision_conflict on the AGENTS.md execution boundary"
+        - "regression in execution event consumers"
+    last_touched_run: "2026-10-15T20:27:25Z"
     evidence:
       - source: "AGENTS.md#L44-L47"
         quote: "not know about workflow ids, frontend ids, persistence ids, or API-only concepts"
