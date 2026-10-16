@@ -1,0 +1,52 @@
+invariants:
+  - id: "INV-LOOP-001"
+    related_terms: ["ImprovementLoop"]
+    status: "stable"
+    strength: "hard"
+    statement: "One run executes exactly one improvement; a run never starts a second improvement."
+    rationale: "Fleet time-boxing: long runs block the parallel execution slots of other repositories."
+    evidence:
+      - source: "LOOP.md#L6-L8"
+        quote: "1 run = 1 改善"
+    checks:
+      - type: "manual_review"
+        target: "LOOP.md"
+
+  - id: "INV-LOOP-002"
+    related_terms: ["ImprovementLoop"]
+    status: "stable"
+    strength: "hard"
+    statement: "A run never pushes, force-pushes, rewrites history, creates tags/releases, deploys, or reads/commits secrets; landing is harness-owned."
+    rationale: "Destructive and external-facing operations are outside the run's authority."
+    evidence:
+      - source: "LOOP.md#L36-L42"
+        quote: "push / force-push / 履歴改変 / タグ・リリース操作 / deploy"
+    checks:
+      - type: "manual_review"
+        target: "git log"
+
+  - id: "INV-GATE-001"
+    related_terms: ["UnitTestGate", "ImprovementLoop"]
+    status: "stable"
+    strength: "hard"
+    statement: "No commit while existing tests are broken; the gate command is `make test`."
+    rationale: "Broken commits poison subsequent autonomous runs whose first candidate is a test failure."
+    evidence:
+      - source: "LOOP.md#L24-L25"
+        quote: "既存テストを壊したまま commit しない"
+    checks:
+      - type: "test"
+        target: "Makefile#test"
+
+  - id: "INV-STYLE-001"
+    related_terms: ["MinimalChange"]
+    status: "stable"
+    strength: "soft"
+    statement: "Changes stay minimal: narrowest code path, fewest files, no new dependencies unless absolutely necessary."
+    rationale: "Blast-radius minimization keeps autonomous changes reviewable and revertible."
+    evidence:
+      - source: "AGENTS.md#Engineering Style"
+        quote: "Change the least amount of files possible."
+    checks:
+      - type: "manual_review"
+        target: "git diff --stat"

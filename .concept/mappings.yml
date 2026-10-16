@@ -1,0 +1,25 @@
+mappings:
+  ComfyUI:
+    code_symbols:
+      - "main.py"
+      - "server.py"
+      - "execution.py"
+  ImprovementLoop:
+    code_symbols:
+      - "LOOP.md"
+      - "PURPOSE.md"
+  UnitTestGate:
+    code_symbols:
+      - "Makefile::test"
+      - "tests-unit/"
+  MinimalChange:
+    code_symbols:
+      - "AGENTS.md#Engineering Style"
+  ForkUpstreamSync:
+    code_symbols:
+      - "docs/llm-wiki/index.md"
+      - "docs/CODEBASE_ANALYSIS.md"
+  Node:
+    code_symbols:
+      - "nodes.py::NODE_CLASS_MAPPINGS"
+      - "comfy_extras/"

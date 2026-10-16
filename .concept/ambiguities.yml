@@ -1,0 +1,56 @@
+ambiguities:
+  - id: "AMB-UNIT-001"
+    term: "UnitTestGate"
+    topic: "Commit gate scope: unit tests only or unit + integration"
+    severity: "low"
+    uncertainty: 0.18
+    candidates:
+      - "Gate = `make test` (pytest tests-unit) only, as defined by LOOP.md and Makefile"
+      - "Gate must also include integration tests/ (real-server) before risky changes"
+    missing_info:
+      - "Whether the integration suite (tests/) is green in this worktree environment (requires a running server)"
+    linked_conflicts: []
+    auto_decision:
+      status: "applied"
+      decision_key: "AUTO:UnitTestGate.scope:unit_only"
+      chosen: "Gate = `make test` unit tests only; integration tests are optional per run"
+      policy: "primary_text_authority + reversibility"
+      confidence_auto: 0.75
+      decided_at_run: "2026-10-16T19:05:28Z"
+      expires_after_runs: 20
+      revert_triggers:
+        - "primary_evidence_contradiction"
+    last_touched_run: "2026-10-16T19:05:28Z"
+    evidence:
+      - source: "LOOP.md#L24-L25"
+        quote: "検証 — `make test`"
+      - source: "Makefile#L451-L452"
+        quote: "test: ## Run unit tests (fast default)"
+
+  - id: "AMB-FORK-001"
+    term: "ForkUpstreamSync"
+    topic: "Current count of fork-specific commits (13 vs 20)"
+    severity: "low"
+    uncertainty: 0.23
+    candidates:
+      - "~20 fork-specific commits (git log measured 2026-09-26)"
+      - "13 fork-specific commits (codebase analysis dated 2026-09-20)"
+    missing_info:
+      - "A fresh git measurement after the latest upstream merges"
+    linked_conflicts: ["CFLT-FORK-001"]
+    auto_decision:
+      status: "applied"
+      decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
+      chosen: "Current count = ~20 (git-measured 2026-09-26); 13 is a historical 2026-09-20 snapshot"
+      policy: "recency + primary_measurement"
+      confidence_auto: 0.7
+      decided_at_run: "2026-10-16T19:05:28Z"
+      expires_after_runs: 20
+      revert_triggers:
+        - "primary_evidence_contradiction"
+    last_touched_run: "2026-10-16T19:05:28Z"
+    evidence:
+      - source: "docs/llm-wiki/index.md"
+        quote: "a402fd40^2..HEAD = 20 commits"
+      - source: "docs/CODEBASE_ANALYSIS.md#L9-L11"
+        quote: "フォーク独自コミットは13件"

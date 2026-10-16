@@ -1,0 +1,107 @@
+version: "0.3"
+
+canonical_terms:
+  ComfyUI:
+    id: "TERM-COMFYUI"
+    layer: "core"
+    status: "stable"
+    definition: "Modular node-graph based AI content generation engine; this repository is a local fork of it used for image-generation research."
+    synonyms: ["comfy", "ComfyUI fork"]
+    boundaries:
+      includes: ["node-graph execution engine", "model loading and management", "local server and API"]
+      excludes: ["upstream ComfyOrg hosted services", "third-party custom_nodes ecosystem"]
+    related_terms: ["Node", "ForkUpstreamSync"]
+    evidence:
+      - source: "README.md#L1-L4"
+        quote: "The most powerful and modular AI engine for content creation."
+      - source: "docs/llm-wiki/index.md"
+        quote: "上流 comfyanonymous/ComfyUI（モジュラー型 AI コンテンツ生成エンジン）のローカル fork/ワーキングコピー"
+
+  ImprovementLoop:
+    id: "TERM-LOOP"
+    layer: "core"
+    status: "stable"
+    definition: "Bounded autonomous mission from LOOP.md: one run executes one improvement; candidates are prioritized test-failure -> TODO/FIXME -> docs mismatch; a run with no safe candidate ends with an interrupt report and no changes."
+    synonyms: ["自律改善ループ", "loop run"]
+    boundaries:
+      includes: ["candidate selection", "minimal implementation", "verification via make test", "single commit", "interrupt report"]
+      excludes: ["push/deploy/release (harness-owned landing)", "second improvement per run", "dependency major updates"]
+    lifecycle: ["candidate_selected", "implemented", "verified", "committed", "reported"]
+    related_terms: ["UnitTestGate", "MinimalChange"]
+    evidence:
+      - source: "LOOP.md#L6-L25"
+        quote: "1 run = 1 改善。実行しない判断は「中断レポート」に書いて終わる。"
+
+  UnitTestGate:
+    id: "TERM-GATE"
+    layer: "core"
+    status: "stable"
+    definition: "Commit gate defined by `make test` (Makefile: pytest tests-unit -v); a run must not commit while existing tests are broken."
+    synonyms: ["テストゲート", "make test"]
+    boundaries:
+      includes: ["tests-unit pytest run", "commit blocking on red tests"]
+      excludes: ["integration tests/ (real-server, optional per run)", "CI-only gates"]
+    related_terms: ["ImprovementLoop"]
+    assumptions:
+      - id: "ASM-UNIT-001"
+        text: "AUTO: gate scope is unit tests only (`make test`); integration tests are optional per run"
+        decision_key: "AUTO:UnitTestGate.scope:unit_only"
+        expires_after_runs: 20
+    evidence:
+      - source: "LOOP.md#L24-L25"
+        quote: "検証 — `make test`。既存テストを壊したまま commit しない"
+      - source: "Makefile#L451-L464"
+        quote: "test: ## Run unit tests (fast default) / $(PYTHON) -m pytest tests-unit -v"
+
+  MinimalChange:
+    id: "TERM-MINCHANGE"
+    layer: "domain"
+    status: "stable"
+    definition: "Every change touches the narrowest code path and the fewest files; no broad refactors, no new dependencies unless absolutely necessary; obsolete code is deleted aggressively."
+    synonyms: ["最小変更", "最小差分"]
+    boundaries:
+      includes: ["narrowest code path", "fewest files", "dead code removal"]
+      excludes: ["broad architecture rewrites", "new dependencies without necessity"]
+    related_terms: ["ImprovementLoop"]
+    evidence:
+      - source: "AGENTS.md#Engineering Style"
+        quote: "Change the least amount of files possible."
+      - source: "LOOP.md#L28-L30"
+        quote: "実装（最小・短時間）— 触るファイルを必要最小限に。"
+
+  ForkUpstreamSync:
+    id: "TERM-FORK"
+    layer: "domain"
+    status: "stable"
+    definition: "Fork relationship to upstream ComfyUI: about 515 commits ahead, of which a small set is fork-specific (~20 git-measured 2026-09-26; 13 counted on 2026-09-20); the bulk of the lead is upstream merge commits that fork-specific edits must not break."
+    synonyms: ["フォーク乖離", "upstream sync"]
+    boundaries:
+      includes: ["fork-specific commits", "upstream merge compatibility"]
+      excludes: ["direct pushes to upstream", "PR/issue operations against upstream"]
+    related_terms: ["ComfyUI"]
+    assumptions:
+      - id: "ASM-FORK-001"
+        text: "AUTO: current fork-specific count is treated as ~20 (git-measured 2026-09-26); 13 is a historical 2026-09-20 snapshot"
+        decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
+        expires_after_runs: 20
+    evidence:
+      - source: "docs/llm-wiki/index.md"
+        quote: "先行 515 の大半は upstream merge による上流新規分（a402fd40^2..HEAD = 20 commits）"
+      - source: "docs/CODEBASE_ANALYSIS.md#L9-L11"
+        quote: "フォーク独自コミットは13件で、実質的に Makefile 群・scripts/・comfy/ops.py の safe_linear・Pipfile/mise・docs のみ"
+
+  Node:
+    id: "TERM-NODE"
+    layer: "domain"
+    status: "stable"
+    definition: "Extensibility unit registered through NODE_CLASS_MAPPINGS following INPUT_TYPES/RETURN_TYPES/FUNCTION/CATEGORY conventions; node-level code delegates model behavior changes to the model patcher class."
+    synonyms: ["カスタムノード", "graph node"]
+    boundaries:
+      includes: ["node definition conventions", "NODE_CLASS_MAPPINGS registration"]
+      excludes: ["direct model code patching from node level", "pass-through placeholder inputs"]
+    related_terms: ["ComfyUI"]
+    evidence:
+      - source: "AGENTS.md#Nodes and User-Facing Behavior"
+        quote: "Node-level code must not patch model code directly."
+      - source: "docs/CODEBASE_ANALYSIS.md#L26-L40"
+        quote: "nodes(NODE_CLASS_MAPPINGS が全層から参照されるレジストリ)"

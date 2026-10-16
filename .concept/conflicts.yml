@@ -1,0 +1,15 @@
+conflicts:
+  - id: "CFLT-FORK-001"
+    term: "ForkUpstreamSync"
+    about: "definition"
+    severity: "low"
+    nli: "contradiction"
+    items:
+      - claim: "~20 fork-specific commits (git log measured 2026-09-26)"
+        source: "docs/llm-wiki/index.md"
+      - claim: "13 fork-specific commits (analysis dated 2026-09-20)"
+        source: "docs/CODEBASE_ANALYSIS.md#L9-L11"
+    status: "open"
+    active_workaround:
+      decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
+      summary: "Treat the newer git-measured count (~20) as current; the 13 figure is a historical snapshot. Re-measure with git log on next fork-state question."
