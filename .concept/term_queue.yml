@@ -5,12 +5,19 @@ queue:
     term_raw_examples: ["graph", "prompt graph", "dynprompt"]
     reason: "comfy_execution/graph.py に構造体が存在。Prompt と重複する可能性があり、審査が必要"
     evidence:
-      - source: "comfy_execution/graph.py"
-        quote: "module exists (graph.py in comfy_execution package)"
+      - source: "comfy_execution/graph.py#L21-L34"
+        quote: "class DynamicPrompt: ... self.original_prompt = original_prompt ... self.ephemeral_prompt = {}"
+      - source: "comfy_execution/graph.py#L106-L193"
+        quote: "class TopologicalSort: ... class ExecutionList(TopologicalSort):"
+      - source: "execution.py#L33"
+        quote: "from comfy_execution.graph import ("
     auto_merge_candidates:
       - term: "Prompt"
         similarity: 0.7
-    decision: "pending"
+    decision: "merged"
+    merged_into: "Prompt"
+    review_note: "実読の結果、`Graph` クラスは存在しない。グラフ機構は DynamicPrompt（実行時グラフ構造）と ExecutionList/TopologicalSort（実行順序解決）であり、前者は Prompt（グラフ実行単位、AUTO:graph_unit_by_prompt_id）に統合、後者は PromptExecutor の実装詳細と見なす。シニオン値 0.7 >= review 閾値 0.65 につき審査済みで merged。hypothesis claim (run 2026-10-16T21:39:07Z) は本runの検証済みfact claimで置換。"
+    decided_run: "2026-10-16T21:48:23Z"
     expires_after_runs: 10
     created_run: "2026-10-16T21:39:07Z"
   - id: "TP-000002"
@@ -19,12 +26,15 @@ queue:
     term_raw_examples: ["IsChangedCache", "CacheSet", "CacheEntry"]
     reason: "execution.py にキャッシュ機構のクラス群が存在。PromptExecutor の一部と見なせる可能性"
     evidence:
-      - source: "execution.py#L57-L156"
-        quote: "class IsChangedCache ... class CacheSet"
+      - source: "execution.py#L57-L123"
+        quote: "class IsChangedCache: ... class CacheEntry(NamedTuple): ... class CacheType(Enum): ... class CacheSet:"
     auto_merge_candidates:
       - term: "PromptExecutor"
         similarity: 0.75
-    decision: "pending"
+    decision: "merged"
+    merged_into: "PromptExecutor"
+    review_note: "キャッシュは PromptExecutor の boundaries（実行結果キャッシュ）に既に含まれ、mappings も CacheSet を PromptExecutor 側に持つ。類似度 0.75 < merge閾値 0.78 だが、肥大化制御（統合優先）により synonyms へ吸収。"
+    decided_run: "2026-10-16T21:48:23Z"
     expires_after_runs: 10
     created_run: "2026-10-16T21:39:07Z"
   - id: "TP-000003"
@@ -33,12 +43,20 @@ queue:
     term_raw_examples: ["model folder path", "input/output/temp directory"]
     reason: "folder_paths.py がモデル・入出力ディレクトリを一元管理。概念として独立させるか要審査"
     evidence:
-      - source: "folder_paths.py#L289"
-        quote: "def add_model_folder_path(...)"
+      - source: "folder_paths.py#L289-L307"
+        quote: "def add_model_folder_path(folder_name: str, full_folder_path: str, is_default: bool = False) ... def get_folder_paths(folder_name: str)"
+      - source: "folder_paths.py#L128-L143"
+        quote: "def get_output_directory() ... def get_input_directory() ... def get_temp_directory() ... def get_user_directory()"
       - source: "tests-unit/folder_paths_test/misc_test.py#L34"
         quote: "def test_gets_all_folders(mock_folder_structure):"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
+    accepted_as:
+      term_id: "TERM-MODELFOLDER"
+      layer: "domain"
+      status: "stable"
+    review_note: "昇格条件を満たす: 一次出典2つ以上（folder_paths.py + tests-unit）、boundaries記述可、mapping貼付可。既存termとの類似候補なし。"
+    decided_run: "2026-10-16T21:48:23Z"
     expires_after_runs: 10
     created_run: "2026-10-16T21:39:07Z"
   - id: "TP-000004"
@@ -47,14 +65,22 @@ queue:
     term_raw_examples: ["API nodes", "comfy_api_nodes"]
     reason: "README がクローズドソースモデルへの API nodes アクセスを主張。comfy_api_nodes パッケージと対応づくか要確認"
     evidence:
+      - source: "nodes.py#L2480-L2486"
+        quote: "async def init_builtin_api_nodes(): ... load_custom_node(node_file, module_parent=\"comfy_api_nodes\")"
+      - source: "comfy_api_nodes/nodes_bfl.py#L6"
+        quote: "from comfy_api.latest import IO, ComfyExtension, Input"
       - source: "README.md"
         quote: "API nodes provide access to the best closed source models"
-      - source: "comfy_api_nodes/"
-        quote: "package directory exists"
     auto_merge_candidates:
       - term: "Node"
         similarity: 0.65
-    decision: "pending"
+    decision: "accepted"
+    accepted_as:
+      term_id: "TERM-APINODE"
+      layer: "aux"
+      status: "stable"
+    review_note: "Node との類似度 0.65 は merge閾値 0.78 未満で独立概念として成立（V3登録経路を使う組込みAPIノード群という明確な境界）。昇格条件を満たす。"
+    decided_run: "2026-10-16T21:48:23Z"
     expires_after_runs: 10
     created_run: "2026-10-16T21:39:07Z"
   - id: "TP-000005"
@@ -64,9 +90,17 @@ queue:
     reason: "protocol.py に WS バイナリイベント型の定義が存在。 aux として様子見"
     evidence:
       - source: "protocol.py#L2-L6"
-        quote: "class BinaryEventTypes: PREVIEW_IMAGE = 1 ..."
+        quote: "class BinaryEventTypes: PREVIEW_IMAGE = 1 / UNENCODED_PREVIEW_IMAGE = 2 / TEXT = 3 / PREVIEW_IMAGE_WITH_METADATA = 4"
+      - source: "server.py#L1257-L1445"
+        quote: "if event == BinaryEventTypes.UNENCODED_PREVIEW_IMAGE: ... await self.send_bytes(BinaryEventTypes.PREVIEW_IMAGE, preview_bytes, sid=sid)"
     auto_merge_candidates: []
-    decision: "pending"
+    decision: "accepted"
+    accepted_as:
+      term_id: "TERM-BINARYEVENT"
+      layer: "aux"
+      status: "stable"
+    review_note: "protocol.py（定義）+ server.py（使用）の2出典。型コードは外部互換契約（INV-WS-001 として不変条件化）。"
+    decided_run: "2026-10-16T21:48:23Z"
     expires_after_runs: 10
     created_run: "2026-10-16T21:39:07Z"
   - id: "TP-000006"
@@ -75,11 +109,37 @@ queue:
     term_raw_examples: ["latent preview", "preview image"]
     reason: "latent_preview.py が存在。BinaryEvent と統合するか独立させるか要審査"
     evidence:
-      - source: "latent_preview.py"
-        quote: "module exists (latent_preview.py)"
+      - source: "latent_preview.py#L1-L16"
+        quote: "from comfy.taesd.taesd import TAESD ... MAX_PREVIEW_RESOLUTION = args.preview_size"
+      - source: "nodes.py#L1544"
+        quote: "callback = latent_preview.prepare_callback(model, steps)"
+      - source: "execution.py#L22"
+        quote: "from latent_preview import set_preview_method"
     auto_merge_candidates:
       - term: "BinaryEvent"
         similarity: 0.6
-    decision: "pending"
+    decision: "accepted"
+    accepted_as:
+      term_id: "TERM-LATENTPREVIEW"
+      layer: "aux"
+      status: "stable"
+    review_note: "BinaryEvent との類似度 0.6 < review閾値 0.65。生成（TAESD/VAEデコード）と転送（WSバイナリ）は責務が異なり統合不適。初回runの AUTO:LatentPreview.gc_watch（様子見判断）は証拠が成熟したため本判断で役目を終了（decisions.md キャッシュから除去）。"
+    decided_run: "2026-10-16T21:48:23Z"
     expires_after_runs: 10
     created_run: "2026-10-16T21:39:07Z"
+  - id: "TP-000007"
+    proposed_canonical: "PromptQueue"
+    proposed_layer: "core"
+    term_raw_examples: ["queue", "prompt queue"]
+    reason: "execution.py#L1239 の PromptQueue は prompt_id の受付〜実行の中継として主要クラス。Prompt lifecycle 内で表現するか独立 term にするか次サイクルで審査する"
+    evidence:
+      - source: "execution.py#L1239"
+        quote: "class PromptQueue:"
+      - source: "server.py#L713"
+        quote: "@routes.get(\"/prompt\")"
+    auto_merge_candidates:
+      - term: "Prompt"
+        similarity: 0.72
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-16T21:48:23Z"

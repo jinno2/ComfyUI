@@ -3,12 +3,14 @@ mappings:
     code_symbols:
       - "nodes.py::NODE_CLASS_MAPPINGS"
       - "nodes.py::init_extra_nodes (dynamic collection)"
+      - "nodes.py::load_custom_node (V1 hasattr gate + V3 comfy_entrypoint)"
     api:
       - "server.py#/object_info"
   Prompt:
     code_symbols:
       - "execution.py::class PromptExecutor"
       - "execution.py::class PromptQueue"
+      - "comfy_execution/graph.py::class DynamicPrompt"
     api:
       - "server.py#POST /prompt"
       - "server.py#GET /prompt"
@@ -19,3 +21,21 @@ mappings:
     code_symbols:
       - "execution.py::class PromptExecutor"
       - "execution.py::class CacheSet"
+      - "execution.py::class IsChangedCache"
+  ModelFolder:
+    code_symbols:
+      - "folder_paths.py::add_model_folder_path"
+      - "folder_paths.py::get_folder_paths"
+      - "folder_paths.py::get_filename_list"
+  ApiNode:
+    code_symbols:
+      - "nodes.py::init_builtin_api_nodes"
+      - "comfy_api_nodes/nodes_bfl.py::comfy_entrypoint (V3 ComfyExtension)"
+  BinaryEvent:
+    code_symbols:
+      - "protocol.py::class BinaryEventTypes"
+      - "server.py::send_bytes / send_sync"
+  LatentPreview:
+    code_symbols:
+      - "latent_preview.py::prepare_callback"
+      - "latent_preview.py::set_preview_method"

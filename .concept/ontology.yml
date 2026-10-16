@@ -5,26 +5,28 @@ canonical_terms:
     id: "TERM-NODE"
     layer: "core"
     status: "stable"
-    definition: "計算グラフの最小実行単位。NODE_CLASS_MAPPINGS に登録されたクラスとして提供され、拡張モジュールから動的に収集される。"
+    definition: "計算グラフの最小実行単位。レガシーV1経路では NODE_CLASS_MAPPINGS に登録されたクラスとして、V3経路では comfy_entrypoint が返す ComfyExtension (get_node_list) として提供され、拡張モジュールから動的に収集される。"
     synonyms: ["custom node", "ノード"]
     boundaries:
-      includes: ["INPUT_TYPES / RETURN_TYPES / FUNCTION を持つクラス", "NODE_CLASS_MAPPINGS への登録"]
+      includes: ["INPUT_TYPES / RETURN_TYPES / FUNCTION を持つクラス", "NODE_CLASS_MAPPINGS への登録（V1）", "comfy_entrypoint → ComfyExtension による登録（V3）"]
       excludes: ["HTTP API endpoint", "model ファイルそのもの"]
     lifecycle: ["Defined", "Registered", "Executed"]
-    related_terms: ["Prompt", "PromptExecutor"]
+    related_terms: ["Prompt", "PromptExecutor", "ApiNode"]
     evidence:
       - source: "nodes.py#L2019"
         quote: "NODE_CLASS_MAPPINGS = {"
       - source: "nodes.py#L2243-L2244"
         quote: "if hasattr(module, \"NODE_CLASS_MAPPINGS\") ... for name, node_cls in module.NODE_CLASS_MAPPINGS.items():"
+      - source: "nodes.py#L2251-L2266"
+        quote: "# V3 Extension Definition ... node_list = await extension.get_node_list()"
   Prompt:
     id: "TERM-PROMPT"
     layer: "core"
     status: "draft"
-    definition: "POST /prompt で投入され、prompt_id をキーにキューイングされて PromptExecutor が実行するグラフ実行単位（暫定: ノード単位かグラフ単位かは AUTO 決定でグラフ単位と扱う）。"
-    synonyms: ["prompt graph", "workflow execution"]
+    definition: "POST /prompt で投入され、prompt_id をキーにキューイングされて PromptExecutor が実行するグラフ実行単位（暫定: ノード単位かグラフ単位かは AUTO 決定でグラフ単位と扱う）。実行側のグラフ構造は DynamicPrompt（original_prompt + 実行中の ephemeral 展開）。"
+    synonyms: ["prompt graph", "workflow execution", "graph", "DynamicPrompt"]
     boundaries:
-      includes: ["POST /prompt のリクエストボディ", "prompt_id による識別", "キューイングと実行"]
+      includes: ["POST /prompt のリクエストボディ", "prompt_id による識別", "キューイングと実行", "DynamicPrompt による実行時グラフ構造"]
       excludes: ["単一ノードの内部実行", "UI 上のワークフローファイル形式そのもの"]
     lifecycle: ["Submitted", "Queued", "Executing", "Cached", "Done"]
     related_terms: ["Node", "PromptExecutor", "PromptServer"]
@@ -38,6 +40,8 @@ canonical_terms:
         quote: "@routes.post(\"/prompt\")"
       - source: "execution.py#L1239"
         quote: "class PromptQueue:"
+      - source: "comfy_execution/graph.py#L21-L34"
+        quote: "class DynamicPrompt: ... self.original_prompt = original_prompt ... self.ephemeral_prompt = {}"
   PromptServer:
     id: "TERM-PROMPTSERVER"
     layer: "core"
@@ -47,7 +51,7 @@ canonical_terms:
     boundaries:
       includes: ["routes 登録", "WS イベント送信", "静的ファイル配信"]
       excludes: ["グラフ実行ロジック本体（PromptExecutor）", "モデル読み込み"]
-    related_terms: ["Prompt", "PromptExecutor"]
+    related_terms: ["Prompt", "PromptExecutor", "BinaryEvent"]
     evidence:
       - source: "server.py#L212"
         quote: "class PromptServer():"
@@ -55,10 +59,10 @@ canonical_terms:
     id: "TERM-PROMPTEXECUTOR"
     layer: "core"
     status: "stable"
-    definition: "キューから Prompt を取り出してノードグラフを評価する実行器。キャッシュ（CacheSet / IsChangedCache）を持ち、重複ノードは DuplicateNodeError とする。"
-    synonyms: ["executor"]
+    definition: "キューから Prompt を取り出してノードグラフを評価する実行器。実行結果キャッシュ（IsChangedCache / CacheSet、CacheEntry・CacheType を含む）を持ち、重複ノードは DuplicateNodeError とする。"
+    synonyms: ["executor", "ExecutionCache"]
     boundaries:
-      includes: ["グラフ検証", "ノード実行", "実行結果キャッシュ"]
+      includes: ["グラフ検証", "ノード実行", "実行結果キャッシュ（IsChangedCache / CacheSet / CacheEntry / CacheType）"]
       excludes: ["HTTP ルーティング", "モデルファイル管理"]
     related_terms: ["Node", "Prompt"]
     evidence:
@@ -66,3 +70,71 @@ canonical_terms:
         quote: "class PromptExecutor:"
       - source: "execution.py#L54"
         quote: "class DuplicateNodeError(Exception):"
+      - source: "execution.py#L57-L113"
+        quote: "class IsChangedCache: ... class CacheEntry(NamedTuple): ... class CacheType(Enum): ... class CacheSet:"
+  ModelFolder:
+    id: "TERM-MODELFOLDER"
+    layer: "domain"
+    status: "stable"
+    definition: "名前付きキーで登録されるモデル検索ディレクトリ群と、input/output/temp/user 標準ディレクトリを一元管理する folder_paths 機構。"
+    synonyms: ["folder_paths", "model folder path"]
+    boundaries:
+      includes: ["add_model_folder_path による名前キー登録", "get_folder_paths / get_filename_list による解決", "input/output/temp/user ディレクトリの getter/setter"]
+      excludes: ["モデルファイルの読み込みロジック", "モデル形式そのもの"]
+    related_terms: ["Node"]
+    evidence:
+      - source: "folder_paths.py#L289-L307"
+        quote: "def add_model_folder_path(folder_name: str, full_folder_path: str, is_default: bool = False) ... def get_folder_paths(folder_name: str)"
+      - source: "folder_paths.py#L128-L143"
+        quote: "def get_output_directory() ... def get_temp_directory() ... def get_input_directory() ... def get_user_directory()"
+      - source: "tests-unit/folder_paths_test/misc_test.py#L34"
+        quote: "def test_gets_all_folders(mock_folder_structure):"
+  ApiNode:
+    id: "TERM-APINODE"
+    layer: "aux"
+    status: "stable"
+    definition: "comfy_api_nodes/nodes_*.py として組込みで提供され、V3 API（comfy_entrypoint → ComfyExtension）で登録される、外部クローズドソースモデルを呼び出すノード群。"
+    synonyms: ["API nodes", "builtin api nodes"]
+    boundaries:
+      includes: ["init_builtin_api_nodes による nodes_*.py のロード", "comfy_api.latest の IO/ComfyExtension を用いた V3 実装", "外部プロバイダ HTTP API 呼び出し"]
+      excludes: ["ローカルオープンソースモデルのノード", "custom_nodes 配下のサードパーティノード"]
+    related_terms: ["Node"]
+    evidence:
+      - source: "nodes.py#L2480-L2486"
+        quote: "async def init_builtin_api_nodes(): ... load_custom_node(node_file, module_parent=\"comfy_api_nodes\")"
+      - source: "comfy_api_nodes/nodes_bfl.py#L6"
+        quote: "from comfy_api.latest import IO, ComfyExtension, Input"
+      - source: "README.md"
+        quote: "API nodes provide access to the best closed source models"
+  BinaryEvent:
+    id: "TERM-BINARYEVENT"
+    layer: "aux"
+    status: "stable"
+    definition: "WebSocket 経由で送られるバイナリイベント。型コードは protocol.BinaryEventTypes で固定（PREVIEW_IMAGE=1 / UNENCODED_PREVIEW_IMAGE=2 / TEXT=3 / PREVIEW_IMAGE_WITH_METADATA=4）。"
+    synonyms: ["binary event", "WS event", "BinaryEventTypes"]
+    boundaries:
+      includes: ["プロトコル型コードの列挙", "send_bytes / send_sync による WS 送信"]
+      excludes: ["JSON テキストイベント本体", "プレビュー画像の生成ロジック（LatentPreview）"]
+    related_terms: ["PromptServer", "LatentPreview"]
+    evidence:
+      - source: "protocol.py#L2-L6"
+        quote: "class BinaryEventTypes: PREVIEW_IMAGE = 1 / UNENCODED_PREVIEW_IMAGE = 2 / TEXT = 3 / PREVIEW_IMAGE_WITH_METADATA = 4"
+      - source: "server.py#L1299"
+        quote: "await self.send_bytes(BinaryEventTypes.PREVIEW_IMAGE, preview_bytes, sid=sid)"
+  LatentPreview:
+    id: "TERM-LATENTPREVIEW"
+    layer: "aux"
+    status: "stable"
+    definition: "サンプリング中の latent を TAESD/VAE デコードでプレビュー画像へ変換する機構。結果は BinaryEvent として WS 配信される。"
+    synonyms: ["latent preview", "preview image"]
+    boundaries:
+      includes: ["TAESD/VAE による latent デコード", "set_preview_method / prepare_callback による実行フック"]
+      excludes: ["WS バイナリ転送自身（BinaryEvent）", "UI 側のプレビュー描画"]
+    related_terms: ["BinaryEvent", "Prompt"]
+    evidence:
+      - source: "latent_preview.py#L1-L16"
+        quote: "from comfy.taesd.taesd import TAESD ... MAX_PREVIEW_RESOLUTION = args.preview_size"
+      - source: "nodes.py#L1544"
+        quote: "callback = latent_preview.prepare_callback(model, steps)"
+      - source: "execution.py#L22"
+        quote: "from latent_preview import set_preview_method"

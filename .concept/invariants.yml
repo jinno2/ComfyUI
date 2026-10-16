@@ -3,16 +3,18 @@ invariants:
     related_terms: ["Node"]
     status: "draft"
     strength: "hard"
-    statement: "Node は NODE_CLASS_MAPPINGS に登録されなければ起動時に収集されず、グラフで使用できない"
+    statement: "Node は NODE_CLASS_MAPPINGS（V1）または comfy_entrypoint が返す ComfyExtension（V3）のいずれかで登録されなければ起動時に収集されず、グラフで使用できない"
     rationale: "未登録ノードの静かな欠落を防ぐ"
     assumptions:
       - id: "ASM-INV-NODE-001"
-        text: "AUTO: 動的収集は hasattr(NODE_CLASS_MAPPINGS) のみを正とする"
-        decision_key: "AUTO:Node.registration:hasattr_gate"
+        text: "AUTO: ノード収集は V1 (hasattr NODE_CLASS_MAPPINGS) と V3 (comfy_entrypoint/ComfyExtension.get_node_list) の二経路を正とする"
+        decision_key: "AUTO:Node.registration:dual_path"
         expires_after_runs: 20
     evidence:
       - source: "nodes.py#L2243-L2244"
         quote: "if hasattr(module, \"NODE_CLASS_MAPPINGS\") ... for name, node_cls in module.NODE_CLASS_MAPPINGS.items():"
+      - source: "nodes.py#L2251-L2266"
+        quote: "# V3 Extension Definition ... node_list = await extension.get_node_list()"
     checks:
       - type: "test"
         target: "tests/execution/test_execution.py"
@@ -54,3 +56,28 @@ invariants:
     checks:
       - type: "command"
         target: "make test"
+  - id: "INV-WS-001"
+    related_terms: ["BinaryEvent", "PromptServer"]
+    status: "draft"
+    strength: "hard"
+    statement: "WS バイナリイベントの型コードは BinaryEventTypes の列挙値で固定される（PREVIEW_IMAGE=1 / UNENCODED_PREVIEW_IMAGE=2 / TEXT=3 / PREVIEW_IMAGE_WITH_METADATA=4）。WS クライアントとの外部互換契約であり、値の変更は破壊的変更になる"
+    rationale: "サードパーティ WS クライアントの互換性保護"
+    evidence:
+      - source: "protocol.py#L2-L6"
+        quote: "class BinaryEventTypes: PREVIEW_IMAGE = 1 / UNENCODED_PREVIEW_IMAGE = 2 / TEXT = 3 / PREVIEW_IMAGE_WITH_METADATA = 4"
+      - source: "server.py#L1299"
+        quote: "await self.send_bytes(BinaryEventTypes.PREVIEW_IMAGE, preview_bytes, sid=sid)"
+  - id: "INV-MODELFOLDER-001"
+    related_terms: ["ModelFolder"]
+    status: "draft"
+    strength: "soft"
+    statement: "input/output/temp/user ディレクトリとモデルフォルダは folder_paths の getter/setter・名前キー登録を通じてのみ解決される"
+    rationale: "パス解決の一元化。モジュール直参照やハードコードパスを避ける"
+    evidence:
+      - source: "folder_paths.py#L128-L143"
+        quote: "def get_output_directory() ... def get_temp_directory() ... def get_input_directory() ... def get_user_directory()"
+      - source: "tests-unit/folder_paths_test/misc_test.py#L34-L40"
+        quote: "def test_gets_all_folders(mock_folder_structure): ... assert sorted(folders) == sorted(expected)"
+    checks:
+      - type: "test"
+        target: "tests-unit/folder_paths_test/misc_test.py"

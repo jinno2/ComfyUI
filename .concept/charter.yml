@@ -1,0 +1,60 @@
+version: "1.0"
+
+product_goal:
+  north_star: "ノードグラフ UI により、画像・動画・3D・音声などの生成AIモデルを、オープンソースモデル / クラウド API nodes を問わず制御可能に実行する、モジュラーなAIコンテンツ生成エンジンを提供する（推定）"
+  success_metrics:
+    - id: "MET-001"
+      name: "concept quality gates"
+      target: "repo_autopilot 品質基準 Q1-Q8 のうち収束可能な全指標 PASS"
+    - id: "MET-002"
+      name: "test suite health"
+      target: "make test (tests-unit + tests) が緑"
+  non_goals:
+    - "フロントエンド UI コードの全面書き直し"
+    - "生成モデル本体（comfy/ 配下のモデル実装）の再設計"
+    - "ライセンス・配布形態の変更"
+    - "ソース不足のため詳細なスコープ特定が未完了の領域の断定的定義"
+
+milestones:
+  - id: "MS-001"
+    name: "概念基盤の整備 (.concept)"
+    intent: "リポジトリの概念・不変条件を実コードと同期させ、自律整備の土台を作る"
+    deliverables:
+      - ".concept/charter.yml"
+      - ".concept/ontology.yml"
+      - ".concept/invariants.yml"
+      - ".concept/mappings.yml"
+      - ".concept/term_queue.yml"
+    acceptance:
+      - type: "test"
+        target: "repo_autopilot 品質基準 Q1-Q8 の計測と報告"
+    priority: "P0"
+    status: "active"
+  - id: "MS-002"
+    name: "検証ゲートの baseline 維持"
+    intent: "make test / make lint が常に実行可能で緑である状態を保つ"
+    deliverables:
+      - "Makefile test/lint ターゲットの実行可能性"
+    acceptance:
+      - type: "command"
+        target: "make test-unit"
+    priority: "P1"
+    status: "planned"
+  - id: "MS-003"
+    name: "実行系概念の辞書化拡充"
+    intent: "実行グラフ・キューキャッシュ・V3ノード登録など実行系の主要クラスを概念辞書へ統合または queue 審査する"
+    deliverables:
+      - "ontology.yml の主要クラスカバレッジ 80% 以上（主要クラス分母）"
+    acceptance:
+      - type: "test"
+        target: "Q1 ontology カバレッジ >= 80%（主要クラス分母）"
+    priority: "P2"
+    status: "planned"
+
+work_policy:
+  default_mode: "commit"
+  iteration_budget:
+    max_cycles: 5
+    max_files_changed: 25
+  quality_gates:
+    must_pass: ["lint", "test"]

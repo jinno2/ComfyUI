@@ -1,1 +1,16 @@
-conflicts: []
+conflicts:
+  - id: "CFLT-NODE-001"
+    term: "Node"
+    about: "definition"
+    severity: "medium"
+    nli: "contradiction"
+    items:
+      - claim: "ノード収集は hasattr(module, \"NODE_CLASS_MAPPINGS\") ゲートのみが正である"
+        source: "invariants.yml INV-NODE-001 assumptions (run 2026-10-16T21:39:07Z, AUTO:Node.registration:hasattr_gate)"
+      - claim: "load_custom_node は NODE_CLASS_MAPPINGS に加え、comfy_entrypoint が返す ComfyExtension の get_node_list() からもノードを収集する（V3 経路）。組込み API nodes はこのV3経路で実装されている"
+        source: "nodes.py#L2251-L2266"
+        note: "comfy_api_nodes/nodes_bfl.py#L6 (comfy_api.latest import), nodes.py#L2480-L2486 (init_builtin_api_nodes)"
+    status: "resolved"
+    active_workaround:
+      decision_key: "AUTO:Node.registration:dual_path"
+      summary: "V1 (NODE_CLASS_MAPPINGS) と V3 (comfy_entrypoint → ComfyExtension) の二経路を正として採用し、INV-NODE-001 と Node 定義を修正して前進。旧 hasattr_gate 決定は本決定で置換（revert trigger: primary_evidence_contradiction が実際に発火）。"
