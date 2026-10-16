@@ -3,7 +3,7 @@ queue:
     proposed_canonical: "NoInternetRequests"
     proposed_layer: "aux"
     term_raw_examples: ["ネットワーク遮断", "ラベル無効", "No Internet Requests"]
-    reason: "Hard AGENTS.md rule but only one primary source so far; acceptance needs a second source (e.g., CI or test enforcement of no-outbound-requests)."
+    reason: "Hard AGENTS.md rule but only one primary source so far; acceptance needs a second source (e.g., CI or test enforcement of no-outbound-requests). Run 2026-10-16T23:48Z re-check: no CI job or test enforces it (.woodpecker.yml, .github/workflows/, docs grepped) — stays pending."
     evidence:
       - source: "AGENTS.md#No Internet Requests"
         quote: "Do not add code to core ComfyUI that makes requests to the internet."

@@ -10,8 +10,8 @@
 
 ## AUTO:ForkUpstreamSync.count:git_recency
 - Status: ACTIVE
-- Chosen: Current fork-specific count = ~20 (git log, 2026-09-26); 13 is a historical 2026-09-20 snapshot
+- Chosen: Fork-specific count is measured fresh as a402fd40^2..HEAD (33 on 2026-10-16); older figures (13, ~20) are historical snapshots
 - Policy: recency + primary_measurement
 - Expires After Runs: 20
-- Linked: AMB-FORK-001 / CFLT-FORK-001
+- Linked: AMB-FORK-001 / CFLT-FORK-001 (resolved 2026-10-16)
 - Revert Triggers: primary_evidence_contradiction

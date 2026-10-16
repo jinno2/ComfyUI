@@ -73,18 +73,20 @@ canonical_terms:
     id: "TERM-FORK"
     layer: "domain"
     status: "stable"
-    definition: "Fork relationship to upstream ComfyUI: about 515 commits ahead, of which a small set is fork-specific (~20 git-measured 2026-09-26; 13 counted on 2026-09-20); the bulk of the lead is upstream merge commits that fork-specific edits must not break."
+    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 33 on 2026-10-16)."
     synonyms: ["フォーク乖離", "upstream sync"]
     boundaries:
-      includes: ["fork-specific commits", "upstream merge compatibility"]
-      excludes: ["direct pushes to upstream", "PR/issue operations against upstream"]
+      includes: ["fork-specific commits", "a402fd40^2..HEAD measurement method", "upstream merge compatibility"]
+      excludes: ["direct pushes to upstream", "PR/issue operations against upstream", "ahead-counts against the stale up/master ref"]
     related_terms: ["ComfyUI"]
     assumptions:
       - id: "ASM-FORK-001"
-        text: "AUTO: current fork-specific count is treated as ~20 (git-measured 2026-09-26); 13 is a historical 2026-09-20 snapshot"
+        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (33 on 2026-10-16); wiki/CODEBASE_ANALYSIS figures are historical snapshots"
         decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
         expires_after_runs: 20
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-16)"
+        quote: "rev-list --count = 33 (total ahead of stale up/master f6c162dd 2026-06-23: 528)"
       - source: "docs/llm-wiki/index.md"
         quote: "先行 515 の大半は upstream merge による上流新規分（a402fd40^2..HEAD = 20 commits）"
       - source: "docs/CODEBASE_ANALYSIS.md#L9-L11"

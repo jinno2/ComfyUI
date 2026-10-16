@@ -29,27 +29,30 @@ ambiguities:
 
   - id: "AMB-FORK-001"
     term: "ForkUpstreamSync"
-    topic: "Current count of fork-specific commits (13 vs 20)"
+    topic: "Current count of fork-specific commits (13 vs 20 vs 33)"
     severity: "low"
-    uncertainty: 0.23
+    uncertainty: 0.15
     candidates:
+      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (33 as of 2026-10-16)"
       - "~20 fork-specific commits (git log measured 2026-09-26)"
       - "13 fork-specific commits (codebase analysis dated 2026-09-20)"
     missing_info:
-      - "A fresh git measurement after the latest upstream merges"
+      - "Next upstream merge will reset the measurement base to a new merge commit"
     linked_conflicts: ["CFLT-FORK-001"]
     auto_decision:
       status: "applied"
       decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
-      chosen: "Current count = ~20 (git-measured 2026-09-26); 13 is a historical 2026-09-20 snapshot"
+      chosen: "Fork-specific count is measured fresh as a402fd40^2..HEAD (33 on 2026-10-16); older figures are historical snapshots of the same growing series"
       policy: "recency + primary_measurement"
-      confidence_auto: 0.7
+      confidence_auto: 0.85
       decided_at_run: "2026-10-16T19:05:28Z"
       expires_after_runs: 20
       revert_triggers:
         - "primary_evidence_contradiction"
-    last_touched_run: "2026-10-16T19:05:28Z"
+    last_touched_run: "2026-10-16T23:48:02Z"
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-16)"
+        quote: "rev-list --count = 33 (total ahead of stale up/master: 528, merges: 1)"
       - source: "docs/llm-wiki/index.md"
         quote: "a402fd40^2..HEAD = 20 commits"
       - source: "docs/CODEBASE_ANALYSIS.md#L9-L11"

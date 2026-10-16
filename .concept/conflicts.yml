@@ -5,11 +5,13 @@ conflicts:
     severity: "low"
     nli: "contradiction"
     items:
+      - claim: "33 fork-specific commits (git: a402fd40^2..HEAD measured 2026-10-16)"
+        source: "git:a402fd40^2..HEAD"
       - claim: "~20 fork-specific commits (git log measured 2026-09-26)"
         source: "docs/llm-wiki/index.md"
       - claim: "13 fork-specific commits (analysis dated 2026-09-20)"
         source: "docs/CODEBASE_ANALYSIS.md#L9-L11"
-    status: "open"
+    status: "resolved"
     active_workaround:
       decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
-      summary: "Treat the newer git-measured count (~20) as current; the 13 figure is a historical snapshot. Re-measure with git log on next fork-state question."
+      summary: "Resolved 2026-10-16: fresh git measurement gives 33. All three figures are the same a402fd40^2..HEAD measurement at different dates; the count grows with autonomous loop work. Re-measure whenever the fork-state question recurs."

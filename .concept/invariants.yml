@@ -50,3 +50,16 @@ invariants:
     checks:
       - type: "manual_review"
         target: "git diff --stat"
+
+  - id: "INV-FORK-002"
+    related_terms: ["ForkUpstreamSync"]
+    status: "stable"
+    strength: "soft"
+    statement: "Fork-specific commit counts are measured as a402fd40^2..HEAD (commits after the single upstream merge); ahead-counts against the local up/master ref include merged upstream content and are not fork-specific counts."
+    rationale: "The local up/master ref is stale (f6c162dd, 2026-06-23); misreading the 528-ahead figure as fork-specific would corrupt fork-state analysis."
+    evidence:
+      - source: "git:rev-list --count up/master..HEAD (2026-10-16)"
+        quote: "total ahead 528 / non-merge 527 / merges 1 (a402fd40) / a402fd40^2..HEAD 33"
+    checks:
+      - type: "manual_review"
+        target: "git log --oneline a402fd40^2..HEAD"
