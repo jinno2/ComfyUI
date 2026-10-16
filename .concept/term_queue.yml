@@ -1,0 +1,85 @@
+queue:
+  - id: "TP-000001"
+    proposed_canonical: "Graph"
+    proposed_layer: "core"
+    term_raw_examples: ["graph", "prompt graph", "dynprompt"]
+    reason: "comfy_execution/graph.py に構造体が存在。Prompt と重複する可能性があり、審査が必要"
+    evidence:
+      - source: "comfy_execution/graph.py"
+        quote: "module exists (graph.py in comfy_execution package)"
+    auto_merge_candidates:
+      - term: "Prompt"
+        similarity: 0.7
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-16T21:39:07Z"
+  - id: "TP-000002"
+    proposed_canonical: "ExecutionCache"
+    proposed_layer: "domain"
+    term_raw_examples: ["IsChangedCache", "CacheSet", "CacheEntry"]
+    reason: "execution.py にキャッシュ機構のクラス群が存在。PromptExecutor の一部と見なせる可能性"
+    evidence:
+      - source: "execution.py#L57-L156"
+        quote: "class IsChangedCache ... class CacheSet"
+    auto_merge_candidates:
+      - term: "PromptExecutor"
+        similarity: 0.75
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-16T21:39:07Z"
+  - id: "TP-000003"
+    proposed_canonical: "ModelFolder"
+    proposed_layer: "domain"
+    term_raw_examples: ["model folder path", "input/output/temp directory"]
+    reason: "folder_paths.py がモデル・入出力ディレクトリを一元管理。概念として独立させるか要審査"
+    evidence:
+      - source: "folder_paths.py#L289"
+        quote: "def add_model_folder_path(...)"
+      - source: "tests-unit/folder_paths_test/misc_test.py#L34"
+        quote: "def test_gets_all_folders(mock_folder_structure):"
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-16T21:39:07Z"
+  - id: "TP-000004"
+    proposed_canonical: "ApiNode"
+    proposed_layer: "aux"
+    term_raw_examples: ["API nodes", "comfy_api_nodes"]
+    reason: "README がクローズドソースモデルへの API nodes アクセスを主張。comfy_api_nodes パッケージと対応づくか要確認"
+    evidence:
+      - source: "README.md"
+        quote: "API nodes provide access to the best closed source models"
+      - source: "comfy_api_nodes/"
+        quote: "package directory exists"
+    auto_merge_candidates:
+      - term: "Node"
+        similarity: 0.65
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-16T21:39:07Z"
+  - id: "TP-000005"
+    proposed_canonical: "BinaryEvent"
+    proposed_layer: "aux"
+    term_raw_examples: ["PREVIEW_IMAGE", "binary event", "WS event"]
+    reason: "protocol.py に WS バイナリイベント型の定義が存在。 aux として様子見"
+    evidence:
+      - source: "protocol.py#L2-L6"
+        quote: "class BinaryEventTypes: PREVIEW_IMAGE = 1 ..."
+    auto_merge_candidates: []
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-16T21:39:07Z"
+  - id: "TP-000006"
+    proposed_canonical: "LatentPreview"
+    proposed_layer: "aux"
+    term_raw_examples: ["latent preview", "preview image"]
+    reason: "latent_preview.py が存在。BinaryEvent と統合するか独立させるか要審査"
+    evidence:
+      - source: "latent_preview.py"
+        quote: "module exists (latent_preview.py)"
+    auto_merge_candidates:
+      - term: "BinaryEvent"
+        similarity: 0.6
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-16T21:39:07Z"

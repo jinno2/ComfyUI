@@ -1,0 +1,68 @@
+version: "0.3"
+
+canonical_terms:
+  Node:
+    id: "TERM-NODE"
+    layer: "core"
+    status: "stable"
+    definition: "計算グラフの最小実行単位。NODE_CLASS_MAPPINGS に登録されたクラスとして提供され、拡張モジュールから動的に収集される。"
+    synonyms: ["custom node", "ノード"]
+    boundaries:
+      includes: ["INPUT_TYPES / RETURN_TYPES / FUNCTION を持つクラス", "NODE_CLASS_MAPPINGS への登録"]
+      excludes: ["HTTP API endpoint", "model ファイルそのもの"]
+    lifecycle: ["Defined", "Registered", "Executed"]
+    related_terms: ["Prompt", "PromptExecutor"]
+    evidence:
+      - source: "nodes.py#L2019"
+        quote: "NODE_CLASS_MAPPINGS = {"
+      - source: "nodes.py#L2243-L2244"
+        quote: "if hasattr(module, \"NODE_CLASS_MAPPINGS\") ... for name, node_cls in module.NODE_CLASS_MAPPINGS.items():"
+  Prompt:
+    id: "TERM-PROMPT"
+    layer: "core"
+    status: "draft"
+    definition: "POST /prompt で投入され、prompt_id をキーにキューイングされて PromptExecutor が実行するグラフ実行単位（暫定: ノード単位かグラフ単位かは AUTO 決定でグラフ単位と扱う）。"
+    synonyms: ["prompt graph", "workflow execution"]
+    boundaries:
+      includes: ["POST /prompt のリクエストボディ", "prompt_id による識別", "キューイングと実行"]
+      excludes: ["単一ノードの内部実行", "UI 上のワークフローファイル形式そのもの"]
+    lifecycle: ["Submitted", "Queued", "Executing", "Cached", "Done"]
+    related_terms: ["Node", "PromptExecutor", "PromptServer"]
+    assumptions:
+      - id: "ASM-PROMPT-001"
+        text: "AUTO: Prompt=グラフ全体を1単位として prompt_id で管理すると扱う"
+        decision_key: "AUTO:Prompt.definition:graph_unit_by_prompt_id"
+        expires_after_runs: 20
+    evidence:
+      - source: "server.py#L1038"
+        quote: "@routes.post(\"/prompt\")"
+      - source: "execution.py#L1239"
+        quote: "class PromptQueue:"
+  PromptServer:
+    id: "TERM-PROMPTSERVER"
+    layer: "core"
+    status: "stable"
+    definition: "aiohttp ベースの HTTP/WebSocket サーバ。REST API と WS イベント配信を提供する。"
+    synonyms: ["server"]
+    boundaries:
+      includes: ["routes 登録", "WS イベント送信", "静的ファイル配信"]
+      excludes: ["グラフ実行ロジック本体（PromptExecutor）", "モデル読み込み"]
+    related_terms: ["Prompt", "PromptExecutor"]
+    evidence:
+      - source: "server.py#L212"
+        quote: "class PromptServer():"
+  PromptExecutor:
+    id: "TERM-PROMPTEXECUTOR"
+    layer: "core"
+    status: "stable"
+    definition: "キューから Prompt を取り出してノードグラフを評価する実行器。キャッシュ（CacheSet / IsChangedCache）を持ち、重複ノードは DuplicateNodeError とする。"
+    synonyms: ["executor"]
+    boundaries:
+      includes: ["グラフ検証", "ノード実行", "実行結果キャッシュ"]
+      excludes: ["HTTP ルーティング", "モデルファイル管理"]
+    related_terms: ["Node", "Prompt"]
+    evidence:
+      - source: "execution.py#L661"
+        quote: "class PromptExecutor:"
+      - source: "execution.py#L54"
+        quote: "class DuplicateNodeError(Exception):"

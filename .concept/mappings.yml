@@ -1,0 +1,21 @@
+mappings:
+  Node:
+    code_symbols:
+      - "nodes.py::NODE_CLASS_MAPPINGS"
+      - "nodes.py::init_extra_nodes (dynamic collection)"
+    api:
+      - "server.py#/object_info"
+  Prompt:
+    code_symbols:
+      - "execution.py::class PromptExecutor"
+      - "execution.py::class PromptQueue"
+    api:
+      - "server.py#POST /prompt"
+      - "server.py#GET /prompt"
+  PromptServer:
+    code_symbols:
+      - "server.py::class PromptServer"
+  PromptExecutor:
+    code_symbols:
+      - "execution.py::class PromptExecutor"
+      - "execution.py::class CacheSet"

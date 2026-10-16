@@ -1,0 +1,29 @@
+ambiguities:
+  - id: "AMB-PROMPT-001"
+    term: "Prompt"
+    topic: "Prompt の実行単位（グラフ全体か単一ノードか）とキャッシュ単位"
+    severity: "low"
+    uncertainty: 0.24
+    candidates:
+      - "Prompt = グラフ全体を prompt_id で管理する実行単位"
+      - "Prompt = 単一ノード呼び出しの単位"
+    missing_info:
+      - "同一 prompt_id の再投入時のキャッシュ再利用境界の正確な条件"
+    linked_conflicts: []
+    auto_decision:
+      status: "applied"
+      decision_key: "AUTO:Prompt.definition:graph_unit_by_prompt_id"
+      chosen: "Prompt = グラフ全体を prompt_id で管理する実行単位"
+      policy: "industry_convention + reversibility"
+      confidence_auto: 0.7
+      decided_at_run: "2026-10-16T21:39:07Z"
+      expires_after_runs: 20
+      revert_triggers:
+        - "primary_evidence_contradiction"
+        - "security_risk"
+    last_touched_run: "2026-10-16T21:39:07Z"
+    evidence:
+      - source: "server.py#L1038"
+        quote: "@routes.post(\"/prompt\")"
+      - source: "execution.py#L1239"
+        quote: "class PromptQueue:"

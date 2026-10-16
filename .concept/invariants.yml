@@ -1,0 +1,56 @@
+invariants:
+  - id: "INV-NODE-001"
+    related_terms: ["Node"]
+    status: "draft"
+    strength: "hard"
+    statement: "Node は NODE_CLASS_MAPPINGS に登録されなければ起動時に収集されず、グラフで使用できない"
+    rationale: "未登録ノードの静かな欠落を防ぐ"
+    assumptions:
+      - id: "ASM-INV-NODE-001"
+        text: "AUTO: 動的収集は hasattr(NODE_CLASS_MAPPINGS) のみを正とする"
+        decision_key: "AUTO:Node.registration:hasattr_gate"
+        expires_after_runs: 20
+    evidence:
+      - source: "nodes.py#L2243-L2244"
+        quote: "if hasattr(module, \"NODE_CLASS_MAPPINGS\") ... for name, node_cls in module.NODE_CLASS_MAPPINGS.items():"
+    checks:
+      - type: "test"
+        target: "tests/execution/test_execution.py"
+  - id: "INV-PROMPT-001"
+    related_terms: ["Prompt", "PromptExecutor"]
+    status: "draft"
+    strength: "hard"
+    statement: "POST /prompt で受理された Prompt は prompt_id をキーに PromptQueue に入り、PromptExecutor が実行する"
+    rationale: "投入から実行までの経路は単一であり、prompt_id が冪等性と進行状況報告の鍵"
+    evidence:
+      - source: "server.py#L1038"
+        quote: "@routes.post(\"/prompt\")"
+      - source: "execution.py#L661"
+        quote: "class PromptExecutor:"
+    checks:
+      - type: "test"
+        target: "tests/execution/test_execution.py"
+  - id: "INV-NODE-002"
+    related_terms: ["PromptExecutor"]
+    status: "draft"
+    strength: "hard"
+    statement: "同一グラフ内の重複ノード ID は DuplicateNodeError として拒否される"
+    rationale: "ノード単位の結果対応を壊さないため"
+    evidence:
+      - source: "execution.py#L54"
+        quote: "class DuplicateNodeError(Exception):"
+    checks:
+      - type: "test"
+        target: "tests/execution/test_execution.py"
+  - id: "INV-TEST-001"
+    related_terms: []
+    status: "stable"
+    strength: "soft"
+    statement: "make test は pytest を tests-unit と tests の両方に対して実行する"
+    rationale: "検証ゲートの正（AGENTS.md §3 も参照）"
+    evidence:
+      - source: "Makefile#L309-L310"
+        quote: "test: ## Run all tests (unit + integration) / $(PYTHON) -m pytest tests-unit tests -v"
+    checks:
+      - type: "command"
+        target: "make test"
