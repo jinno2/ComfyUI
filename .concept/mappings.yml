@@ -23,3 +23,14 @@ mappings:
     code_symbols:
       - "nodes.py::NODE_CLASS_MAPPINGS"
       - "comfy_extras/"
+  Server:
+    code_symbols:
+      - "server.py::class PromptServer"
+  ExecutionEngine:
+    code_symbols:
+      - "execution.py::class PromptExecutor"
+      - "comfy_execution/"
+  ModelManagement:
+    code_symbols:
+      - "comfy/model_management.py"
+      - "comfy/model_patcher.py::class ModelPatcher"

@@ -107,3 +107,51 @@ canonical_terms:
         quote: "Node-level code must not patch model code directly."
       - source: "docs/CODEBASE_ANALYSIS.md#L26-L40"
         quote: "nodes(NODE_CLASS_MAPPINGS が全層から参照されるレジストリ)"
+
+  Server:
+    id: "TERM-SERVER"
+    layer: "aux"
+    status: "stable"
+    definition: "HTTP/WebSocket API layer (server.py, aiohttp): exposes the client-facing API surface and bridges HTTP/WS requests into the execution pipeline."
+    synonyms: ["PromptServer", "API server"]
+    boundaries:
+      includes: ["HTTP and WebSocket endpoints", "client-facing API surface"]
+      excludes: ["prompt execution logic (ExecutionEngine)", "model VRAM/offload policy (ModelManagement)"]
+    related_terms: ["ComfyUI", "ExecutionEngine"]
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L50"
+        quote: "HTTP(`server.py`: aiohttp + /ws)"
+      - source: "AGENTS.md#L49-L52"
+        quote: "A PR that spreads one feature across unrelated loaders, nodes, execution, server, and frontend code needs a clear architectural reason"
+
+  ExecutionEngine:
+    id: "TERM-EXEC"
+    layer: "aux"
+    status: "stable"
+    definition: "Prompt graph validation and execution loop (execution.py + comfy_execution/): consumes the prompt graph and execution-relevant state, produces execution results and errors, without knowledge of workflow/frontend/persistence ids."
+    synonyms: ["execution", "PromptExecutor", "comfy_execution"]
+    boundaries:
+      includes: ["prompt graph validation", "node execution loop", "execution caching"]
+      excludes: ["HTTP/WS transport (Server)", "model VRAM/offload policy (ModelManagement)", "workflow ids and frontend ids"]
+    related_terms: ["Server", "Node"]
+    evidence:
+      - source: "AGENTS.md#L45-L48"
+        quote: "Treat `execution.py` as one example of this rule: it should consume the prompt graph and execution-relevant state, produce execution results and errors"
+      - source: "docs/CODEBASE_ANALYSIS.md#L50"
+        quote: "`prompt_worker`(main.py:312-407)が PromptQueue から取り出し `PromptExecutor.execute` で実行"
+
+  ModelManagement:
+    id: "TERM-MODELMGMT"
+    layer: "aux"
+    status: "stable"
+    definition: "Model loading, VRAM/offload policy and patch-state layer (comfy/model_management.py, comfy/model_patcher.py): the device and memory authority for inference models."
+    synonyms: ["model management", "ModelPatcher", "VRAM policy"]
+    boundaries:
+      includes: ["device and memory policy", "model patch state (ModelPatcher)", "loading/offload lifecycle"]
+      excludes: ["model math inside model implementations", "node-level behavior", "sampling logic"]
+    related_terms: ["ComfyUI", "Node"]
+    evidence:
+      - source: "AGENTS.md#L266-L269"
+        quote: "Loading, unloading, offloading, device movement, VRAM policy, cache lifetime, and cleanup belong in the relevant model-management and execution layers"
+      - source: "docs/CODEBASE_ANALYSIS.md#L65"
+        quote: "`model_management.py`(デバイス/メモリ権威、VRAMState、pin バジェット)、`model_patcher.py`(共有 nn.Module を clone-fork するパッチ状態管理)"

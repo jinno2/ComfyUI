@@ -27,7 +27,9 @@ queue:
     auto_merge_candidates:
       - term: "ComfyUI"
         similarity: 0.4
-    decision: "pending"
+    decision: "accepted"
+    accepted_run: "2026-10-17T06:35:14Z"
+    acceptance_note: "Second sources verified: AGENTS.md#L49-L52 (server layer named in Architecture Boundaries) + code symbol server.py:215 class PromptServer; boundaries and mapping written (TERM-SERVER)."
     expires_after_runs: 10
     created_run: "2026-10-16T23:56:43Z"
 
@@ -42,7 +44,9 @@ queue:
     auto_merge_candidates:
       - term: "ComfyUI"
         similarity: 0.4
-    decision: "pending"
+    decision: "accepted"
+    accepted_run: "2026-10-17T06:35:14Z"
+    acceptance_note: "Second sources verified: AGENTS.md#L45-L48 (execution.py responsibility contract) + code symbols execution.py:663 class PromptExecutor, comfy_execution/; boundaries and mapping written (TERM-EXEC)."
     expires_after_runs: 10
     created_run: "2026-10-16T23:56:43Z"
 
@@ -57,6 +61,8 @@ queue:
     auto_merge_candidates:
       - term: "ComfyUI"
         similarity: 0.45
-    decision: "pending"
+    decision: "accepted"
+    accepted_run: "2026-10-17T06:35:14Z"
+    acceptance_note: "Second sources verified: AGENTS.md#L266-L269 (model-management layer owns loading/VRAM policy) + code symbols comfy/model_management.py, comfy/model_patcher.py:340 class ModelPatcher; boundaries and mapping written (TERM-MODELMGMT)."
     expires_after_runs: 10
     created_run: "2026-10-16T23:56:43Z"
