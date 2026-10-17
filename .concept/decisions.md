@@ -17,6 +17,6 @@
 - Revert Triggers: primary_evidence_contradiction
 
 ## Verification Log (cache: latest measurement per decision key)
-- 2026-10-17T06:35Z `git rev-list --count a402fd40^2..HEAD` → 36 (34 non-merge + upstream-merge commit a402fd40 + .concept commits); `git rev-list --count up/master..HEAD` → 531; up/master tip f6c162dd (2026-06-23, stale)
-- Measured in worktree /home/jinno/ComfyUI-aihub-20261017-063142-221092 @ dbe136b8, branch ai/ComfyUI/instruction-20261017-063142-221092
+- 2026-10-17T07:13Z `git rev-list --count a402fd40^2..HEAD` → 37 (36 non-merge + upstream-merge commit a402fd40 + .concept commits); `git rev-list --count up/master..HEAD` → 532; up/master tip f6c162dd (2026-06-23, stale)
+- Measured in worktree /home/jinno/ComfyUI-aihub-20261017-065026-598321 @ ac79d545, branch ai/ComfyUI/instruction-20261017-065026-598321
 - Run reports are each run's final CYCLE_SUMMARY output; this section carries only the latest durable measurement trace (not a history log)

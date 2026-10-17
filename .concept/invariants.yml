@@ -76,3 +76,29 @@ invariants:
     checks:
       - type: "manual_review"
         target: "AGENTS.md#No Internet Requests"
+
+  - id: "INV-ASSET-001"
+    related_terms: ["AssetService"]
+    status: "draft"
+    strength: "soft"
+    statement: "Identical uploaded bytes map to exactly one content row, while every upload delivery mints its own asset record (created_new=true) with a distinct id."
+    rationale: "Content dedup must not collapse delivery history; hashes alone can collide across rows (documented in-test). Draft: the verifying test is currently skipped by the assets-test disablement (conftest.py:105)."
+    evidence:
+      - source: "tests-unit/assets_test/test_upload_hashing_modes.py#L164-L182"
+        quote: "same bytes stay one content row (hashes alone can collide across rows) / every upload is its own delivery record"
+    checks:
+      - type: "test"
+        target: "tests-unit/assets_test/test_upload_hashing_modes.py::test_repeat_upload_mints_a_new_record_in_on_mode"
+
+  - id: "INV-ASSET-002"
+    related_terms: ["AssetService"]
+    status: "draft"
+    strength: "soft"
+    statement: "While asset hashing is disabled (flag off), the scanner must not hash seeded model files; their content rows carry no stored hash."
+    rationale: "Hashing is opt-in behavior; seeding must not silently upgrade to hashed content while the feature flag is off. Draft: the verifying test is currently skipped by the assets-test disablement (conftest.py:105)."
+    evidence:
+      - source: "tests-unit/assets_test/test_upload_hashing_modes.py#L184-L212"
+        quote: "assert row_hash is None, \"scanner must not hash seeded files while the flag is off\""
+    checks:
+      - type: "test"
+        target: "tests-unit/assets_test/test_upload_hashing_modes.py::test_seeded_file_not_hashed_in_on_mode"

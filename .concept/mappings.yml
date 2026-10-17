@@ -34,3 +34,15 @@ mappings:
     code_symbols:
       - "comfy/model_management.py"
       - "comfy/model_patcher.py::class ModelPatcher"
+  SamplingLayer:
+    code_symbols:
+      - "comfy/samplers.py::class KSAMPLER"
+      - "comfy/samplers.py::class CFGGuider"
+  AssetService:
+    code_symbols:
+      - "app/assets/api/routes.py::register_assets_routes"
+      - "app/assets/manager.py"
+  ExternalAPINodes:
+    code_symbols:
+      - "comfy_api_nodes/util/client.py::class ApiEndpoint"
+      - "comfy_api_nodes/nodes_bfl.py"

@@ -66,3 +66,60 @@ queue:
     acceptance_note: "Second sources verified: AGENTS.md#L266-L269 (model-management layer owns loading/VRAM policy) + code symbols comfy/model_management.py, comfy/model_patcher.py:340 class ModelPatcher; boundaries and mapping written (TERM-MODELMGMT)."
     expires_after_runs: 10
     created_run: "2026-10-16T23:56:43Z"
+
+  - id: "TP-000005"
+    proposed_canonical: "SamplingLayer"
+    proposed_layer: "aux"
+    term_raw_examples: ["samplers", "CFGGuider", "KSampler"]
+    reason: "Major architectural layer not yet in ontology (Q1 gap): cond batching, scheduler dispatch and CFG guidance in comfy/samplers.py."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L55-L58"
+        quote: "`samplers.py`(cond バッチング、スケジューラ、マルチGPU スレッドプール)"
+      - source: "comfy/samplers.py#L922-L1148"
+        quote: "class Sampler: ... class KSAMPLER(Sampler): ... class CFGGuider:"
+    auto_merge_candidates:
+      - term: "ModelManagement"
+        similarity: 0.2
+    decision: "accepted"
+    accepted_run: "2026-10-17T07:12:00Z"
+    acceptance_note: "Second sources verified: tests-unit/comfy_test/test_calc_cond_grouping.py (exercises samplers cond grouping) + code symbols comfy/samplers.py class Sampler:922 / KSAMPLER:937 / CFGGuider:1148; boundaries and mapping written (TERM-SAMPLING). No merge: distinct layer between model and node graph."
+    expires_after_runs: 10
+    created_run: "2026-10-17T07:12:00Z"
+
+  - id: "TP-000006"
+    proposed_canonical: "AssetService"
+    proposed_layer: "aux"
+    term_raw_examples: ["assets", "アセット管理", "app/assets"]
+    reason: "Major subsystem not yet in ontology (Q1 gap): user asset REST API, SQLAlchemy database, scanner/seeder under app/assets/."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L27"
+        quote: "app/ 0.31MB ユーザ管理・アセット(SQLAlchemy+Alembic)・サブグラフ管理"
+      - source: "app/assets/api/routes.py#L125"
+        quote: "def register_assets_routes("
+    auto_merge_candidates:
+      - term: "Server"
+        similarity: 0.3
+    decision: "accepted"
+    accepted_run: "2026-10-17T07:12:00Z"
+    acceptance_note: "Second sources verified: tests-unit/assets_test/services/ (service-level tests) + tests-unit/app_test/test_migrations.py (asset DB migrations) + code symbol app/assets/api/routes.py:125 register_assets_routes; boundaries and mapping written (TERM-ASSETS). No merge: Server is transport-only, AssetService owns asset domain logic."
+    expires_after_runs: 10
+    created_run: "2026-10-17T07:12:00Z"
+
+  - id: "TP-000007"
+    proposed_canonical: "ExternalAPINodes"
+    proposed_layer: "aux"
+    term_raw_examples: ["API nodes", "comfy_api_nodes"]
+    reason: "Major subsystem not yet in ontology (Q1 gap): external provider API node family on the shared request client."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L28"
+        quote: "comfy_api_nodes/ 1.68MB 外部APIノード36ファイル + リクエスト基盤 util/client.py(990行)"
+      - source: "comfy_api_nodes/util/client.py#L46"
+        quote: "class ApiEndpoint:"
+    auto_merge_candidates:
+      - term: "Node"
+        similarity: 0.35
+    decision: "accepted"
+    accepted_run: "2026-10-17T07:12:00Z"
+    acceptance_note: "Second sources verified: tests-unit/comfy_api_nodes_test/ (conversion/node tests) + code symbol comfy_api_nodes/util/client.py:46 class ApiEndpoint; boundaries and mapping written (TERM-APINODES). No merge: Node covers the local registration convention, ExternalAPINodes covers the provider-node family and its client."
+    expires_after_runs: 10
+    created_run: "2026-10-17T07:12:00Z"

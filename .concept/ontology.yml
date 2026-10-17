@@ -73,7 +73,7 @@ canonical_terms:
     id: "TERM-FORK"
     layer: "domain"
     status: "stable"
-    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16T23:56Z)."
+    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16T23:56Z, 37 on 2026-10-17T07:13Z)."
     synonyms: ["フォーク乖離", "upstream sync"]
     boundaries:
       includes: ["fork-specific commits", "a402fd40^2..HEAD measurement method", "upstream merge compatibility"]
@@ -81,7 +81,7 @@ canonical_terms:
     related_terms: ["ComfyUI"]
     assumptions:
       - id: "ASM-FORK-001"
-        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (35 at 2026-10-16T23:56Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are historical snapshots"
+        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (37 at 2026-10-17T07:13Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are historical snapshots"
         decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
         expires_after_runs: 20
     evidence:
@@ -155,3 +155,51 @@ canonical_terms:
         quote: "Loading, unloading, offloading, device movement, VRAM policy, cache lifetime, and cleanup belong in the relevant model-management and execution layers"
       - source: "docs/CODEBASE_ANALYSIS.md#L65"
         quote: "`model_management.py`(デバイス/メモリ権威、VRAMState、pin バジェット)、`model_patcher.py`(共有 nn.Module を clone-fork するパッチ状態管理)"
+
+  SamplingLayer:
+    id: "TERM-SAMPLING"
+    layer: "aux"
+    status: "stable"
+    definition: "Diffusion sampling layer (comfy/samplers.py): cond batching, scheduler dispatch and CFG guidance (KSAMPLER, CFGGuider) that turn model predictions into denoised latents."
+    synonyms: ["samplers", "CFGGuider", "KSampler"]
+    boundaries:
+      includes: ["cond batching and grouping", "scheduler dispatch", "CFG guidance"]
+      excludes: ["device/VRAM policy (ModelManagement)", "model architecture math (comfy/ldm)", "node wrappers and registration (Node)"]
+    related_terms: ["ModelManagement", "ComfyUI"]
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L55-L58"
+        quote: "`samplers.py`(cond バッチング、スケジューラ、マルチGPU スレッドプール)"
+      - source: "comfy/samplers.py#L922-L1148"
+        quote: "class Sampler: ... class KSAMPLER(Sampler): ... class CFGGuider:"
+
+  AssetService:
+    id: "TERM-ASSETS"
+    layer: "aux"
+    status: "stable"
+    definition: "User asset management subsystem (app/assets/): REST routes, SQLAlchemy database with Alembic migrations, scanner/seeder services and admission gates behind the assets feature flag."
+    synonyms: ["assets subsystem", "アセット管理"]
+    boundaries:
+      includes: ["asset REST API (routes.py)", "asset database and migrations", "scanner/seeder services"]
+      excludes: ["model file folder management (folder_paths/ModelManagement)", "node-side output image saving"]
+    related_terms: ["Server", "ComfyUI"]
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L27"
+        quote: "app/ 0.31MB ユーザ管理・アセット(SQLAlchemy+Alembic)・サブグラフ管理"
+      - source: "app/assets/api/routes.py#L125"
+        quote: "def register_assets_routes("
+
+  ExternalAPINodes:
+    id: "TERM-APINODES"
+    layer: "aux"
+    status: "stable"
+    definition: "External provider API node family (comfy_api_nodes/): provider-specific nodes (nodes_bfl.py, nodes_anthropic.py, ...) built on the shared request client util/client.py (ApiEndpoint)."
+    synonyms: ["API nodes", "comfy_api_nodes"]
+    boundaries:
+      includes: ["provider API node definitions", "shared request client util/client.py"]
+      excludes: ["local node graph execution (ExecutionEngine)", "comfy_api versioned SDK package"]
+    related_terms: ["Node", "ComfyUI"]
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L28"
+        quote: "comfy_api_nodes/ 1.68MB 外部APIノード36ファイル + リクエスト基盤 util/client.py(990行)"
+      - source: "comfy_api_nodes/util/client.py#L46"
+        quote: "class ApiEndpoint:"
