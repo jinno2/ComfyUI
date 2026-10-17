@@ -1,0 +1,55 @@
+version: "1.0"
+
+product_goal:
+  north_star: "上流 comfyanonymous/ComfyUI のローカル fork として、モジュラー型ノードグラフ AI コンテンツ生成エンジンを画像生成研究のためにローカルで安定稼働させ続ける（推定）"
+  success_metrics:
+    - id: "MET-001"
+      name: "unit test gate"
+      target: "全 run で make test (pytest tests-unit) が green（既存テストを壊したまま commit しない）"
+    - id: "MET-002"
+      name: "fork state visibility"
+      target: "fork 固有コミット数を a402fd40^2..HEAD の新鮮計測で把握し、docs 内の歴史値（13 / ~20）と混同しない"
+  non_goals:
+    - "upstream への push / PR / issue 操作"
+    - "deploy・リリース・対外送信"
+    - "core へのインターネット通信機能追加（AGENTS.md No Internet Requests）"
+    - "third-party custom_nodes エコシステムの管理"
+
+milestones:
+  - id: "MS-001"
+    name: "概念整備の維持"
+    intent: ".concept をコードベースと乖離なく保ち、品質基準 Q1-Q8 を満たし続ける"
+    deliverables: [".concept/ 概念ファイル群の整備"]
+    acceptance:
+      - type: "test"
+        target: "make test"
+    priority: "P0"
+    status: "active"
+
+  - id: "MS-002"
+    name: "フォーク状態の可視化"
+    intent: "fork 固有コミットと upstream 同期状態を新鮮な git 計測で把握し続ける"
+    deliverables: ["ForkUpstreamSync 計測記録（claims/evidence）"]
+    acceptance:
+      - type: "manual_review"
+        target: ".concept/claims.ndjson の ForkUpstreamSync 計測 claim"
+    priority: "P1"
+    status: "active"
+
+  - id: "MS-003"
+    name: "ドキュメントと実装の不一致解消"
+    intent: "README/docs の手順と実装のズレを LOOP.md 候補源として継続解消する"
+    deliverables: ["不一致の修正コミット"]
+    acceptance:
+      - type: "manual_review"
+        target: "docs/ と実装の差分確認"
+    priority: "P2"
+    status: "planned"
+
+work_policy:
+  default_mode: "commit"
+  iteration_budget:
+    max_cycles: 5
+    max_files_changed: 25
+  quality_gates:
+    must_pass: ["make test"]

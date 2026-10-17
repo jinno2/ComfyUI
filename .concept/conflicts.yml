@@ -14,4 +14,4 @@ conflicts:
     status: "resolved"
     active_workaround:
       decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
-      summary: "Resolved 2026-10-16: fresh git measurement gives 33. All three figures are the same a402fd40^2..HEAD measurement at different dates; the count grows with autonomous loop work. Re-measure whenever the fork-state question recurs."
+      summary: "Resolved 2026-10-16: fresh git measurement gives 33 (re-measured 35 at 2026-10-16T23:56Z in-worktree). All figures are the same a402fd40^2..HEAD measurement at different dates; the count grows with autonomous loop work. Linked AMB-FORK-001 carries the same resolution (status: resolved). Re-measure whenever the fork-state question recurs."

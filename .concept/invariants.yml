@@ -56,10 +56,23 @@ invariants:
     status: "stable"
     strength: "soft"
     statement: "Fork-specific commit counts are measured as a402fd40^2..HEAD (commits after the single upstream merge); ahead-counts against the local up/master ref include merged upstream content and are not fork-specific counts."
-    rationale: "The local up/master ref is stale (f6c162dd, 2026-06-23); misreading the 528-ahead figure as fork-specific would corrupt fork-state analysis."
+    rationale: "The local up/master ref is stale (f6c162dd, 2026-06-23); misreading the 530-ahead figure as fork-specific would corrupt fork-state analysis."
     evidence:
-      - source: "git:rev-list --count up/master..HEAD (2026-10-16)"
-        quote: "total ahead 528 / non-merge 527 / merges 1 (a402fd40) / a402fd40^2..HEAD 33"
+      - source: "git:rev-list --count up/master..HEAD (2026-10-16T23:56Z)"
+        quote: "total ahead 530 / a402fd40^2..HEAD 35 (34 non-merge + the upstream-merge commit itself)"
     checks:
       - type: "manual_review"
         target: "git log --oneline a402fd40^2..HEAD"
+
+  - id: "INV-NO-NET-001"
+    related_terms: ["ComfyUI"]
+    status: "stable"
+    strength: "hard"
+    statement: "Core ComfyUI code makes no internet requests: no uploads, telemetry, analytics, tracking, usage reporting, crash reporting, update checks, remote config, feature flags, or other outbound request paths; model downloading only when explicitly user-initiated and limited to the requested artifact."
+    rationale: "AGENTS.md hard governance rule protecting local-only behavior; recorded as follow-on artifact of P1 finding from run 2026-10-16T23:48:02Z (no CI/test enforcement exists yet, so the rule is review-enforced only)."
+    evidence:
+      - source: "AGENTS.md#No Internet Requests"
+        quote: "Do not add code to core ComfyUI that makes requests to the internet."
+    checks:
+      - type: "manual_review"
+        target: "AGENTS.md#No Internet Requests"

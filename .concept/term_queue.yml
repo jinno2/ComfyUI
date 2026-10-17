@@ -3,13 +3,60 @@ queue:
     proposed_canonical: "NoInternetRequests"
     proposed_layer: "aux"
     term_raw_examples: ["ネットワーク遮断", "ラベル無効", "No Internet Requests"]
-    reason: "Hard AGENTS.md rule but only one primary source so far; acceptance needs a second source (e.g., CI or test enforcement of no-outbound-requests). Run 2026-10-16T23:48Z re-check: no CI job or test enforces it (.woodpecker.yml, .github/workflows/, docs grepped) — stays pending."
+    reason: "Hard AGENTS.md rule but only one primary source (no CI/test enforcement). Run 2026-10-16T23:56Z disposition: rejected as a term — the constraint is durably recorded as hard invariant INV-NO-NET-001 (invariants.yml); a dedicated term adds no code-symbol mapping beyond ComfyUI and would duplicate the invariant's role (merge-first / no-concept-growth policy)."
     evidence:
       - source: "AGENTS.md#No Internet Requests"
         quote: "Do not add code to core ComfyUI that makes requests to the internet."
+      - source: ".concept/invariants.yml#INV-NO-NET-001"
+        quote: "Core ComfyUI code makes no internet requests"
     auto_merge_candidates:
       - term: "ComfyUI"
         similarity: 0.31
-    decision: "pending"
+    decision: "rejected"
     expires_after_runs: 10
     created_run: "2026-10-16T19:05:28Z"
+
+  - id: "TP-000002"
+    proposed_canonical: "Server"
+    proposed_layer: "aux"
+    term_raw_examples: ["server", "HTTP/WS API layer", "PromptServer"]
+    reason: "Major architectural module not yet in ontology (Q1 gap). Acceptance needs: second source for boundaries plus mapping to server.py::PromptServer and route registration."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L22-L40"
+        quote: "server.py 1445行 / 依存の流向: main → server → execution"
+    auto_merge_candidates:
+      - term: "ComfyUI"
+        similarity: 0.4
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-16T23:56:43Z"
+
+  - id: "TP-000003"
+    proposed_canonical: "ExecutionEngine"
+    proposed_layer: "aux"
+    term_raw_examples: ["execution", "prompt worker", "comfy_execution"]
+    reason: "Major architectural module not yet in ontology (Q1 gap): prompt graph validation and execution loop. Acceptance needs: second source plus mapping to execution.py and comfy_execution/."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L22-L40"
+        quote: "execution.py 1399行 / 依存の流向: server → execution → comfy_execution.{graph,caching,progress}"
+    auto_merge_candidates:
+      - term: "ComfyUI"
+        similarity: 0.4
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-16T23:56:43Z"
+
+  - id: "TP-000004"
+    proposed_canonical: "ModelManagement"
+    proposed_layer: "aux"
+    term_raw_examples: ["model management", "VRAM policy", "model_patcher"]
+    reason: "Major architectural module not yet in ontology (Q1 gap): model loading, VRAM/offload policy, patching. Acceptance needs: second source plus mapping to comfy/model_management.py and comfy/model_patcher.py."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L22-L27"
+        quote: "model_management 2027行 / model_patcher 2052行 / comfy/ 4.04MB コア(モデル管理・パッチ・サンプリング・ldm・text_encoders)"
+    auto_merge_candidates:
+      - term: "ComfyUI"
+        similarity: 0.45
+    decision: "pending"
+    expires_after_runs: 10
+    created_run: "2026-10-16T23:56:43Z"
