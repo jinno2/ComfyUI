@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-10-17T12:26:16Z",
+  "long_term": {
+    "summary": "モジュラーなノードグラフ型 AI コンテンツ生成エンジンとして、画像・動画・3D・音声生成を上流に自動追従しない恒久自律開発で安定提供する ComfyUI fork であり続ける（推定）",
+    "source": ".concept/charter.yml#product_goal.north_star",
+    "source_hash": "git-blob:70b8976f3931dd8d09630b1006e8f389aa79cb7f",
+    "updated_at": "2026-10-15"
+  },
+  "short_term": {
+    "summary": "アクティブなマイルストーンは P1「Asset persistence layer integrity」（アセット永続化レイヤの整合と文書乖離の解消）と P2「Concept synchronization」（.concept 辞書の実コード同期と品質基準 Q1-Q8 の維持）。P0 の fork 基盤安定化は達成済み",
+    "source": ".concept/charter.yml#milestones",
+    "source_hash": "git-blob:70b8976f3931dd8d09630b1006e8f389aa79cb7f",
+    "updated_at": "2026-10-12",
+    "status": "in_progress"
+  }
+}
