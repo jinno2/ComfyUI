@@ -140,6 +140,12 @@ queue:
     auto_merge_candidates:
       - term: "Prompt"
         similarity: 0.72
-    decision: "pending"
+    decision: "accepted"
+    accepted_as:
+      term_id: "TERM-PROMPTQUEUE"
+      layer: "domain"
+      status: "stable"
+    review_note: "Prompt との類似度 0.72 < review閾値 0.78。Prompt（グラフ実行データ）と異なり、キュー管理・履歴保持・原子的中断制御という明確な基盤責務を持つ。一次出典複数（execution.py + server.py）、boundariesおよびmapping記述可。v0.3肥大化抑制規律に従い core ではなく domain として昇格。"
+    decided_run: "2026-10-17T18:07:25Z"
     expires_after_runs: 10
     created_run: "2026-10-16T21:48:23Z"

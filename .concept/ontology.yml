@@ -29,7 +29,7 @@ canonical_terms:
       includes: ["POST /prompt のリクエストボディ", "prompt_id による識別", "キューイングと実行", "DynamicPrompt による実行時グラフ構造"]
       excludes: ["単一ノードの内部実行", "UI 上のワークフローファイル形式そのもの"]
     lifecycle: ["Submitted", "Queued", "Executing", "Cached", "Done"]
-    related_terms: ["Node", "PromptExecutor", "PromptServer"]
+    related_terms: ["Node", "PromptExecutor", "PromptServer", "PromptQueue"]
     assumptions:
       - id: "ASM-PROMPT-001"
         text: "AUTO: Prompt=グラフ全体を1単位として prompt_id で管理すると扱う"
@@ -51,7 +51,7 @@ canonical_terms:
     boundaries:
       includes: ["routes 登録", "WS イベント送信", "静的ファイル配信"]
       excludes: ["グラフ実行ロジック本体（PromptExecutor）", "モデル読み込み"]
-    related_terms: ["Prompt", "PromptExecutor", "BinaryEvent"]
+    related_terms: ["Prompt", "PromptExecutor", "BinaryEvent", "PromptQueue"]
     evidence:
       - source: "server.py#L212"
         quote: "class PromptServer():"
@@ -64,7 +64,7 @@ canonical_terms:
     boundaries:
       includes: ["グラフ検証", "ノード実行", "実行結果キャッシュ（IsChangedCache / CacheSet / CacheEntry / CacheType）"]
       excludes: ["HTTP ルーティング", "モデルファイル管理"]
-    related_terms: ["Node", "Prompt"]
+    related_terms: ["Node", "Prompt", "PromptQueue"]
     evidence:
       - source: "execution.py#L661"
         quote: "class PromptExecutor:"
@@ -138,3 +138,23 @@ canonical_terms:
         quote: "callback = latent_preview.prepare_callback(model, steps)"
       - source: "execution.py#L22"
         quote: "from latent_preview import set_preview_method"
+  PromptQueue:
+    id: "TERM-PROMPTQUEUE"
+    layer: "domain"
+    status: "stable"
+    definition: "Prompt の優先度付きキューイング、実行中タスクの追跡、完了履歴（最大10,000件）の保持、および原子的中断制御を提供する並行実行制御機構。"
+    synonyms: ["queue", "prompt queue"]
+    boundaries:
+      includes: ["heapq による優先度付きキュー管理 (put/get)", "currently_running による実行中タスク追跡", "history 保持（MAXIMUM_HISTORY_SIZE=10000）", "interrupt_if_running による原子的中断制御"]
+      excludes: ["ノードグラフの評価ロジック本体（PromptExecutor）", "HTTP/WS ルーティングハンドラ（PromptServer）", "グラフ構造データそのもの（Prompt）"]
+    lifecycle: ["Empty", "Queued", "Running", "History"]
+    related_terms: ["Prompt", "PromptServer", "PromptExecutor"]
+    evidence:
+      - source: "execution.py#L1239-L1248"
+        quote: "class PromptQueue: ... self.queue = [] ... self.currently_running = {} ... self.history = {}"
+      - source: "execution.py#L1274-L1294"
+        quote: "def task_done(self, item_id, history_result, status ...): ... self.history[prompt[1]] = ..."
+      - source: "execution.py#L1311-L1328"
+        quote: "def interrupt_if_running(self, prompt_id): ... nodes.interrupt_processing()"
+      - source: "server.py#L1038"
+        quote: "@routes.post(\"/prompt\") ... self.prompt_queue.put(...)"

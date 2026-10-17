@@ -1,10 +1,10 @@
 {
-  "run_id": "2026-10-16T21:48:23Z",
-  "total_terms": 8,
-  "by_layer": { "core": 4, "domain": 1, "aux": 3 },
-  "draft_ratio": 0.125,
-  "queue_pending": 1,
-  "claims_retained_lines": 31,
+  "run_id": "2026-10-17T18:07:25Z",
+  "total_terms": 9,
+  "by_layer": { "core": 4, "domain": 2, "aux": 3 },
+  "draft_ratio": 0.111,
+  "queue_pending": 0,
+  "claims_retained_lines": 36,
   "decisions_md_lines": 17,
   "decisions_md_count_basis": "wc -l",
   "gc_actions": { "merged": 2, "deleted": 0, "deprecated": 0 }

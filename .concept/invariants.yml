@@ -19,7 +19,7 @@ invariants:
       - type: "test"
         target: "tests/execution/test_execution.py"
   - id: "INV-PROMPT-001"
-    related_terms: ["Prompt", "PromptExecutor"]
+    related_terms: ["Prompt", "PromptExecutor", "PromptQueue"]
     status: "draft"
     strength: "hard"
     statement: "POST /prompt で受理された Prompt は prompt_id をキーに PromptQueue に入り、PromptExecutor が実行する"
@@ -81,3 +81,24 @@ invariants:
     checks:
       - type: "test"
         target: "tests-unit/folder_paths_test/misc_test.py"
+  - id: "INV-QUEUE-001"
+    related_terms: ["PromptQueue"]
+    status: "stable"
+    strength: "hard"
+    statement: "PromptQueue の履歴保持件数は MAXIMUM_HISTORY_SIZE（10000件）を上限とし、超過時は最古の履歴アイテムが自動的に破棄される"
+    rationale: "長時間稼働時のメモリリーク・無制限メモリ消費を防止する"
+    evidence:
+      - source: "execution.py#L1237-L1280"
+        quote: "MAXIMUM_HISTORY_SIZE = 10000 ... if len(self.history) > MAXIMUM_HISTORY_SIZE: self.history.pop(next(iter(self.history)))"
+  - id: "INV-QUEUE-002"
+    related_terms: ["PromptQueue"]
+    status: "stable"
+    strength: "hard"
+    statement: "interrupt_if_running は queue.mutex 排他下で currently_running を走査して中断フラグを発行し、後続プロンプトへの誤中断リークを防ぐ"
+    rationale: "非同期ワーカのジョブ遷移競合による無関係なタスクの巻き込み中断を防止する"
+    evidence:
+      - source: "execution.py#L1311-L1328"
+        quote: "def interrupt_if_running(self, prompt_id): with self.mutex: for item in self.currently_running.values(): if item[1] == prompt_id: nodes.interrupt_processing(); return True"
+    checks:
+      - type: "test"
+        target: "tests-unit/jobs_cancel_test/jobs_cancel_test.py"

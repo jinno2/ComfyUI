@@ -39,3 +39,15 @@ mappings:
     code_symbols:
       - "latent_preview.py::prepare_callback"
       - "latent_preview.py::set_preview_method"
+  PromptQueue:
+    code_symbols:
+      - "execution.py::class PromptQueue"
+      - "execution.py::PromptQueue.put"
+      - "execution.py::PromptQueue.get"
+      - "execution.py::PromptQueue.task_done"
+      - "execution.py::PromptQueue.interrupt_if_running"
+    api:
+      - "server.py#POST /prompt (queue submission)"
+      - "server.py#GET /queue"
+      - "server.py#POST /queue"
+      - "server.py#POST /interrupt"
