@@ -18,3 +18,9 @@ contracts の llm-wiki-discipline 原則に基づき `docs/llm-wiki/` を新設�
 ## 2026-09-26 — 親の確定（jinno確定）
 - relations.md の階層関係を草案から確定版へ更新。親: business_operation_notes。
 - Verification: contracts registry `organization/repositories/comfyui.yaml` の spec.parent（ecbc226）と突合し一致を確認。
+
+## 2026-10-21 — 計画スパイン新設（dot-milestone-loop 適用、docs-only）
+
+`docs/plan/` に長期方針の見直し・約30分実行波・Dot 向けワーカー指示書を新設した。charter MS-003 の「固定 14 ファイル構成」が 820d2ae4 (#43) 後の追跡 3 ファイル構成と乖離していることを観測し、実行波 WP-C1 で charter 整合を計画。MET-001 の実測（2026-10-10）は観測時点の記録として保持し、再観測を WP-C2 で計画。スキル適用は計画整備までで、Dot の起動は含まない。
+
+- **Verification**: 観測基準 4c0788db9379bfe8013093b8339436b0175622c4。.concept/ 追跡 3 ファイル（ls 実測）、models.py 6 テーブル、alembic versions 0001..0008（本日観測）。テスト実測は未取得（docs-only のため製品 suite は再実行せず、WP-C2 として計画）。
