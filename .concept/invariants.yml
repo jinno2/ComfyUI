@@ -56,8 +56,10 @@ invariants:
     status: "stable"
     strength: "soft"
     statement: "Fork-specific commit counts are measured fresh as a402fd40^2..HEAD (commits after the single upstream merge); ahead-counts against the local up/master ref include merged upstream content and are not fork-specific counts."
-    rationale: "The local up/master ref is stale (f6c162dd, 2026-06-23); the 546-ahead measurement at dc0850dd includes merged upstream commits and is not the fork-specific count."
+    rationale: "The local up/master ref is stale (f6c162dd, 2026-06-23); its 548-ahead measurement at 608da588 includes merged upstream commits and is not the fork-specific count."
     evidence:
+      - source: "git:rev-list --count a402fd40^2..HEAD (2026-10-22T22:04Z)"
+        quote: "fork-specific = 53 at 608da588; up/master..HEAD = 548; HEAD..up/master = 0"
       - source: "git:rev-list --count a402fd40^2..HEAD (2026-10-22T21:40Z)"
         quote: "fork-specific = 51 at dc0850dd; up/master..HEAD = 546; HEAD..up/master = 0"
       - source: "git:rev-list --count a402fd40^2..HEAD (2026-10-22T21:24Z)"

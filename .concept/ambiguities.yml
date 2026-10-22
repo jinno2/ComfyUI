@@ -29,12 +29,12 @@ ambiguities:
 
   - id: "AMB-FORK-001"
     term: "ForkUpstreamSync"
-    topic: "Current count of fork-specific commits (13 vs 20 vs 33 vs 35 vs 43 vs 44 vs 45 vs 48 vs 49 vs 50 vs 51)"
+    topic: "Current count of fork-specific commits (13 vs 20 vs 33 vs 35 vs 43 vs 44 vs 45 vs 48 vs 49 vs 50 vs 51 vs 53)"
     status: "resolved"
     severity: "low"
     uncertainty: 0.05
     candidates:
-      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (51 at dc0850dd on 2026-10-22T21:40Z)"
+      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (53 at 608da588 on 2026-10-22T22:04Z; prior 51 at dc0850dd)"
       - "50 at ac6f3f76 (2026-10-22T21:24Z)"
       - "49 at 9d0018da (2026-10-22T20:49Z)"
       - "45 at 79887f22 (2026-10-22T19:19Z)"
@@ -47,16 +47,18 @@ ambiguities:
     auto_decision:
       status: "applied"
       decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
-      chosen: "Fork-specific count is a dated snapshot measured as a402fd40^2..HEAD (51 at dc0850dd on 2026-10-22T21:40Z); older figures are historical snapshots of the same growing series"
+      chosen: "Fork-specific count is a dated snapshot measured as a402fd40^2..HEAD (53 at 608da588 on 2026-10-22T22:04Z); older figures are historical snapshots of the same growing series"
       policy: "recency + primary_measurement"
       confidence_auto: 0.85
       decided_at_run: "2026-10-22T21:40:36Z"
       expires_after_runs: 20
       revert_triggers:
         - "primary_evidence_contradiction"
-    last_touched_run: "2026-10-22T21:40:36Z"
+    last_touched_run: "2026-10-22T22:04:35Z"
     resolution: "Resolved in the same direction as linked CFLT-FORK-001 (same decision_key): fresh in-worktree git measurement supersedes quoted figures; re-open only on the next upstream merge or primary evidence contradiction."
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-22T22:04Z)"
+        quote: "rev-list --count = 53 @ 608da588; up/master..HEAD = 548; HEAD..up/master = 0"
       - source: "git:a402fd40^2..HEAD (2026-10-22T21:40Z)"
         quote: "rev-list --count = 51 @ dc0850dd; up/master..HEAD = 546; HEAD..up/master = 0"
       - source: "git:a402fd40^2..HEAD (2026-10-22T21:24Z)"
@@ -118,9 +120,9 @@ ambiguities:
       expires_after_runs: 20
       revert_triggers:
         - "an audited extractable-file inventory changes the denominator"
-    last_touched_run: "2026-10-22T21:55:03Z"
+    last_touched_run: "2026-10-22T22:04:35Z"
     evidence:
       - source: "tests-unit and tests source inventory (find -name test_*.py or *_test.py)"
-        quote: "179 unit-test source files + 9 integration-test source files = 188 total"
+        quote: "179 unit-test source files + 9 integration-test source files = 188 total; current invariants.yml has 8 records, 3 with test checks"
       - source: "10_concept_sync_system.md#B-10"
-        quote: "invariants.yml maximum: 60"
+        quote: "invariants.yml maximum: 60; even the cap cannot reach 50% of 188"
