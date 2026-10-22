@@ -114,7 +114,7 @@ canonical_terms:
 
   Server:
     id: "TERM-SERVER"
-    layer: "aux"
+    layer: "domain"
     status: "stable"
     definition: "HTTP/WebSocket API layer (server.py, aiohttp): exposes the client-facing API surface and bridges HTTP/WS requests into the execution pipeline."
     synonyms: ["PromptServer", "API server"]
@@ -130,7 +130,7 @@ canonical_terms:
 
   ExecutionEngine:
     id: "TERM-EXEC"
-    layer: "aux"
+    layer: "domain"
     status: "stable"
     definition: "Prompt graph validation and execution loop (execution.py + comfy_execution/): consumes the prompt graph and execution-relevant state, produces execution results and errors, without knowledge of workflow/frontend/persistence ids."
     synonyms: ["execution", "PromptExecutor", "comfy_execution"]
@@ -146,7 +146,7 @@ canonical_terms:
 
   ModelManagement:
     id: "TERM-MODELMGMT"
-    layer: "aux"
+    layer: "domain"
     status: "stable"
     definition: "Model loading, VRAM/offload policy and patch-state layer (comfy/model_management.py, comfy/model_patcher.py): the device and memory authority for inference models."
     synonyms: ["model management", "ModelPatcher", "VRAM policy"]
@@ -162,7 +162,7 @@ canonical_terms:
 
   SamplingLayer:
     id: "TERM-SAMPLING"
-    layer: "aux"
+    layer: "domain"
     status: "stable"
     definition: "Diffusion sampling layer (comfy/samplers.py): cond batching, scheduler dispatch and CFG guidance (KSAMPLER, CFGGuider) that turn model predictions into denoised latents."
     synonyms: ["samplers", "CFGGuider", "KSampler"]
@@ -178,7 +178,7 @@ canonical_terms:
 
   AssetService:
     id: "TERM-ASSETS"
-    layer: "aux"
+    layer: "domain"
     status: "stable"
     definition: "User asset management subsystem (app/assets/): REST routes, SQLAlchemy database with Alembic migrations, scanner/seeder services and admission gates behind the assets feature flag."
     synonyms: ["assets subsystem", "アセット管理"]
@@ -194,7 +194,7 @@ canonical_terms:
 
   ExternalAPINodes:
     id: "TERM-APINODES"
-    layer: "aux"
+    layer: "domain"
     status: "stable"
     definition: "External provider API node family (comfy_api_nodes/): provider-specific nodes (nodes_bfl.py, nodes_anthropic.py, ...) built on the shared request client util/client.py (ApiEndpoint)."
     synonyms: ["API nodes", "comfy_api_nodes"]
