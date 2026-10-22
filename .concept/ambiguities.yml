@@ -29,12 +29,12 @@ ambiguities:
 
   - id: "AMB-FORK-001"
     term: "ForkUpstreamSync"
-    topic: "Current count of fork-specific commits (13 vs 20 vs 33 vs 35 vs 43 vs 44)"
+    topic: "Current count of fork-specific commits (13 vs 20 vs 33 vs 35 vs 43 vs 44 vs 45)"
     status: "resolved"
     severity: "low"
     uncertainty: 0.05
     candidates:
-      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (44 at c72063a6 on 2026-10-22T18:51Z)"
+      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (45 at 79887f22 on 2026-10-22T19:19Z)"
       - "43 at efad1d1b (2026-10-22T05:10Z)"
       - "~20 fork-specific commits (git log measured 2026-09-26)"
       - "13 fork-specific commits (codebase analysis dated 2026-09-20)"
@@ -44,18 +44,18 @@ ambiguities:
     auto_decision:
       status: "applied"
       decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
-      chosen: "Fork-specific count is measured fresh as a402fd40^2..HEAD (44 at c72063a6 on 2026-10-22T18:51Z, re-measured in-worktree); older figures are historical snapshots of the same growing series"
+      chosen: "Fork-specific count is measured fresh as a402fd40^2..HEAD (45 at 79887f22 on 2026-10-22T19:19Z, re-measured in-worktree); older figures are historical snapshots of the same growing series"
       policy: "recency + primary_measurement"
       confidence_auto: 0.85
-      decided_at_run: "2026-10-22T18:51:00Z"
+      decided_at_run: "2026-10-22T19:19:03Z"
       expires_after_runs: 20
       revert_triggers:
         - "primary_evidence_contradiction"
-    last_touched_run: "2026-10-22T18:51:00Z"
+    last_touched_run: "2026-10-22T19:19:03Z"
     resolution: "Resolved in the same direction as linked CFLT-FORK-001 (same decision_key): fresh in-worktree git measurement supersedes quoted figures; re-open only on the next upstream merge or primary evidence contradiction."
     evidence:
-      - source: "git:a402fd40^2..HEAD (2026-10-22T18:51Z)"
-        quote: "rev-list --count = 44 @ c72063a6; up/master..HEAD = 539; HEAD..up/master = 0 (upstream fully contained)"
+      - source: "git:a402fd40^2..HEAD (2026-10-22T19:19Z)"
+        quote: "rev-list --count = 45 @ 79887f22; up/master..HEAD = 540; HEAD..up/master = 0 (upstream fully contained)"
       - source: "git:a402fd40^2..HEAD (2026-10-22T05:10Z)"
         quote: "rev-list --count = 43 @ efad1d1b; up/master..HEAD = 538; HEAD..up/master = 0"
       - source: "git:a402fd40^2..HEAD (2026-10-16T23:56Z)"

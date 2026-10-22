@@ -1,5 +1,5 @@
 {
-  "run_id": "2026-10-22T18:51:00Z",
+  "run_id": "2026-10-22T19:19:03Z",
   "total_terms": 12,
   "by_layer": {
     "core": 3,
@@ -8,7 +8,7 @@
   },
   "draft_ratio": 0.0,
   "queue_pending": 0,
-  "claims_retained_lines": 51,
+  "claims_retained_lines": 52,
   "decisions_md_lines": 22,
   "gc_actions": {
     "merged": 0,
