@@ -123,3 +123,20 @@ queue:
     acceptance_note: "Second sources verified: tests-unit/comfy_api_nodes_test/ (conversion/node tests) + code symbol comfy_api_nodes/util/client.py:46 class ApiEndpoint; boundaries and mapping written (TERM-APINODES). No merge: Node covers the local registration convention, ExternalAPINodes covers the provider-node family and its client."
     expires_after_runs: 10
     created_run: "2026-10-17T07:12:00Z"
+
+  - id: "TP-000008"
+    proposed_canonical: "DotMilestoneLoop"
+    proposed_layer: "aux"
+    term_raw_examples: ["Dot", "dot milestone-loop", "MS-D1"]
+    reason: "Run 2026-10-22T05:02Z disposition: rejected as a term - docs/dot/* is an ephemeral single-wave planning artifact (D1-1/D1-2/D1-3 work packages), not a durable domain concept; fails acceptance criterion 1 (single source family) and criterion 4 (no code mapping). The bounded-work semantics it defines are already carried by ImprovementLoop claims/invariants."
+    evidence:
+      - source: "docs/dot/milestones.md"
+        quote: "MS-D1 / D1-1, D1-2, D1-3"
+      - source: "docs/dot/worker-instructions.md"
+        quote: "あなたの名前は Dot。対象repoは ComfyUI"
+    auto_merge_candidates:
+      - term: "ImprovementLoop"
+        similarity: 0.55
+    decision: "rejected"
+    expires_after_runs: 10
+    created_run: "2026-10-22T05:02:04Z"

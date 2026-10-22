@@ -73,7 +73,7 @@ canonical_terms:
     id: "TERM-FORK"
     layer: "domain"
     status: "stable"
-    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16T23:56Z, 37 on 2026-10-17T07:13Z)."
+    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16T23:56Z, 37 on 2026-10-17T07:13Z, 42 on 2026-10-22T05:02Z). Upstream lag is 0: the stale up/master ref (f6c162dd, 2026-06-23) is fully contained in HEAD."
     synonyms: ["フォーク乖離", "upstream sync"]
     boundaries:
       includes: ["fork-specific commits", "a402fd40^2..HEAD measurement method", "upstream merge compatibility"]
@@ -81,10 +81,12 @@ canonical_terms:
     related_terms: ["ComfyUI"]
     assumptions:
       - id: "ASM-FORK-001"
-        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (37 at 2026-10-17T07:13Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are historical snapshots"
+        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (42 at 2026-10-22T05:02Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are historical snapshots"
         decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
         expires_after_runs: 20
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-22T05:02Z)"
+        quote: "rev-list --count = 42 @ b3f77518; up/master..HEAD = 537; HEAD..up/master = 0 (upstream fully contained)"
       - source: "git:a402fd40^2..HEAD (2026-10-16T23:56Z)"
         quote: "rev-list --count = 35 (34 non-merge + upstream-merge commit; total ahead of stale up/master f6c162dd 2026-06-23: 530)"
       - source: "docs/llm-wiki/index.md"

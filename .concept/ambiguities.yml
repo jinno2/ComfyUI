@@ -59,3 +59,25 @@ ambiguities:
         quote: "a402fd40^2..HEAD = 20 commits"
       - source: "docs/CODEBASE_ANALYSIS.md#L9-L11"
         quote: "フォーク独自コミットは13件"
+
+  - id: "AMB-UNIT-002"
+    term: "UnitTestGate"
+    topic: "CI gate (Woodpecker --maxfail=1 -q) vs local make test (-v, no maxfail) behavioral difference"
+    status: "open"
+    severity: "low"
+    uncertainty: 0.3
+    candidates:
+      - "The two invocations are equivalent for gate purposes; --maxfail=1 only shortens CI output"
+      - "maxfail and verbosity affect wall-time/coverage enough that local green does not imply CI green"
+    missing_info:
+      - "Whether the local suite even completes within a run budget (full-run completion still unverified)"
+      - "Measured wall-time comparison between the two invocations"
+    linked_conflicts: []
+    last_touched_run: "2026-10-22T05:02:04Z"
+    evidence:
+      - source: ".woodpecker.yml#L29"
+        quote: "python -u -X faulthandler -m pytest tests-unit -q --maxfail=1 --tb=short"
+      - source: "Makefile#L451"
+        quote: "test: $(PYTHON) -m pytest tests-unit -v"
+      - source: "docs/dot/milestones.md#完了と再計画"
+        quote: "D1-3 は CI（--maxfail=1）とローカル（無指定 maxfail）の比較を成果に含めない … 次の実行波で独立WPとして割り当てる"
