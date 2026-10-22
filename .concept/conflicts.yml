@@ -7,6 +7,8 @@ conflicts:
     items:
       - claim: "33 fork-specific commits (git: a402fd40^2..HEAD measured 2026-10-16)"
         source: "git:a402fd40^2..HEAD"
+      - claim: "44 fork-specific commits (git: a402fd40^2..HEAD measured at c72063a6 on 2026-10-22T18:51Z)"
+        source: "git:a402fd40^2..HEAD"
       - claim: "~20 fork-specific commits (git log measured 2026-09-26)"
         source: "docs/llm-wiki/index.md"
       - claim: "13 fork-specific commits (analysis dated 2026-09-20)"
@@ -14,4 +16,4 @@ conflicts:
     status: "resolved"
     active_workaround:
       decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
-      summary: "Resolved 2026-10-16: fresh git measurement gives 33 (re-measured 35 at 2026-10-16T23:56Z in-worktree). All figures are the same a402fd40^2..HEAD measurement at different dates; the count grows with autonomous loop work. Linked AMB-FORK-001 carries the same resolution (status: resolved). Re-measure whenever the fork-state question recurs."
+      summary: "Resolved by fresh measurement: 44 at c72063a6 (2026-10-22T18:51Z), after 43 at efad1d1b (05:10Z). Older figures are snapshots of the same a402fd40^2..HEAD series; the count grows with autonomous loop work. Linked AMB-FORK-001 carries the same resolution (status: resolved). Re-measure whenever the fork-state question recurs."

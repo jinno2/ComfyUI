@@ -73,7 +73,7 @@ canonical_terms:
     id: "TERM-FORK"
     layer: "domain"
     status: "stable"
-    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16T23:56Z, 37 on 2026-10-17T07:13Z, 43 on 2026-10-22T05:10Z). Upstream lag is 0: the stale up/master ref (f6c162dd, 2026-06-23) is fully contained in HEAD."
+    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16T23:56Z, 37 on 2026-10-17T07:13Z, 43 on 2026-10-22T05:10Z, 44 on 2026-10-22T18:51Z). Upstream lag is 0: the stale up/master ref (f6c162dd, 2026-06-23) is fully contained in HEAD."
     synonyms: ["フォーク乖離", "upstream sync"]
     boundaries:
       includes: ["fork-specific commits", "a402fd40^2..HEAD measurement method", "upstream merge compatibility"]
@@ -81,10 +81,12 @@ canonical_terms:
     related_terms: ["ComfyUI"]
     assumptions:
       - id: "ASM-FORK-001"
-        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (43 at 2026-10-22T05:10Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are dated historical snapshots plus a pointer to this command"
+        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (44 at 2026-10-22T18:51Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are dated historical snapshots plus a pointer to this command"
         decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
         expires_after_runs: 20
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-22T18:51Z)"
+        quote: "rev-list --count = 44 @ c72063a6; up/master..HEAD = 539; HEAD..up/master = 0 (upstream fully contained)"
       - source: "git:a402fd40^2..HEAD (2026-10-22T05:10Z)"
         quote: "rev-list --count = 43 @ efad1d1b; up/master..HEAD = 538; HEAD..up/master = 0 (upstream fully contained); origin/main...HEAD = 22/12"
       - source: "git:a402fd40^2..HEAD (2026-10-16T23:56Z)"
