@@ -1,5 +1,5 @@
 {
-  "run_id": "2026-10-22T21:24:40Z",
+  "run_id": "2026-10-22T21:55:03Z",
   "total_terms": 12,
   "by_layer": {
     "core": 3,
@@ -8,11 +8,61 @@
   },
   "draft_ratio": 0.0,
   "queue_pending": 0,
-  "claims_retained_lines": 57,
+  "claims_retained_lines": 59,
   "decisions_md_lines": 22,
   "gc_actions": {
     "merged": 0,
     "deleted": 0,
     "deprecated": 0
+  },
+  "quality_metrics": {
+    "Q1": {
+      "value": "5/6 (83.3%)",
+      "threshold": "80%",
+      "status": "PASS",
+      "basis": "Six top-level implementation groups listed in docs/CODEBASE_ANALYSIS.md §1: comfy, comfy_extras, comfy_api_nodes, comfy_api, app, and root Python modules. Existing mappings cover all except comfy_api."
+    },
+    "Q2": {
+      "value": "12/12 (100%)",
+      "threshold": "90%",
+      "status": "PASS",
+      "basis": "Every canonical term has a nonempty code_symbols mapping."
+    },
+    "Q3": {
+      "value": "8/188 (4.3% literal all-test-file proxy)",
+      "threshold": "50%",
+      "status": "FAIL",
+      "basis": "179 tests-unit plus 9 tests Python test files. The 60-invariant cap makes this literal denominator impossible to satisfy; the denominator of files containing extractable repository-level constraints is not inventoried. See AMB-Q3-001."
+    },
+    "Q4": {
+      "value": "2/12 (16.7%)",
+      "threshold": "30% maximum",
+      "status": "PASS",
+      "basis": "Two terms have status draft."
+    },
+    "Q5": {
+      "value": "3/58 (5.2%)",
+      "threshold": "20% maximum",
+      "status": "PASS",
+      "basis": "Three claims use term_canonical=__UNMAPPED__."
+    },
+    "Q6": {
+      "value": 12,
+      "threshold": 80,
+      "status": "PASS",
+      "basis": "Canonical term count."
+    },
+    "Q7": {
+      "value": "north_star plus 3 milestones",
+      "threshold": "north_star plus at least 1 milestone",
+      "status": "PASS",
+      "basis": "charter.yml."
+    },
+    "Q8": {
+      "value": "12/12 (100%)",
+      "threshold": "100%",
+      "status": "PASS",
+      "basis": "Every canonical term has at least one evidence entry."
+    }
   }
 }

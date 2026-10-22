@@ -29,12 +29,13 @@ ambiguities:
 
   - id: "AMB-FORK-001"
     term: "ForkUpstreamSync"
-    topic: "Current count of fork-specific commits (13 vs 20 vs 33 vs 35 vs 43 vs 44 vs 45 vs 48 vs 49 vs 50)"
+    topic: "Current count of fork-specific commits (13 vs 20 vs 33 vs 35 vs 43 vs 44 vs 45 vs 48 vs 49 vs 50 vs 51)"
     status: "resolved"
     severity: "low"
     uncertainty: 0.05
     candidates:
-      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (50 at ac6f3f76 on 2026-10-22T21:24Z)"
+      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (51 at dc0850dd on 2026-10-22T21:40Z)"
+      - "50 at ac6f3f76 (2026-10-22T21:24Z)"
       - "49 at 9d0018da (2026-10-22T20:49Z)"
       - "45 at 79887f22 (2026-10-22T19:19Z)"
       - "43 at efad1d1b (2026-10-22T05:10Z)"
@@ -46,16 +47,18 @@ ambiguities:
     auto_decision:
       status: "applied"
       decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
-      chosen: "Fork-specific count is measured fresh as a402fd40^2..HEAD (50 at ac6f3f76 on 2026-10-22T21:24Z, re-measured in-worktree); older figures are historical snapshots of the same growing series"
+      chosen: "Fork-specific count is a dated snapshot measured as a402fd40^2..HEAD (51 at dc0850dd on 2026-10-22T21:40Z); older figures are historical snapshots of the same growing series"
       policy: "recency + primary_measurement"
       confidence_auto: 0.85
-      decided_at_run: "2026-10-22T21:24:40Z"
+      decided_at_run: "2026-10-22T21:40:36Z"
       expires_after_runs: 20
       revert_triggers:
         - "primary_evidence_contradiction"
-    last_touched_run: "2026-10-22T21:24:40Z"
+    last_touched_run: "2026-10-22T21:40:36Z"
     resolution: "Resolved in the same direction as linked CFLT-FORK-001 (same decision_key): fresh in-worktree git measurement supersedes quoted figures; re-open only on the next upstream merge or primary evidence contradiction."
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-22T21:40Z)"
+        quote: "rev-list --count = 51 @ dc0850dd; up/master..HEAD = 546; HEAD..up/master = 0"
       - source: "git:a402fd40^2..HEAD (2026-10-22T21:24Z)"
         quote: "rev-list --count = 50 @ ac6f3f76; up/master..HEAD = 545; HEAD..up/master = 0"
       - source: "git:a402fd40^2..HEAD (2026-10-22T20:49Z)"
@@ -92,3 +95,32 @@ ambiguities:
         quote: "test: $(PYTHON) -m pytest tests-unit -v"
       - source: "docs/dot/milestones.md#完了と再計画"
         quote: "D1-3 は CI（--maxfail=1）とローカル（無指定 maxfail）の比較を成果に含めない … 次の実行波で独立WPとして割り当てる"
+
+  - id: "AMB-Q3-001"
+    term: "UnitTestGate"
+    topic: "Q3 denominator versus invariant budget"
+    status: "open"
+    severity: "medium"
+    uncertainty: 0.45
+    candidates:
+      - "Count every test source file in the denominator, as the metric's measurement method states"
+      - "Count only files whose tests encode extractable cross-test invariants; that subset has not been inventoried"
+    missing_info:
+      - "Auditable list of test files that encode constraints suitable for repository-level invariants"
+    linked_conflicts: []
+    auto_decision:
+      status: "applied"
+      decision_key: "AUTO:Q3.denominator:retain_evidence_only"
+      chosen: "Keep only evidence-backed invariants; report Q3 as failed under the literal 188-test-file proxy (8/188=4.3%). Do not add inferred constraints to satisfy the ratio. The 60-invariant cap cannot reach 50% of 188 files; revisit only after defining the extractable-file denominator."
+      policy: "primary_evidence + budget_integrity"
+      confidence_auto: 0.8
+      decided_at_run: "2026-10-22T21:55:03Z"
+      expires_after_runs: 20
+      revert_triggers:
+        - "an audited extractable-file inventory changes the denominator"
+    last_touched_run: "2026-10-22T21:55:03Z"
+    evidence:
+      - source: "tests-unit and tests source inventory (find -name test_*.py or *_test.py)"
+        quote: "179 unit-test source files + 9 integration-test source files = 188 total"
+      - source: "10_concept_sync_system.md#B-10"
+        quote: "invariants.yml maximum: 60"
