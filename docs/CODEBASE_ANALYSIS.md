@@ -3,7 +3,7 @@
 - 日付: 2026-09-20
 - 対象: jinno2/ComfyUI(tracked 961ファイル、Python 約9.3MB ≒ 約230万トークン)
 - 手法: 6領域に分解した並列エージェント分析(実行エンジン / モデル管理 / ldm アーキテクチャ / ノード定義 / API ノード / 開発インフラ・フォーク独自部分)。主要指摘8件は本体セッションで実コードを再読して裏取り検証済み(§4)。
-- 性格: このフォークはほぼ最新の upstream ComfyUI(最終同期 2026-06-20 頃)。フォーク独自コミットは13件で、実質的に Makefile 群・`scripts/`・`comfy/ops.py` の `safe_linear`・Pipfile/mise・docs のみ。
+- 性格: このフォークはほぼ最新の upstream ComfyUI(最終同期 2026-06-20 頃)。フォーク独自コミットは13件(2026-09-20 観測の履歴値。自律ループ作業で増え続けるため現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測 — 2026-10-22 時点で 43)で、実質的に Makefile 群・`scripts/`・`comfy/ops.py` の `safe_linear`・Pipfile/mise・docs のみ。
 
 ---
 

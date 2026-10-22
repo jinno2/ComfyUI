@@ -18,3 +18,10 @@ contracts の llm-wiki-discipline 原則に基づき `docs/llm-wiki/` を新設�
 ## 2026-09-26 — 親の確定（jinno確定）
 - relations.md の階層関係を草案から確定版へ更新。親: business_operation_notes。
 - Verification: contracts registry `organization/repositories/comfyui.yaml` の spec.parent（ecbc226）と突合し一致を確認。
+
+## 2026-10-22 — fork 固有コミット数の pointer 化（Dot D1-2）
+
+docs/CODEBASE_ANALYSIS.md と本 wiki index の fork 数値（13 件 / 約 20 commits・先行 515）を観測日付きの履歴値として明記し、現行値への pointer（`git rev-list --count a402fd40^2..HEAD`）を追記した。値の唯一の所在は git 計測で、文書側は pointer に留める（charter MET-002・CFLT-FORK-001 解決方針に整合）。
+
+- **Verification**: 2026-10-22T05:10Z、worktree efad1d1b で計測: `git rev-list --count a402fd40^2..HEAD` = 43、`up/master..HEAD` = 538、`HEAD..up/master` = 0（up/master f6c162dd 2026-06-23 は merge a402fd40 で完全包含）、`origin/main...HEAD` = 22/12。
+
