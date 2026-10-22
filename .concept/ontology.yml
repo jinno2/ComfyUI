@@ -73,7 +73,7 @@ canonical_terms:
     id: "TERM-FORK"
     layer: "domain"
     status: "stable"
-    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16T23:56Z, 37 on 2026-10-17T07:13Z, 43 on 2026-10-22T05:10Z, 44 on 2026-10-22T18:51Z, 45 on 2026-10-22T19:19Z, 48 on 2026-10-22T20:18Z at c6904572). The local up/master ref (f6c162dd, 2026-06-23) is stale and fully contained in HEAD; its ahead count includes merged upstream commits."
+    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16T23:56Z, 37 on 2026-10-17T07:13Z, 43 on 2026-10-22T05:10Z, 44 on 2026-10-22T18:51Z, 45 on 2026-10-22T19:19Z, 48 on 2026-10-22T20:18Z at c6904572, 49 on 2026-10-22T20:49Z at 9d0018da). The local up/master ref (f6c162dd, 2026-06-23) is stale and fully contained in HEAD; its ahead count includes merged upstream commits."
     synonyms: ["フォーク乖離", "upstream sync"]
     boundaries:
       includes: ["fork-specific commits", "a402fd40^2..HEAD measurement method", "upstream merge compatibility"]
@@ -81,10 +81,12 @@ canonical_terms:
     related_terms: ["ComfyUI"]
     assumptions:
       - id: "ASM-FORK-001"
-        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (48 at c6904572 on 2026-10-22T20:18Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are dated historical snapshots plus a pointer to this command"
+        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (49 at 9d0018da on 2026-10-22T20:49Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are dated historical snapshots plus a pointer to this command"
         decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
         expires_after_runs: 20
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-22T20:49Z)"
+        quote: "rev-list --count = 49 @ 9d0018da; up/master..HEAD = 544; HEAD..up/master = 0 (upstream fully contained)"
       - source: "git:a402fd40^2..HEAD (2026-10-22T20:18Z)"
         quote: "rev-list --count = 48 @ c6904572; up/master..HEAD = 543; HEAD..up/master = 0 (upstream fully contained)"
       - source: "git:a402fd40^2..HEAD (2026-10-22T19:19Z)"
