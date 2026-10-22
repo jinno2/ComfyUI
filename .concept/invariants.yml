@@ -58,12 +58,12 @@ invariants:
     statement: "Fork-specific commit counts are measured fresh as a402fd40^2..HEAD (commits after the single upstream merge); ahead-counts against the local up/master ref include merged upstream content and are not fork-specific counts."
     rationale: "The local up/master ref is stale (f6c162dd, 2026-06-23); its 548-ahead measurement at 608da588 includes merged upstream commits and is not the fork-specific count."
     evidence:
+      - source: "git:rev-list --count a402fd40^2..HEAD (2026-10-22T23:47Z)"
+        quote: "fork-specific = 55 at ae9f059d; up/master..HEAD = 550; HEAD..up/master = 0"
       - source: "git:rev-list --count a402fd40^2..HEAD (2026-10-22T22:04Z)"
         quote: "fork-specific = 53 at 608da588; up/master..HEAD = 548; HEAD..up/master = 0"
       - source: "git:rev-list --count a402fd40^2..HEAD (2026-10-22T21:40Z)"
         quote: "fork-specific = 51 at dc0850dd; up/master..HEAD = 546; HEAD..up/master = 0"
-      - source: "git:rev-list --count a402fd40^2..HEAD (2026-10-22T21:24Z)"
-        quote: "fork-specific = 50; up/master..HEAD = 545; HEAD..up/master = 0"
       - source: "git:rev-list --count up/master..HEAD (2026-10-16T23:56Z)"
         quote: "total ahead 530 / a402fd40^2..HEAD 35 (34 non-merge + the upstream-merge commit itself)"
     checks:
@@ -90,8 +90,10 @@ invariants:
     statement: "Identical uploaded bytes map to exactly one content row, while every upload delivery mints its own asset record (created_new=true) with a distinct id."
     rationale: "Content dedup must not collapse delivery history; hashes alone can collide across rows (documented in-test). Draft: the verifying test is currently skipped by the assets-test disablement (conftest.py:105)."
     evidence:
-      - source: "tests-unit/assets_test/test_upload_hashing_modes.py#L164-L182"
-        quote: "same bytes stay one content row (hashes alone can collide across rows) / every upload is its own delivery record"
+      - source: "tests-unit/assets_test/test_upload_hashing_modes.py#L179"
+        quote: "assert second[\"id\"] != first[\"id\"], \"every upload is its own delivery record\""
+      - source: "tests-unit/assets_test/test_upload_hashing_modes.py#L182"
+        quote: "\"same bytes stay one content row (hashes alone can collide across rows)\""
     checks:
       - type: "test"
         target: "tests-unit/assets_test/test_upload_hashing_modes.py::test_repeat_upload_mints_a_new_record_in_on_mode"

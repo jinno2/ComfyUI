@@ -1,5 +1,5 @@
 {
-  "run_id": "2026-10-22T23:36:57Z",
+  "run_id": "2026-10-22T23:49:09Z",
   "total_terms": 12,
   "by_layer": {
     "core": 3,
@@ -8,11 +8,11 @@
   },
   "draft_ratio": 0.0,
   "queue_pending": 0,
-  "claims_retained_lines": 61,
+  "claims_retained_lines": 65,
   "decisions_md_lines": 30,
   "gc_actions": {
     "merged": 0,
-    "deleted": 16,
+    "deleted": 0,
     "deprecated": 0
   },
   "quality_metrics": {
@@ -41,10 +41,10 @@
       "basis": "Zero canonical terms have status draft."
     },
     "Q5": {
-      "value": "3/61 (4.9%)",
+      "value": "4/65 (6.2%)",
       "threshold": "20% maximum",
       "status": "PASS",
-      "basis": "Three claims use term_canonical=__UNMAPPED__ out of 61 retained claims."
+      "basis": "Four claims use term_canonical=__UNMAPPED__ out of 65 retained claims."
     },
     "Q6": {
       "value": 12,

@@ -48,10 +48,10 @@ canonical_terms:
         decision_key: "AUTO:UnitTestGate.scope:unit_only"
         expires_after_runs: 20
     evidence:
-      - source: "LOOP.md#L24-L25"
-        quote: "検証 — `make test`。既存テストを壊したまま commit しない"
-      - source: "Makefile#L451-L464"
-        quote: "test: ## Run unit tests (fast default) / $(PYTHON) -m pytest tests-unit -v"
+      - source: "LOOP.md#L23"
+        quote: "**検証** — `make test`。**既存テストを壊したまま commit しない**"
+      - source: "Makefile#L451-L452"
+        quote: "$(PYTHON) -m pytest tests-unit -v"
 
   MinimalChange:
     id: "TERM-MINCHANGE"
@@ -66,14 +66,14 @@ canonical_terms:
     evidence:
       - source: "AGENTS.md#Engineering Style"
         quote: "Change the least amount of files possible."
-      - source: "LOOP.md#L28-L30"
-        quote: "実装（最小・短時間）— 触るファイルを必要最小限に。"
+      - source: "LOOP.md#L22"
+        quote: "触るファイルを必要最小限に。"
 
   ForkUpstreamSync:
     id: "TERM-FORK"
     layer: "domain"
     status: "stable"
-    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured fresh as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16, 54 on 2026-10-22T23:36Z at 65220ff8; per-run snapshots are retained in claims.ndjson, not duplicated here). The local up/master ref (f6c162dd, 2026-06-23) is stale and fully contained in HEAD; its ahead count includes merged upstream commits."
+    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured fresh as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16, 54 on 2026-10-22T23:36Z at 65220ff8, 55 on 2026-10-22T23:47Z at ae9f059d; per-run snapshots are retained in claims.ndjson, not duplicated here). The local up/master ref (f6c162dd, 2026-06-23) is stale and fully contained in HEAD; its ahead count includes merged upstream commits."
     synonyms: ["フォーク乖離", "upstream sync"]
     boundaries:
       includes: ["fork-specific commits", "a402fd40^2..HEAD measurement method", "upstream merge compatibility"]
@@ -81,18 +81,18 @@ canonical_terms:
     related_terms: ["ComfyUI"]
     assumptions:
       - id: "ASM-FORK-001"
-        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (54 at 65220ff8 on 2026-10-22T23:36Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are dated historical snapshots plus a pointer to this command"
+        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (55 at ae9f059d on 2026-10-22T23:47Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are dated historical snapshots plus a pointer to this command"
         decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
         expires_after_runs: 20
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-22T23:47Z)"
+        quote: "rev-list --count = 55 @ ae9f059d; up/master..HEAD = 550; HEAD..up/master = 0 (upstream fully contained)"
       - source: "git:a402fd40^2..HEAD (2026-10-22T23:36Z)"
-        quote: "rev-list --count = 54 @ 65220ff8; up/master..HEAD = 549; HEAD..up/master = 0 (upstream fully contained)"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T22:04Z)"
-        quote: "rev-list --count = 53 @ 608da588; up/master..HEAD = 548; HEAD..up/master = 0 (upstream fully contained). Intermediate per-run snapshots of the same series (35/43/45/48/49/50/51 across 2026-10-16..22) are GC'd from this file; retrievable from git history and claims.ndjson"
+        quote: "rev-list --count = 54 @ 65220ff8; up/master..HEAD = 549; HEAD..up/master = 0 (upstream fully contained). Intermediate per-run snapshots of the same series (35/43/45/48/49/50/51/53 across 2026-10-16..22) are GC'd from this file; retrievable from git history and claims.ndjson"
       - source: "docs/llm-wiki/index.md"
-        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する（2026-09-26 観測 20。stale な `up/master` に対する upstream lag は 0）"
+        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する（2026-09-26 観測 20、2026-10-22T05:10Z 観測 43、2026-10-22T20:18Z 観測 48）"
       - source: "docs/CODEBASE_ANALYSIS.md#L6"
-        quote: "フォーク独自コミットは13件(2026-09-20 観測の履歴値。…現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測)"
+        quote: "フォーク独自コミットは13件(2026-09-20 観測の履歴値。自律ループ作業で増え続けるため現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測 — 2026-10-22 時点で 43)"
 
   Node:
     id: "TERM-NODE"
@@ -107,8 +107,8 @@ canonical_terms:
     evidence:
       - source: "AGENTS.md#Nodes and User-Facing Behavior"
         quote: "Node-level code must not patch model code directly."
-      - source: "docs/CODEBASE_ANALYSIS.md#L26-L40"
-        quote: "nodes(NODE_CLASS_MAPPINGS が全層から参照されるレジストリ)"
+      - source: "docs/CODEBASE_ANALYSIS.md#L42"
+        quote: "`nodes`(NODE_CLASS_MAPPINGS が全層から参照されるレジストリ)"
 
   Server:
     id: "TERM-SERVER"
@@ -124,11 +124,11 @@ canonical_terms:
       - source: "docs/CODEBASE_ANALYSIS.md#L50"
         quote: "HTTP(`server.py`: aiohttp + /ws)"
       - source: "AGENTS.md#L49-L52"
-        quote: "A PR that spreads one feature across unrelated loaders, nodes, execution, server, and frontend code needs a clear architectural reason"
-      - source: "server.py#L215-L222"
-        quote: "class PromptServer(): initializes the HTTP/WebSocket server and its managers."
+        quote: "A PR that spreads one feature across unrelated loaders, nodes, execution, server, and frontend code needs a clear architectural reason, not just convenience."
+      - source: "server.py#L215"
+        quote: "class PromptServer():"
       - source: "tests-unit/prompt_server_test/system_user_endpoint_test.py#L49-L57"
-        quote: "E2E tests verify HTTP endpoints block System Users."
+        quote: "E2E tests for System User blocking on all HTTP endpoints."
 
   ExecutionEngine:
     id: "TERM-EXEC"
@@ -142,13 +142,13 @@ canonical_terms:
     related_terms: ["Server", "Node"]
     evidence:
       - source: "AGENTS.md#L45-L48"
-        quote: "Treat `execution.py` as one example of this rule: it should consume the prompt graph and execution-relevant state, produce execution results and errors"
+        quote: "Treat `execution.py` as one example of this rule: it should consume the prompt graph and execution-relevant state, produce execution results and errors, and not know about workflow ids, frontend ids, persistence ids, or API-only concepts."
       - source: "docs/CODEBASE_ANALYSIS.md#L50"
         quote: "`prompt_worker`(main.py:312-407)が PromptQueue から取り出し `PromptExecutor.execute` で実行"
-      - source: "execution.py#L663-L670"
-        quote: "class PromptExecutor initializes execution state and cache for prompt graph runs."
-      - source: "tests-unit/execution_test/test_nested_loop_execution.py#L342-L350"
-        quote: "test_nested_loops_execute_each_body_once_without_final_requeue exercises prompt execution."
+      - source: "execution.py#L663"
+        quote: "class PromptExecutor:"
+      - source: "tests-unit/execution_test/test_nested_loop_execution.py#L342"
+        quote: "def test_nested_loops_execute_each_body_once_without_final_requeue():"
 
   ModelManagement:
     id: "TERM-MODELMGMT"
@@ -162,15 +162,15 @@ canonical_terms:
     related_terms: ["ComfyUI", "Node"]
     evidence:
       - source: "AGENTS.md#L266-L269"
-        quote: "Loading, unloading, offloading, device movement, VRAM policy, cache lifetime, and cleanup belong in the relevant model-management and execution layers"
+        quote: "Loading, unloading, offloading, device movement, VRAM policy, cache lifetime, and cleanup belong in the relevant model-management and execution layers, not inside model implementations."
       - source: "docs/CODEBASE_ANALYSIS.md#L65"
-        quote: "`model_management.py`(デバイス/メモリ権威、VRAMState、pin バジェット)、`model_patcher.py`(共有 nn.Module を clone-fork するパッチ状態管理)"
+        quote: "`model_management.py`(デバイス/メモリ権威、VRAMState、pin バジェット)、`model_patcher.py`(共有 nn.Module を clone-fork するパッチ状態管理、LowVramPatch、DynamicVRAM 版 `ModelPatcherDynamic`)"
       - source: "comfy/model_management.py#L1790"
-        quote: "def get_free_memory(dev=None, torch_free_too=False) exposes device memory availability."
+        quote: "def get_free_memory(dev=None, torch_free_too=False):"
       - source: "comfy/model_patcher.py#L340"
-        quote: "class ModelPatcher owns model patching and load/offload state."
+        quote: "class ModelPatcher:"
       - source: "tests-unit/comfy_test/test_safe_linear.py#L51-L67"
-        quote: "Tests verify device-specific model-management error handling used by safe_linear."
+        quote: "def test_safe_linear_retries_then_escalates_on_persistent_cublas_error(monkeypatch):"
 
   SamplingLayer:
     id: "TERM-SAMPLING"
@@ -183,12 +183,14 @@ canonical_terms:
       excludes: ["device/VRAM policy (ModelManagement)", "model architecture math (comfy/ldm)", "node wrappers and registration (Node)"]
     related_terms: ["ModelManagement", "ComfyUI"]
     evidence:
-      - source: "docs/CODEBASE_ANALYSIS.md#L55-L58"
+      - source: "docs/CODEBASE_ANALYSIS.md#L65"
         quote: "`samplers.py`(cond バッチング、スケジューラ、マルチGPU スレッドプール)"
-      - source: "comfy/samplers.py#L922-L1148"
-        quote: "class Sampler: ... class KSAMPLER(Sampler): ... class CFGGuider:"
-      - source: "tests-unit/comfy_test/test_calc_cond_grouping.py#L21-L25"
-        quote: "test_groups_plain_conds_under_none_key verifies sampler condition grouping."
+      - source: "comfy/samplers.py#L937"
+        quote: "class KSAMPLER(Sampler):"
+      - source: "comfy/samplers.py#L1148"
+        quote: "class CFGGuider:"
+      - source: "tests-unit/comfy_test/test_calc_cond_grouping.py#L21"
+        quote: "def test_groups_plain_conds_under_none_key():"
 
   AssetService:
     id: "TERM-ASSETS"
@@ -201,12 +203,12 @@ canonical_terms:
       excludes: ["model file folder management (folder_paths/ModelManagement)", "node-side output image saving"]
     related_terms: ["Server", "ComfyUI"]
     evidence:
-      - source: "docs/CODEBASE_ANALYSIS.md#L27"
+      - source: "docs/CODEBASE_ANALYSIS.md#L35"
         quote: "app/ 0.31MB ユーザ管理・アセット(SQLAlchemy+Alembic)・サブグラフ管理"
       - source: "app/assets/api/routes.py#L125"
         quote: "def register_assets_routes("
-      - source: "tests-unit/assets_test/test_api_surface.py#L251-L259"
-        quote: "Tests check that the declared asset API route surface matches routes.py."
+      - source: "tests-unit/assets_test/test_api_surface.py#L251"
+        quote: "def test_route_coverage_matches_routes_py() -> None:"
 
   ExternalAPINodes:
     id: "TERM-APINODES"
@@ -219,9 +221,9 @@ canonical_terms:
       excludes: ["local node graph execution (ExecutionEngine)", "comfy_api versioned SDK package"]
     related_terms: ["Node", "ComfyUI"]
     evidence:
-      - source: "docs/CODEBASE_ANALYSIS.md#L28"
+      - source: "docs/CODEBASE_ANALYSIS.md#L33"
         quote: "comfy_api_nodes/ 1.68MB 外部APIノード36ファイル + リクエスト基盤 util/client.py(990行)"
       - source: "comfy_api_nodes/util/client.py#L46"
         quote: "class ApiEndpoint:"
-      - source: "tests-unit/comfy_api_nodes_test/comfy_cloud_test.py#L59-L70"
-        quote: "test_workflow_submission_polling_and_download verifies provider API node request flow."
+      - source: "tests-unit/comfy_api_nodes_test/comfy_cloud_test.py#L59"
+        quote: "def test_workflow_submission_polling_and_download("

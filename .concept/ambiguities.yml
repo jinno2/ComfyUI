@@ -22,44 +22,44 @@ ambiguities:
         - "primary_evidence_contradiction"
     last_touched_run: "2026-10-16T19:05:28Z"
     evidence:
-      - source: "LOOP.md#L24-L25"
-        quote: "検証 — `make test`"
+      - source: "LOOP.md#L23"
+        quote: "**検証** — `make test`。**既存テストを壊したまま commit しない**"
       - source: "Makefile#L451-L452"
         quote: "test: ## Run unit tests (fast default)"
 
   - id: "AMB-FORK-001"
     term: "ForkUpstreamSync"
-    topic: "Fork-specific commit count is a moving value (13 on 2026-09-20 → 54 on 2026-10-22T23:36Z); per-run snapshots GC'd to bounded anchors"
+    topic: "Fork-specific commit count is a moving value (13 on 2026-09-20 → 55 on 2026-10-22T23:47Z); per-run snapshots GC'd to bounded anchors"
     status: "resolved"
     severity: "low"
     uncertainty: 0.05
     candidates:
-      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (54 at 65220ff8 on 2026-10-22T23:36Z; prior 53 at 608da588 on 2026-10-22T22:04Z)"
-      - "Historical dated snapshots: 13 (2026-09-20 codebase analysis), ~20 (2026-09-26 git log); intermediates 33..53 are snapshots of the same growing series"
+      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (55 at ae9f059d on 2026-10-22T23:47Z; prior 54 at 65220ff8 on 2026-10-22T23:36Z)"
+      - "Historical dated snapshots: 13 (2026-09-20 codebase analysis), ~20 (2026-09-26 git log); intermediates 33..54 are snapshots of the same growing series"
     missing_info:
       - "Next upstream merge will reset the measurement base to a new merge commit"
     linked_conflicts: ["CFLT-FORK-001"]
     auto_decision:
       status: "applied"
       decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
-      chosen: "Fork-specific count is a dated snapshot measured as a402fd40^2..HEAD (54 at 65220ff8 on 2026-10-22T23:36Z); older figures are historical snapshots of the same growing series"
+      chosen: "Fork-specific count is a dated snapshot measured as a402fd40^2..HEAD (55 at ae9f059d on 2026-10-22T23:47Z); older figures are historical snapshots of the same growing series"
       policy: "recency + primary_measurement"
       confidence_auto: 0.85
       decided_at_run: "2026-10-22T21:40:36Z"
       expires_after_runs: 20
       revert_triggers:
         - "primary_evidence_contradiction"
-    last_touched_run: "2026-10-22T23:36:57Z"
+    last_touched_run: "2026-10-22T23:49:09Z"
     resolution: "Resolved in the same direction as linked CFLT-FORK-001 (same decision_key): fresh in-worktree git measurement supersedes quoted figures; re-open only on the next upstream merge or primary evidence contradiction."
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-22T23:47Z)"
+        quote: "rev-list --count = 55 @ ae9f059d; up/master..HEAD = 550; HEAD..up/master = 0"
       - source: "git:a402fd40^2..HEAD (2026-10-22T23:36Z)"
-        quote: "rev-list --count = 54 @ 65220ff8; up/master..HEAD = 549; HEAD..up/master = 0"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T22:04Z)"
-        quote: "rev-list --count = 53 @ 608da588; up/master..HEAD = 548; HEAD..up/master = 0. Intermediate snapshots (33..51 across 2026-10-16..22) GC'd here; retrievable from git history and claims.ndjson"
+        quote: "rev-list --count = 54 @ 65220ff8; up/master..HEAD = 549; HEAD..up/master = 0. Intermediate snapshots (33..53 across 2026-10-16..22) GC'd here; retrievable from git history and claims.ndjson"
       - source: "docs/llm-wiki/index.md"
-        quote: "a402fd40^2..HEAD = 20 commits"
-      - source: "docs/CODEBASE_ANALYSIS.md#L9-L11"
-        quote: "フォーク独自コミットは13件"
+        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する（2026-09-26 観測 20、2026-10-22T05:10Z 観測 43、2026-10-22T20:18Z 観測 48）"
+      - source: "docs/CODEBASE_ANALYSIS.md#L6"
+        quote: "フォーク独自コミットは13件(2026-09-20 観測の履歴値。自律ループ作業で増え続けるため現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測 — 2026-10-22 時点で 43)"
 
   - id: "AMB-UNIT-002"
     term: "UnitTestGate"
@@ -78,10 +78,10 @@ ambiguities:
     evidence:
       - source: ".woodpecker.yml#L29"
         quote: "python -u -X faulthandler -m pytest tests-unit -q --maxfail=1 --tb=short"
-      - source: "Makefile#L451"
-        quote: "test: $(PYTHON) -m pytest tests-unit -v"
+      - source: "Makefile#L452"
+        quote: "$(PYTHON) -m pytest tests-unit -v"
       - source: "docs/dot/milestones.md#完了と再計画"
-        quote: "D1-3 は CI（--maxfail=1）とローカル（無指定 maxfail）の比較を成果に含めない … 次の実行波で独立WPとして割り当てる"
+        quote: "D1-3 は CI（`.woodpecker.yml` の `--maxfail=1`）とローカル（`make test` の無指定 maxfail）の比較を**成果に含めない**。 両者の差が gate の所要時間に効くかは、次の実行波で独立WPとして割り当てる。"
 
   - id: "AMB-Q3-001"
     term: "UnitTestGate"
@@ -107,7 +107,7 @@ ambiguities:
         - "an audited extractable-file inventory changes the denominator"
     last_touched_run: "2026-10-22T22:04:35Z"
     evidence:
-      - source: "tests-unit and tests source inventory (find -name test_*.py or *_test.py)"
-        quote: "179 unit-test source files + 9 integration-test source files = 188 total; current invariants.yml has 8 records, 3 with test checks"
+      - source: "command:find tests-unit tests -name 'test_*.py' -o -name '*_test.py' | wc -l (2026-10-22T23:47Z)"
+        quote: "179 tests-unit + 9 tests = 188 test source files; invariants.yml has 8 records, 3 with test checks"
       - source: "10_concept_sync_system.md#B-10"
-        quote: "invariants.yml maximum: 60; even the cap cannot reach 50% of 188"
+        quote: "invariants.yml|invariants 最大 **60**"
