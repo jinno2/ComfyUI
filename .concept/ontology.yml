@@ -73,7 +73,7 @@ canonical_terms:
     id: "TERM-FORK"
     layer: "domain"
     status: "stable"
-    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16T23:56Z, 37 on 2026-10-17T07:13Z, 43 on 2026-10-22T05:10Z, 44 on 2026-10-22T18:51Z, 45 on 2026-10-22T19:19Z, 48 on 2026-10-22T20:18Z at c6904572, 49 on 2026-10-22T20:49Z at 9d0018da, 50 on 2026-10-22T21:24Z at ac6f3f76, 51 on 2026-10-22T21:40Z at dc0850dd, 53 on 2026-10-22T22:04Z at 608da588). The local up/master ref (f6c162dd, 2026-06-23) is stale and fully contained in HEAD; its ahead count includes merged upstream commits."
+    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured fresh as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16, 54 on 2026-10-22T23:36Z at 65220ff8; per-run snapshots are retained in claims.ndjson, not duplicated here). The local up/master ref (f6c162dd, 2026-06-23) is stale and fully contained in HEAD; its ahead count includes merged upstream commits."
     synonyms: ["フォーク乖離", "upstream sync"]
     boundaries:
       includes: ["fork-specific commits", "a402fd40^2..HEAD measurement method", "upstream merge compatibility"]
@@ -81,30 +81,18 @@ canonical_terms:
     related_terms: ["ComfyUI"]
     assumptions:
       - id: "ASM-FORK-001"
-        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (53 at 608da588 on 2026-10-22T22:04Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are dated historical snapshots plus a pointer to this command"
+        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (54 at 65220ff8 on 2026-10-22T23:36Z, in-worktree); wiki/CODEBASE_ANALYSIS figures are dated historical snapshots plus a pointer to this command"
         decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
         expires_after_runs: 20
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-22T23:36Z)"
+        quote: "rev-list --count = 54 @ 65220ff8; up/master..HEAD = 549; HEAD..up/master = 0 (upstream fully contained)"
       - source: "git:a402fd40^2..HEAD (2026-10-22T22:04Z)"
-        quote: "rev-list --count = 53 @ 608da588; up/master..HEAD = 548; HEAD..up/master = 0 (upstream fully contained)"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T21:40Z)"
-        quote: "rev-list --count = 51 @ dc0850dd; up/master..HEAD = 546; HEAD..up/master = 0 (upstream fully contained)"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T20:49Z)"
-        quote: "rev-list --count = 49 @ 9d0018da; up/master..HEAD = 544; HEAD..up/master = 0 (upstream fully contained)"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T21:24Z)"
-        quote: "rev-list --count = 50 @ ac6f3f76; up/master..HEAD = 545; HEAD..up/master = 0 (upstream fully contained)"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T20:18Z)"
-        quote: "rev-list --count = 48 @ c6904572; up/master..HEAD = 543; HEAD..up/master = 0 (upstream fully contained)"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T19:19Z)"
-        quote: "rev-list --count = 45 @ 79887f22; up/master..HEAD = 540; HEAD..up/master = 0 (upstream fully contained)"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T05:10Z)"
-        quote: "rev-list --count = 43 @ efad1d1b; up/master..HEAD = 538; HEAD..up/master = 0 (upstream fully contained); origin/main...HEAD = 22/12"
-      - source: "git:a402fd40^2..HEAD (2026-10-16T23:56Z)"
-        quote: "rev-list --count = 35 (34 non-merge + upstream-merge commit; total ahead of stale up/master f6c162dd 2026-06-23: 530)"
+        quote: "rev-list --count = 53 @ 608da588; up/master..HEAD = 548; HEAD..up/master = 0 (upstream fully contained). Intermediate per-run snapshots of the same series (35/43/45/48/49/50/51 across 2026-10-16..22) are GC'd from this file; retrievable from git history and claims.ndjson"
       - source: "docs/llm-wiki/index.md"
-        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する（2026-09-26 観測 20、2026-10-22 観測 43。stale な `up/master` に対する upstream lag は 0）"
+        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する（2026-09-26 観測 20。stale な `up/master` に対する upstream lag は 0）"
       - source: "docs/CODEBASE_ANALYSIS.md#L6"
-        quote: "フォーク独自コミットは13件(2026-09-20 観測の履歴値。…現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測 — 2026-10-22 時点で 43)"
+        quote: "フォーク独自コミットは13件(2026-09-20 観測の履歴値。…現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測)"
 
   Node:
     id: "TERM-NODE"

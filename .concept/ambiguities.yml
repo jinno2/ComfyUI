@@ -29,48 +29,33 @@ ambiguities:
 
   - id: "AMB-FORK-001"
     term: "ForkUpstreamSync"
-    topic: "Current count of fork-specific commits (13 vs 20 vs 33 vs 35 vs 43 vs 44 vs 45 vs 48 vs 49 vs 50 vs 51 vs 53)"
+    topic: "Fork-specific commit count is a moving value (13 on 2026-09-20 → 54 on 2026-10-22T23:36Z); per-run snapshots GC'd to bounded anchors"
     status: "resolved"
     severity: "low"
     uncertainty: 0.05
     candidates:
-      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (53 at 608da588 on 2026-10-22T22:04Z; prior 51 at dc0850dd)"
-      - "50 at ac6f3f76 (2026-10-22T21:24Z)"
-      - "49 at 9d0018da (2026-10-22T20:49Z)"
-      - "45 at 79887f22 (2026-10-22T19:19Z)"
-      - "43 at efad1d1b (2026-10-22T05:10Z)"
-      - "~20 fork-specific commits (git log measured 2026-09-26)"
-      - "13 fork-specific commits (codebase analysis dated 2026-09-20)"
+      - "Count is a moving value: measure fresh as a402fd40^2..HEAD (54 at 65220ff8 on 2026-10-22T23:36Z; prior 53 at 608da588 on 2026-10-22T22:04Z)"
+      - "Historical dated snapshots: 13 (2026-09-20 codebase analysis), ~20 (2026-09-26 git log); intermediates 33..53 are snapshots of the same growing series"
     missing_info:
       - "Next upstream merge will reset the measurement base to a new merge commit"
     linked_conflicts: ["CFLT-FORK-001"]
     auto_decision:
       status: "applied"
       decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
-      chosen: "Fork-specific count is a dated snapshot measured as a402fd40^2..HEAD (53 at 608da588 on 2026-10-22T22:04Z); older figures are historical snapshots of the same growing series"
+      chosen: "Fork-specific count is a dated snapshot measured as a402fd40^2..HEAD (54 at 65220ff8 on 2026-10-22T23:36Z); older figures are historical snapshots of the same growing series"
       policy: "recency + primary_measurement"
       confidence_auto: 0.85
       decided_at_run: "2026-10-22T21:40:36Z"
       expires_after_runs: 20
       revert_triggers:
         - "primary_evidence_contradiction"
-    last_touched_run: "2026-10-22T22:04:35Z"
+    last_touched_run: "2026-10-22T23:36:57Z"
     resolution: "Resolved in the same direction as linked CFLT-FORK-001 (same decision_key): fresh in-worktree git measurement supersedes quoted figures; re-open only on the next upstream merge or primary evidence contradiction."
     evidence:
+      - source: "git:a402fd40^2..HEAD (2026-10-22T23:36Z)"
+        quote: "rev-list --count = 54 @ 65220ff8; up/master..HEAD = 549; HEAD..up/master = 0"
       - source: "git:a402fd40^2..HEAD (2026-10-22T22:04Z)"
-        quote: "rev-list --count = 53 @ 608da588; up/master..HEAD = 548; HEAD..up/master = 0"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T21:40Z)"
-        quote: "rev-list --count = 51 @ dc0850dd; up/master..HEAD = 546; HEAD..up/master = 0"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T21:24Z)"
-        quote: "rev-list --count = 50 @ ac6f3f76; up/master..HEAD = 545; HEAD..up/master = 0"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T20:49Z)"
-        quote: "rev-list --count = 49 @ 9d0018da; up/master..HEAD = 544; HEAD..up/master = 0"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T19:19Z)"
-        quote: "rev-list --count = 45 @ 79887f22; up/master..HEAD = 540; HEAD..up/master = 0 (upstream fully contained)"
-      - source: "git:a402fd40^2..HEAD (2026-10-22T05:10Z)"
-        quote: "rev-list --count = 43 @ efad1d1b; up/master..HEAD = 538; HEAD..up/master = 0"
-      - source: "git:a402fd40^2..HEAD (2026-10-16T23:56Z)"
-        quote: "rev-list --count = 35 (34 non-merge + upstream-merge commit; total ahead of stale up/master f6c162dd 2026-06-23: 530)"
+        quote: "rev-list --count = 53 @ 608da588; up/master..HEAD = 548; HEAD..up/master = 0. Intermediate snapshots (33..51 across 2026-10-16..22) GC'd here; retrievable from git history and claims.ndjson"
       - source: "docs/llm-wiki/index.md"
         quote: "a402fd40^2..HEAD = 20 commits"
       - source: "docs/CODEBASE_ANALYSIS.md#L9-L11"

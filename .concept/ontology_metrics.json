@@ -1,5 +1,5 @@
 {
-  "run_id": "2026-10-22T22:04:35Z",
+  "run_id": "2026-10-22T23:36:57Z",
   "total_terms": 12,
   "by_layer": {
     "core": 3,
@@ -8,11 +8,11 @@
   },
   "draft_ratio": 0.0,
   "queue_pending": 0,
-  "claims_retained_lines": 60,
-  "decisions_md_lines": 32,
+  "claims_retained_lines": 61,
+  "decisions_md_lines": 30,
   "gc_actions": {
     "merged": 0,
-    "deleted": 0,
+    "deleted": 16,
     "deprecated": 0
   },
   "quality_metrics": {
@@ -32,7 +32,7 @@
       "value": "8/188 (4.3% literal all-test-file proxy)",
       "threshold": "50%",
       "status": "FAIL",
-      "basis": "Literal source-file proxy remains 8/188 (4.3%): 179 tests-unit plus 9 tests Python test files; invariants.yml has 8 records, 3 with test checks. The 60-invariant cap cannot reach the 50% threshold; no audited extractable-file denominator exists. See AMB-Q3-001."
+      "basis": "Literal source-file proxy remains 8/188 (4.3%): 179 tests-unit plus 9 tests Python test files; invariants.yml has 8 records, 3 with test checks. The 60-invariant cap cannot reach the 50% threshold; no audited extractable-file denominator exists. See AMB-Q3-001 and AUTO:Q3.denominator:retain_evidence_only."
     },
     "Q4": {
       "value": "0/12 (0%)",
@@ -41,10 +41,10 @@
       "basis": "Zero canonical terms have status draft."
     },
     "Q5": {
-      "value": "3/60 (5.0%)",
+      "value": "3/61 (4.9%)",
       "threshold": "20% maximum",
       "status": "PASS",
-      "basis": "Three claims use term_canonical=__UNMAPPED__ out of 60 retained claims."
+      "basis": "Three claims use term_canonical=__UNMAPPED__ out of 61 retained claims."
     },
     "Q6": {
       "value": 12,
