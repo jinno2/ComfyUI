@@ -1,10 +1,24 @@
 # Repository relations
-Repository: ComfyUI
+Repository: comfyui
 
-## 階層関係（エスカレーション経路）
+## business_operation_notes
+- Status: confirmed
+- Relationship: parent / escalation
+- Responsibility: ComfyUI owns the local node-graph AI content engine and its fork changes; business_operation_notes owns cross-repository context and is the direct escalation parent.
+- Canonical sources: contracts:registry/organization/repositories/comfyui.yaml; contracts:registry/principles/escalation-chain.yaml
+- Change rule: resolve questions from this repository's wiki and canonical sources first, then escalate unresolved ownership questions to the parent.
+- Evidence: contracts:registry/organization/repositories/comfyui.yaml sha256:13d83bcea7a49803dc1a3cdb1bce5fb0a30404c6ef1458bb834eb284ba2df618
+- Evidence: ComfyUI:docs/llm-wiki/index.md sha256:4a5808bce9713c886f3c1076b5999675068e65489f22c804842a6f08e39021cd
+- Follow-up: [ ] business_operation_notes: its relations memo omits ComfyUI although the registry names it as the parent; add ComfyUI to the child list and complete when the entry has current evidence.
 
-- 親: business_operation_notes（jinno確定 2026-09-26）
-- 根拠: 上流 Comfy-Org/ComfyUI の fork。上流比 515 コミット先行だが大半は upstream merge 分で fork 固有は 20 commits（Makefile 標準化・クロスプラットフォーム対応・Woodpecker gate＋upstream テスト workflow ガード・safe_linear per-device フォールバック・seedvr2 テスト修正・CODEBASE_ANALYSIS.md）。画像生成研究のため business_operation_notes 配下（出典: git log up/master..、fork 調査 2026-09-26）
-- 出典: contracts registry `registry/organization/repositories/comfyui.yaml` の spec.parent（contracts commit ecbc226）。2026-09-26 の一括レビュー表 output/repo-parent-review-2026-09-26.md（ローカル output ディレクトリ）を jinno が現状案で承認。
+## Comfy-Org/ComfyUI
+- Status: confirmed
+- Relationship: source/copy
+- Responsibility: Comfy-Org/ComfyUI owns the upstream project; this repository owns its local fork changes and compatibility with upstream.
+- Canonical sources: contracts:registry/organization/repositories/comfyui.yaml; ComfyUI:README.md; ComfyUI:LOOP.md
+- Change rule: on upstream synchronization, re-check the merge base and fork-specific count; do not push upstream.
+- Evidence: contracts:registry/organization/repositories/comfyui.yaml sha256:13d83bcea7a49803dc1a3cdb1bce5fb0a30404c6ef1458bb834eb284ba2df618
+- Evidence: ComfyUI:README.md sha256:224e65e44969e84401213f00765c69709b762a81566ef6123a26f495892d4797
+- Observation: At c6904572 (2026-10-22T20:18Z), a402fd40^2..HEAD = 48 and local up/master..HEAD = 543; HEAD..up/master = 0. Local up/master f6c162dd is dated 2026-06-23 and stale, so this does not establish current upstream lag.
 
-- Observation: 以前の推定草案（jinno確定待ち）は 2026-09-26 の一括レビューで現状案のまま確定された。provider/consumer の検証済み関係はまだない。
+- Observation: No provider/consumer relationship with another repository is verified in the inspected imports, CLI calls, dependency declarations, generated artifacts, CI/configuration, or work rules.
