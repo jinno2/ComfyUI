@@ -127,6 +127,10 @@ canonical_terms:
         quote: "HTTP(`server.py`: aiohttp + /ws)"
       - source: "AGENTS.md#L49-L52"
         quote: "A PR that spreads one feature across unrelated loaders, nodes, execution, server, and frontend code needs a clear architectural reason"
+      - source: "server.py#L215-L222"
+        quote: "class PromptServer(): initializes the HTTP/WebSocket server and its managers."
+      - source: "tests-unit/prompt_server_test/system_user_endpoint_test.py#L49-L57"
+        quote: "E2E tests verify HTTP endpoints block System Users."
 
   ExecutionEngine:
     id: "TERM-EXEC"
@@ -143,6 +147,10 @@ canonical_terms:
         quote: "Treat `execution.py` as one example of this rule: it should consume the prompt graph and execution-relevant state, produce execution results and errors"
       - source: "docs/CODEBASE_ANALYSIS.md#L50"
         quote: "`prompt_worker`(main.py:312-407)が PromptQueue から取り出し `PromptExecutor.execute` で実行"
+      - source: "execution.py#L663-L670"
+        quote: "class PromptExecutor initializes execution state and cache for prompt graph runs."
+      - source: "tests-unit/execution_test/test_nested_loop_execution.py#L342-L350"
+        quote: "test_nested_loops_execute_each_body_once_without_final_requeue exercises prompt execution."
 
   ModelManagement:
     id: "TERM-MODELMGMT"
@@ -159,6 +167,12 @@ canonical_terms:
         quote: "Loading, unloading, offloading, device movement, VRAM policy, cache lifetime, and cleanup belong in the relevant model-management and execution layers"
       - source: "docs/CODEBASE_ANALYSIS.md#L65"
         quote: "`model_management.py`(デバイス/メモリ権威、VRAMState、pin バジェット)、`model_patcher.py`(共有 nn.Module を clone-fork するパッチ状態管理)"
+      - source: "comfy/model_management.py#L1790"
+        quote: "def get_free_memory(dev=None, torch_free_too=False) exposes device memory availability."
+      - source: "comfy/model_patcher.py#L340"
+        quote: "class ModelPatcher owns model patching and load/offload state."
+      - source: "tests-unit/comfy_test/test_safe_linear.py#L51-L67"
+        quote: "Tests verify device-specific model-management error handling used by safe_linear."
 
   SamplingLayer:
     id: "TERM-SAMPLING"
@@ -175,6 +189,8 @@ canonical_terms:
         quote: "`samplers.py`(cond バッチング、スケジューラ、マルチGPU スレッドプール)"
       - source: "comfy/samplers.py#L922-L1148"
         quote: "class Sampler: ... class KSAMPLER(Sampler): ... class CFGGuider:"
+      - source: "tests-unit/comfy_test/test_calc_cond_grouping.py#L21-L25"
+        quote: "test_groups_plain_conds_under_none_key verifies sampler condition grouping."
 
   AssetService:
     id: "TERM-ASSETS"
@@ -191,6 +207,8 @@ canonical_terms:
         quote: "app/ 0.31MB ユーザ管理・アセット(SQLAlchemy+Alembic)・サブグラフ管理"
       - source: "app/assets/api/routes.py#L125"
         quote: "def register_assets_routes("
+      - source: "tests-unit/assets_test/test_api_surface.py#L251-L259"
+        quote: "Tests check that the declared asset API route surface matches routes.py."
 
   ExternalAPINodes:
     id: "TERM-APINODES"
@@ -207,3 +225,5 @@ canonical_terms:
         quote: "comfy_api_nodes/ 1.68MB 外部APIノード36ファイル + リクエスト基盤 util/client.py(990行)"
       - source: "comfy_api_nodes/util/client.py#L46"
         quote: "class ApiEndpoint:"
+      - source: "tests-unit/comfy_api_nodes_test/comfy_cloud_test.py#L59-L70"
+        quote: "test_workflow_submission_polling_and_download verifies provider API node request flow."
