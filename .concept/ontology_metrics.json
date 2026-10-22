@@ -35,16 +35,16 @@
       "basis": "179 tests-unit plus 9 tests Python test files. The 60-invariant cap makes this literal denominator impossible to satisfy; the denominator of files containing extractable repository-level constraints is not inventoried. See AMB-Q3-001."
     },
     "Q4": {
-      "value": "2/12 (16.7%)",
+      "value": "0/12 (0%)",
       "threshold": "30% maximum",
       "status": "PASS",
-      "basis": "Two terms have status draft."
+      "basis": "Zero canonical terms have status draft."
     },
     "Q5": {
-      "value": "3/58 (5.2%)",
+      "value": "3/59 (5.1%)",
       "threshold": "20% maximum",
       "status": "PASS",
-      "basis": "Three claims use term_canonical=__UNMAPPED__."
+      "basis": "Three claims use term_canonical=__UNMAPPED__ out of 59 retained claims."
     },
     "Q6": {
       "value": 12,
