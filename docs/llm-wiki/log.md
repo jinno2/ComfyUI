@@ -105,3 +105,28 @@ AC4 ペルソナレビュー: `.claude/skills/persona-review/SKILL.md` を使用
 | デバイス・回帰テスト保守者 | 「`task_done` は status を省略でき、履歴は `None` になり得る。新しい `.get` の連鎖で既存の履歴を壊していないか。」 | `status=None` を空辞書として扱い、既存の出力による終了を維持するテストを追加。HTTP と time はスクリプトの参照先をモックし、実通信・実 sleep を行わない。 |
 
 リポ間の責務・依存関係・既存の概念は変更しておらず、relations と concept の更新は不要。実モデルによる画像生成、外部サービス、GPU・各デバイスでの推論は未検証。今回は履歴判定の改善1件であり、実生成の成功や性能改善を主張しない。
+
+
+## 2026-10-23 — モデルプレビュー検索でglob特殊文字をリテラルに扱う
+
+Run: `20261023-170524-515104`。Task: `tas-task-508bebb6a4041f01ead1897a53705607288280ee17b06e7176056628f0451d5e`（17:08:53 UTC 登録、AC1–AC4）。LOOP・PURPOSE・charter、docs/dot の計画、既存解析、TODO、ソース・テスト、Makefile・CI・設定を比較。既定の `make test` は worktree の `.venv/bin/python` 不在で exit 2（recipe error 127）だったため、既存環境を指定して gate を確認した。モデル一覧キャッシュの修正は、メタデータと pathIndex の無効化条件まで変え得るため今回選ばず、`ModelFileManager.get_model_previews` のリテラルパス検索を1件の改善として選択した。
+
+判断と反証: 「モデルのパスをそのまま glob に渡しても対応ファイルだけを探せる」という前提は成立しない。`model[v1]` や格納先の `[]` で404になり、`modelv.safetensors` の別のカバー画像を選ぶ場合もある。AC1 の変更前回帰テストは `7 failed, 9 passed`（exit 1、`/tmp/comfyui-20261023-170524-preview-red-final.log`）。basename 全体に `glob.escape` を適用し、拡張子探索用の末尾 `.*` だけをパターンとして残した。依存・通信・モデル推論の変更はない。
+
+- AC1・AC2: `/home/jinno/ComfyUI/.venv/bin/python -m pytest tests-unit/app_test/model_manager_test.py tests-unit/security_test/test_ghsa_779p_02_preview_traversal.py -q` → `23 passed in 1.15s`、exit 0（`/tmp/comfyui-20261023-170524-preview-green.log`）。リテラル名・格納先のカバー画像、`.png` / `.preview.png`、別モデルの黒い画像が混在する場合に白い対象画像が返ることをHTTP応答の画素で確認。既存の traversal・symlink・不正インデックス・空名・NUL の7ケースも通過。
+- AC3: `/home/jinno/.local/bin/ruff check app/model_manager.py tests-unit/app_test/model_manager_test.py` → `All checks passed!`、exit 0。`git diff --check` 成功。
+- 証拠 SHA-256: `app/model_manager.py` = `9e0ce83ef6704c0f341b8693e54e09fa76b90d8ced94abe94412f63bfc444061`、`tests-unit/app_test/model_manager_test.py` = `7ee02d5dfaa1a538793a990d9531bd7035451e1cc5d37d94d4f2ab153d08236b`。
+
+AC4 ペルソナレビュー: `.claude/skills/persona-review/SKILL.md` に従い、Codex が要求、実装、HTTP応答と回帰テストを直接照合した視点別自己レビュー。独立した人物・モデルのレビューではない。
+
+| 視点 | 反応・粗指摘 | 適用した処置 |
+| --- | --- | --- |
+| ローカル生成ワークフロー利用者 | 「プレビューが表示されても、別モデルの画像なら判断を誤る。200と画像形式だけでは不十分。」 | 通常名の既存テストも画素を検査するよう強化し、特殊文字を含む名前には黒い別モデルのカバー、対応ファイルには白い画像を置いて返却内容を確認した。 |
+| デバイス・回帰テスト保守者 | 「Linuxで有効な `?`・`*` はWindowsでファイルを作れない。共通CIで作成自体が失敗するテストを入れないでほしい。」 | 該当するファイル・ディレクトリ名のケースだけ `os.name == 'nt'` でスキップ。`[]` と通常名のケースは維持した。Windows・macOS実機は未検証。 |
+
+wiki index に確認済みの挙動とテストへのリンクを追加し、relations の index 証拠ハッシュを更新した。リポ間の責務・依存関係・既存概念は変更なし。実モデル生成・GPU推論は検証対象外。
+
+全体gateの実行条件: 変更前に起動した `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` は動画変換テストまで進行し、修正済み内容での最終gateへ切り替えるため、自分の pytest PID 1111258 に SIGTERM を送って終了した（make exit 2、`/tmp/comfyui-20261023-170524-baseline.log`）。この中断を成功として数えない。最終gateは同じPython・既定のスレッド設定で起動し、追加ケースを含めて検証する。
+
+- AC3 最終gate: `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` → exit 0。最終集計行は出なかったため、ANSI色を除去した行末マーカーを数え、収集2031件＝`PASSED` 1957件＋`SKIPPED` 74件、`FAILED`・`ERROR`・`XFAIL`・`XPASS` 各0件を確認した。末尾の websocket テストまで到達。ログ: `/tmp/comfyui-20261023-170524-final-tests.log`。Ruffは上記の同じPython差分に対する成功結果を使用。既定の `make test` の環境不備は修正しておらず、実行時は既存のPythonを指定する。
+- AC4 記録検査: 新しいwikiのリンク先3件の実在とlog見出し、relations内の当リポ証拠2件（index・README）のSHA-256一致を確認した。最終 `git diff --check` も成功。成果はプレビュー検索の改善1件で、独立した別改善・upstream操作・merge・push・deployは行っていない。

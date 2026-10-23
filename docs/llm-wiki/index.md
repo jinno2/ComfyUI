@@ -5,6 +5,8 @@
 
 ## Verified Knowledge
 
+- モデルプレビューの検索はパス全体を `glob.escape` し、モデル名・格納先の `[]`・`?`・`*` を文字として扱う。対応画像と safetensors 内のカバー画像をHTTP応答の画素で確認し、既存のパス・symlink防御も検証。出典: [`get_model_previews`](../../app/model_manager.py)、[回帰テスト](../../tests-unit/app_test/model_manager_test.py)、[検証記録](log.md#2026-10-23--モデルプレビュー検索でglob特殊文字をリテラルに扱う)。`?`・`*` を含むファイルの実検証はLinux上（Windowsでは作成不可）。
+
 - `safe_linear` の全 GPU 一括切替と「テストゼロ」という旧指摘は解消済み。現行のデバイス別状態・エラー解放先と6件の CPU・モック回帰テスト、実機検証の限界は [解析文書の2.2節](../CODEBASE_ANALYSIS.md#22-モデル管理サンプリング層) を参照（2026-10-23、コードとテストを照合）。
 
 - 成果物: 上流 comfyanonymous/ComfyUI（モジュラー型 AI コンテンツ生成エンジン）のローカル fork/ワーキングコピー。README は上流本文のまま。（出典: README.md、上流 GitHub リポ表示）
