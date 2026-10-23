@@ -16,4 +16,4 @@ conflicts:
     status: "resolved"
     active_workaround:
       decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
-      summary: "Resolved by fresh measurement: 57 at 40a7bdef (2026-10-23T00:39:24Z, measured inside the recording run) after 56 at 35d5cd46 (2026-10-22T23:52Z). Intermediate snapshots 33..55 (2026-10-16..22) are points of the same growing a402fd40^2..HEAD series; per-run entries were GC'd from this ledger and are retrievable from git history and claims.ndjson. Re-measure whenever the fork-state question recurs. Linked AMB-FORK-001 carries the same resolution (status: resolved)."
+      summary: "Resolved by fresh measurement: 59 at fdf1eda3 (2026-10-23T01:21:29Z, measured inside the recording run) after 57 at 40a7bdef (2026-10-23T00:39:24Z). Intermediate snapshots 33..56 (2026-10-16..23) are points of the same growing a402fd40^2..HEAD series; per-run entries were GC'd from this ledger and are retrievable from git history and claims.ndjson. Re-measure whenever the fork-state question recurs. Linked AMB-FORK-001 carries the same resolution (status: resolved)."
