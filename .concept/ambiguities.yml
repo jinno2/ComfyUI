@@ -83,28 +83,56 @@ ambiguities:
   - id: "AMB-Q3-001"
     term: "UnitTestGate"
     topic: "Q3 denominator versus invariant budget"
-    status: "open"
+    status: "resolved"
     severity: "medium"
-    uncertainty: 0.45
+    uncertainty: 0.15
     candidates:
       - "Count every test source file in the denominator, as the metric's measurement method states"
-      - "Count only files whose tests encode extractable cross-test invariants; that subset has not been inventoried"
-    missing_info:
-      - "Auditable list of test files that encode constraints suitable for repository-level invariants"
+      - "Count only files whose tests encode extractable cross-test invariants"
+    missing_info: []
     linked_conflicts: []
     auto_decision:
       status: "applied"
-      decision_key: "AUTO:Q3.denominator:retain_evidence_only"
-      chosen: "Keep only evidence-backed invariants; report Q3 as failed under the literal 188-test-file proxy (8/188=4.3%). Do not add inferred constraints to satisfy the ratio. The 60-invariant cap cannot reach 50% of 188 files; revisit only after defining the extractable-file denominator."
+      decision_key: "AUTO:Q3.denominator:audited_extractable_subset"
+      chosen: "Use the audited extractable subset: 185 of 188 test files encode repository-level constraints; 3 test only internal helpers. Keep evidence-backed invariants only."
       policy: "primary_evidence + budget_integrity"
-      confidence_auto: 0.8
-      decided_at_run: "2026-10-22T21:55:03Z"
+      confidence_auto: 0.85
+      decided_at_run: "2026-10-23T02:27:05Z"
       expires_after_runs: 20
       revert_triggers:
-        - "an audited extractable-file inventory changes the denominator"
-    last_touched_run: "2026-10-22T22:04:35Z"
+        - "a current test-file inventory differs from the audited inventory"
+    last_touched_run: "2026-10-23T02:27:05Z"
     evidence:
-      - source: "command:find tests-unit tests -name 'test_*.py' -o -name '*_test.py' | wc -l (2026-10-22T23:47Z)"
-        quote: "179 tests-unit + 9 tests = 188 test source files; invariants.yml has 8 records, 3 with test checks"
+      - source: ".concept/test_constraint_inventory.ndjson"
+        quote: "188 entries: encodes=185, internal_only=3, unclassified=0; each current test path matched the inventory"
       - source: "10_concept_sync_system.md#B-10"
         quote: "invariants.yml|invariants 最大 **60**"
+
+  - id: "AMB-Q3-002"
+    term: "UnitTestGate"
+    topic: "Q3 threshold and test-anchor aggregation semantics"
+    status: "open"
+    severity: "medium"
+    uncertainty: 0.4
+    candidates:
+      - "Count unique extractable test files with at least one invariant check (current 1/185; 93 files reach 50%)"
+      - "Count test-anchored invariant checks per file; aggregation semantics need definition"
+    missing_info:
+      - "Whether one invariant may cover multiple test files and whether Q3 counts unique files or invariant checks"
+    linked_conflicts: []
+    auto_decision:
+      status: "applied"
+      decision_key: "AUTO:Q3.coverage:report_observed"
+      chosen: "Report the current unique-file observation as 1/185 (0.5%) and FAIL against the existing 50% threshold. Do not invent invariant coverage or relax the threshold; the 60-invariant cap alone does not prove the target impossible because one invariant may contain multiple test checks."
+      policy: "primary_evidence + budget_integrity"
+      confidence_auto: 0.85
+      decided_at_run: "2026-10-23T02:27:05Z"
+      expires_after_runs: 20
+      revert_triggers:
+        - "owner or metric specification defines a different Q3 aggregation rule"
+    last_touched_run: "2026-10-23T02:27:05Z"
+    evidence:
+      - source: ".concept/ontology_metrics.json#quality_metrics.Q3"
+        quote: "1/185 (0.5% test-anchored coverage); 50% of 185 requires 93 anchored files"
+      - source: "10_concept_sync_system.md#C-3"
+        quote: "invariants.yml schema represents checks as a list of test targets"
