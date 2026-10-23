@@ -60,3 +60,24 @@ Task: `tas-task-508bebb6a4041f01ead1897a53705607288280ee17b06e7176056628f0451d5e
 | --- | --- | --- |
 | ローカル生成ワークフロー利用者 | 「詳細節を直しても、冒頭と改善候補に全 GPU 一括切替・テスト不在と残っていると、まだ修正が必要なのか迷う。」 | 要約表、H5・M6、戦略的注記、検証表、末尾の未検証事項を同じ実装証拠で訂正した。 |
 | デバイス・回帰テスト保守者 | 「6件のテストだけで実機の複数 GPU も安全とは言えない。旧記述のオーバーヘッドゼロ・数値健全も測定根拠がない。」 | CPU・モックでの保証範囲と実機・性能の未検証を明記し、根拠のない性能・数値評価を削除。行番号に依存した参照をファイルリンクとシンボル名へ変更した。 |
+
+
+## 2026-10-23 — API ログの認証・Cookie ヘッダを両方向でマスク
+
+Task: `tas-task-508bebb6a4041f01ead1897a53705607288280ee17b06e7176056628f0451d5e`（AC1–AC4）。LOOP.md の候補と既存計画・ソース・テスト・docs・CI を比較し、解析文書 H1 に残るログ漏えいを1件の改善として選択した。既定の `make test` は worktree の `.venv` 不在で起動できたテストがなく、既存環境の指定で検証を継続した。
+
+判断と反証: H1 の「全リクエスト認証ヘッダが無マスク」という旧記述は、既存の `_redact_headers` が Authorization と X-API-KEY を処理しているため現状と異なる。一方、Cookie とレスポンスヘッダは未処理だった。修正前の実ファイル回帰テストは `2 failed, 2 passed`（exit 1）となり、両方向で機密値が残ることを再現した。既存の共通処理に Cookie・Set-Cookie を追加し、レスポンスでも同じ処理を使う2行の実装変更とした。
+
+- AC1・AC2: `/home/jinno/ComfyUI/.venv/bin/python -m pytest tests-unit/comfy_api_nodes_test/request_logger_test.py -q` → `5 passed in 7.84s`、exit 0。片方向ずつ・両方向同時のローカルログ実ファイルで、大文字小文字を混ぜた4種の機密値が消え、`***` の記録数が対象方向数と一致した。通常ヘッダ・ステータス・入力辞書の維持と、ヘッダが None/空辞書の場合も確認した。ログ: `/tmp/comfyui-20261023-150512-redaction-final.log`。
+- AC3: 既定の `make test` → exit 2（`.venv/bin/python` 不在、recipe error 127）。`make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` → exit 0。最終集計行は出なかったため、ANSI 色を除去したログの行末結果マーカーを集計し、収集2007件と `PASSED` 1933件＋`SKIPPED` 74件の一致、`FAILED`・`ERROR`・`XPASS` 0件を確認した。末尾の websocket テストまで到達。ログ: `/tmp/comfyui-20261023-150512-final-tests.log`。変更前の同じ gate も exit 0（収集2002件、結果マーカー1928件＋74件）だった。
+- AC3: venv には Ruff がなかったため既存の `/home/jinno/.local/bin/ruff check comfy_api_nodes/util/request_logger.py tests-unit/comfy_api_nodes_test/request_logger_test.py` を使用し `All checks passed!`、exit 0。`git diff --check` も成功。
+- 証拠 SHA-256: `comfy_api_nodes/util/request_logger.py` = `84e02f245e51c1981c6aa04f4343377773c2e0c11ff9b33d6b36ba37e2f7f3cf`、`tests-unit/comfy_api_nodes_test/request_logger_test.py` = `23d6ba7ffa65c71df11e81a64a7c8bae0dc4448a5f3d2c9ee39306d45f976eed`。
+
+AC4 ペルソナレビュー: `.claude/skills/persona-review/SKILL.md` に従い、Codex が元のH1、差分、テストの実ファイル検証を照合した視点別自己レビュー。独立した人物・モデルのレビューではない。
+
+| 視点 | 反応・粗指摘 | 適用した処置 |
+| --- | --- | --- |
+| ローカル生成ワークフロー利用者 | 「認証情報の漏えい全般が直ったように読めると、何をログに残せるか判断を誤る。」 | 解析文書の H1 と要約・検証表を更新し、対象が4種のヘッダに限られ、URL・クエリ・本文・エラー文字列は対象外と明記した。 |
+| デバイス・回帰テスト保守者 | 「片方向ずつ成功しても、リクエストとレスポンスが同時に渡る実際の呼び出しは検査していない。」 | 両方向同時のケースを追加し、マスク済みヘッダの記録数と入力辞書の不変性も確認した。全体 gate でも5件すべて PASSED を確認した。 |
+
+関連記録: 新規テスト追加に合わせ、wiki index の188ソース監査を過去のスナップショットと明記した（監査の再実施・現行カバレッジの更新ではない）。リポ間の責務は変更なし。指示された証拠検査で relations.md の古い index ハッシュを更新し、既存4エントリすべてのパス・SHA-256を実ファイルと照合した。今回の成果はヘッダログの修正1件であり、外部サービス・実モデル生成・デバイス別推論は検証対象外。

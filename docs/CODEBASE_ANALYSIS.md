@@ -15,7 +15,7 @@
 
 | 系列 | 最重要項目 |
 |---|---|
-| セキュリティ | API 認証ヘッダが無マスクで平文ログ化(`comfy_api_nodes/util/client.py:701` → `request_logger.py:103`)。/ws の clientId 乗っ取り(`server.py:270-278`) |
+| セキュリティ | API ログの認証・Cookie ヘッダはリクエスト・レスポンス両方でマスク（2.5節）。/ws の clientId 乗っ取り(`server.py:270-278`) |
 | 信頼性 | `prompt_worker` に例外ガードが無く、ワーカー永久死滅 → キュー詰まり(`main.py:337-407`)。`/interrupt` のTOCTOU(`server.py:1136-1148`) |
 | フォーク保守性 | `safe_linear` の全 GPU 一括切替は解消済み（デバイス別 set、2.2節）。マルチGPUcond経路の230行重複(`samplers.py:357`) |
 | テスト | 既知レッド1件が `continue-on-error: true` で隠蔽(`test-unit.yml:15`)。`comfy/ldm/` のテスト不足。`safe_linear` は6件の CPU・モック回帰テストあり（2.2節） |
@@ -106,7 +106,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 **構成**: 36プロバイダノード(V3で統一)+ `util/client.py`(990行)のリクエスト基盤。リトライ(408/5xx + 429別枠16回、Retry-After 150秒上限)、中断モニタ、presigned 2段アップロード。全プロバイダ呼び出しは `api.comfy.org/proxy/<provider>/...` 経由で**ローカルにサードパーティ鍵は存在しない**設計(良好)。
 
 **評価**:
-- **最重要**: `log_request_response` が全リクエストのヘッダ(`Authorization: Bearer` 含む)を無条件・無マスクで `temp/api_logs/*.log` に書き出す(`client.py:701-708` → `request_logger.py:103-104`)(裏取り済み)。ディスク上の平文資格情報経路
+- **H1 対応済み（2026-10-23）**: [`request_logger.py`](../comfy_api_nodes/util/request_logger.py) の `log_request_response` は `Authorization`・`X-API-KEY`・`Cookie`・`Set-Cookie` を大文字小文字を区別せず、リクエスト・レスポンス両方で `***` に置換する。通常ヘッダと呼び出し元の辞書は維持する。[回帰テスト](../tests-unit/comfy_api_nodes_test/request_logger_test.py) はローカルログの実ファイルを検査し、通信は行わない。対象はヘッダのみで、URL・クエリ・本文・エラー文字列は変更していない。
 - `apis/__init__.py` が209KBなのは datamodel-codegen 生成物(580クラス、`Type1`/`Status2` 等の衝突名、生成元の `filtered-openapi.yaml` がリポジトリ外で再現不能)
 - poll 失敗が裸 `Exception`(`client.py:402-405`)で呼び出し側に区別不可能
 - `_generate_operation_id`/`_monitor` クロージャの3重実装、アップロード PUT ループが `_request_base` の手書き並行品
@@ -130,13 +130,13 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 ## 3. 統合改善提案(優先度付き)
 
-H5・M6 は 2026-10-23 に実装・テストを再確認し、対応済みに訂正した。その他の提案の現状は今回の再確認対象外。
+H1・H5・M6 は 2026-10-23 に実装・テストを確認し、対応済みに訂正した。その他の提案の現状は今回の再確認対象外。
 
 ### High(全体優先度順)
 
 | # | 提案 | 対象 | 種別 |
 |---|---|---|---|
-| H1 | API リクエストログの `Authorization`/`X-API-KEY`/`Cookie` ヘッダをマスク | `request_logger.py` | upstream 継承(要パッチ or 上流PR) |
+| H1 | **対応済み**: 認証・Cookie ヘッダをリクエスト・レスポンス両方でマスク（2.5節） | `request_logger.py` | **フォーク対応済み** |
 | H2 | `prompt_worker` ループを try/except でガード(ログ + `task_done` エラー処理 + 継続) | `main.py:337-407` | upstream 継承 |
 | H3 | `/interrupt` を既存の `interrupt_if_running` に置換(コードは実装済み・実証済み) | `server.py:1136-1148` | upstream 継承 |
 | H4 | 赤テスト修正(`nodes_math_test.py:190` の期待メッセージ更新)+ fork の CI から `continue-on-error: true` を除去 | `tests-unit/`, `.github/workflows/` | **フォーク対応** |
@@ -173,7 +173,7 @@ H5・M6 は 2026-10-23 に実装・テストを再確認し、対応済みに訂
 
 ### 戦略的注記(フォークとしての方針)
 
-Upstream 継承の指摘(H1-H3, H6-H8)は「フォークで即パッチ(同期コストと引き換え)」か「上流 PR(いつ取り込まれるか不明)」かの選択を要る。**フォーク対応の H5・M6 は対応済み**。当初の候補には H4・M5・M7 も含まれるが、今回その現状は再確認していない。upstream 継承分は、再同期時のコンフリクトを避けるため原則上流 PR を推奨(特に `server.py`/`main.py` は改変密度が高い領域)。
+Upstream 継承の指摘(H2-H3, H6-H8)は「フォークで即パッチ(同期コストと引き換え)」か「上流 PR(いつ取り込まれるか不明)」かの選択を要る。**フォーク対応の H1・H5・M6 は対応済み**。当初の候補には H4・M5・M7 も含まれるが、今回その現状は再確認していない。upstream 継承分は、再同期時のコンフリクトを避けるため原則上流 PR を推奨(特に `server.py`/`main.py` は改変密度が高い領域)。
 
 ---
 
@@ -181,7 +181,7 @@ Upstream 継承の指摘(H1-H3, H6-H8)は「フォークで即パッチ(同期�
 
 | 指摘 | 検証方法 | 結果 |
 |---|---|---|
-| 認証ヘッダの平文ログ | `request_logger.py:95-125` と `client.py:699-710` を再読 | ✅ 確認(ヘッダを無マスクでファイル書き出し) |
+| 認証・Cookie ヘッダのログマスク | `request_logger.py` の `log_request_response` と `request_logger_test.py` で実ファイルを照合 | 2026-10-23 修正: リクエスト・レスポンス両方で4種のヘッダをマスク（2.5節） |
 | prompt_worker に例外ガードなし | `main.py:312-420` の構造確認(try/except の不在) | ✅ 確認 |
 | /interrupt のTOCTOU + 原子版未使用 | `server.py:1136-1148` と `execution.py:1311-1330` を再読 | ✅ 確認(docstring が当該バグを自述) |
 | safe_linear のデバイス別切替とエラー解放先 | `comfy/ops.py` の `safe_linear`、`comfy/model_management.py` の `discard_cuda_async_error` と `test_safe_linear.py` を照合 | 2026-10-23 再確認: デバイス別 set、入力デバイス指定。CPU・モック回帰テスト6件成功（実機の複数 GPU は未検証） |
