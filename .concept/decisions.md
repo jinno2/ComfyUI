@@ -10,7 +10,7 @@
 
 ## AUTO:ForkUpstreamSync.count:git_recency
 - Status: ACTIVE
-- Chosen: Latest recorded snapshot was measured as a402fd40^2..HEAD (59 at fdf1eda3 on 2026-10-23T01:21:29Z, inside the recording run); older figures are dated historical snapshots
+- Chosen: Latest recorded snapshot was measured as a402fd40^2..HEAD (60 at f0a0a09f on 2026-10-23T01:41:55Z, inside the recording run); older figures are dated historical snapshots
 - Policy: recency + primary_measurement
 - Expires After Runs: 20
 - Linked: AMB-FORK-001 (resolved) / CFLT-FORK-001 (resolved 2026-10-16)
@@ -25,7 +25,7 @@
 - Revert Triggers: audited extractable-file inventory changes the denominator
 
 ## Verification Log (cache: latest measurement per decision key)
-- 2026-10-23T01:21:29Z (run_id clock) `git rev-list --count a402fd40^2..HEAD` → 59; `git rev-list --count up/master..HEAD` → 554; `git rev-list --count HEAD..up/master` → 0 (upstream fully contained); up/master tip f6c162dd (2026-06-23, stale)
-- Measured in worktree @ fdf1eda3, inside the run that records it; all mappings/evidence symbols re-verified present at fdf1eda3
-- Evidence ingest (same run): fdf1eda3 fixed docs/MAKEFILE.md Test table (`make test` = unit only; `make test-all` = unit + integration) — direct entailment of AUTO:UnitTestGate.scope:unit_only, docs now match the Makefile
+- 2026-10-23T01:41:55Z (run_id clock) `git rev-list --count a402fd40^2..HEAD` → 60; `git rev-list --count up/master..HEAD` → 555; `git rev-list --count HEAD..up/master` → 0 (upstream fully contained); up/master tip f6c162dd (2026-06-23, stale)
+- Measured in worktree @ f0a0a09f, inside the run that records it; all 16 mapped file paths and 7 code symbols re-verified present at f0a0a09f
+- Evidence ingest (2026-10-23T01:21Z run): fdf1eda3 fixed docs/MAKEFILE.md Test table (`make test` = unit only; `make test-all` = unit + integration) — direct entailment of AUTO:UnitTestGate.scope:unit_only, docs now match the Makefile
 - Run reports are each run's final CYCLE_SUMMARY output; this section carries only the latest durable measurement trace (not a history log)
