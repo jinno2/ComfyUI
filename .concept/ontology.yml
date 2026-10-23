@@ -88,9 +88,7 @@ canonical_terms:
       - source: "docs/llm-wiki/index.md"
         quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する"
       - source: "docs/CODEBASE_ANALYSIS.md#L6"
-        quote: "フォーク独自コミットは13件(2026-09-20 観測の履歴値。自律ループ作業で増え続けるため現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測)"
-      - source: ".concept/claims.ndjson (append-only ForkUpstreamSync series)"
-        quote: "term_canonical=ForkUpstreamSync claims carry each dated measurement (stable example: 60 at f0a0a09f, 2026-10-23T01:41:55Z); this pointer never needs rewriting"
+        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測"
 
   Node:
     id: "TERM-NODE"

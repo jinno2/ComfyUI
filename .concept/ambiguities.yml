@@ -54,8 +54,6 @@ ambiguities:
     evidence:
       - source: "docs/llm-wiki/index.md"
         quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する"
-      - source: ".concept/claims.ndjson (ForkUpstreamSync measurement series)"
-        quote: "append-only dated measurements (stable example: 61 at 0e3380c5, 2026-10-23T01:50:20Z); this pointer never needs rewriting"
 
   - id: "AMB-UNIT-002"
     term: "UnitTestGate"

@@ -56,12 +56,12 @@ invariants:
     status: "stable"
     strength: "soft"
     statement: "Fork-specific commit counts are measured fresh as a402fd40^2..HEAD (commits after the single upstream merge); ahead-counts against the local up/master ref include merged upstream content and are not fork-specific counts."
-    rationale: "The local up/master ref is stale (f6c162dd, 2026-06-23); its 548-ahead measurement at 608da588 includes merged upstream commits and is not the fork-specific count."
+    rationale: "The local up/master ref is stale (f6c162dd, 2026-06-23); its ahead count includes merged upstream commits and is not the fork-specific count."
     evidence:
       - source: "docs/llm-wiki/index.md"
         quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する"
-      - source: ".concept/claims.ndjson (ForkUpstreamSync measurement series)"
-        quote: "dated measurements pair a small fork-specific count with a much larger up/master..HEAD ahead-count (stable example: 61 vs 556 at 0e3380c5) because the stale local up/master ref includes merged upstream content; this pointer never needs rewriting"
+      - source: "docs/llm-wiki/index.md"
+        quote: "この ref は stale で upstream の最新状態を示さない。"
     checks:
       - type: "manual_review"
         target: "git log --oneline a402fd40^2..HEAD"

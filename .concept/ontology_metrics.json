@@ -1,5 +1,5 @@
 {
-  "run_id": "2026-10-23T03:35:09Z",
+  "run_id": "2026-10-23T07:01:01Z",
   "total_terms": 12,
   "by_layer": {
     "core": 3,
@@ -8,7 +8,7 @@
   },
   "draft_ratio": 0.0,
   "queue_pending": 0,
-  "claims_retained_lines": 80,
+  "claims_retained_lines": 82,
   "decisions_md_lines": 37,
   "gc_actions": {
     "merged": 0,
@@ -41,10 +41,10 @@
       "basis": "Zero canonical terms have status draft."
     },
     "Q5": {
-      "value": "4/80 (5.0% physical; 1/80 (1.3%) effective)",
+      "value": "4/82 (4.9% physical; 1/82 (1.2%) effective)",
       "threshold": "20% maximum",
       "status": "PASS",
-      "basis": "Four physical __UNMAPPED__ lines remain in 80 retained claims. Three (lines 10/11/24, no-internet rule) are superseded by re-canonicalization claims under ComfyUI (boundary/INV-NO-NET-001); one (line 63, evidence-fidelity audit) is intentionally unmapped because ledger-maintenance facts belong to no domain concept. Effective __UNMAPPED__ ratio: 1/80 = 1.25%."
+      "basis": "Four physical __UNMAPPED__ lines remain in 82 retained claims. Three (no-internet rule) are superseded by re-canonicalization claims under ComfyUI (boundary/INV-NO-NET-001); one is intentionally unmapped because ledger-maintenance facts belong to no domain concept. Effective __UNMAPPED__ ratio: 1/82 = 1.22%."
     },
     "Q6": {
       "value": 12,

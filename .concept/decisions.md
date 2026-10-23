@@ -33,5 +33,5 @@
 - Revert Triggers: owner or metric specification defines a different Q3 aggregation rule
 
 ## Verification Log (cache: latest measurement per decision key)
-- In-worktree observation at b9ce5171 `git rev-list --count a402fd40^2..HEAD` → 62; `git rev-list --count up/master..HEAD` → 557; `git rev-list --count HEAD..up/master` → 0 (upstream fully contained); up/master tip f6c162dd (2026-06-23, stale)
+- In-worktree observation at 984d68f4 `git rev-list --count a402fd40^2..HEAD` → 64; `git rev-list --count up/master..HEAD` → 559; `git rev-list --count HEAD..up/master` → 0 (upstream fully contained); up/master tip f6c162dd (2026-06-23, stale)
 - Run reports are each run's final CYCLE_SUMMARY output; this section carries only the latest durable measurement trace (not a history log)
