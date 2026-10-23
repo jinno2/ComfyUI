@@ -154,3 +154,20 @@ Run: `20261023-190012-301392`。Task: `tas-task-508bebb6a4041f01ead1897a53705607
 | デバイス・回帰テスト保守者 | 「件数だけだと追試できない。どの境界を数えたかと作業コピーの状態を分けてほしい。」 | fork固有件数、origin/mainとの差、ローカルup/masterとの差を別コマンドと結果で記録。 |
 
 検証: `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` → exit 0（約12分）。RTK保存ログ `/home/jinno/.local/share/rtk/tee/1792782944_make_test_PYTHON__home_jinno_ComfyUI__ve.log` の最終到達テストは websocket feature negotiation。詳細行を数えると 2031件＝PASSED 1957件＋SKIPPED 74件、FAILED / ERROR / XFAIL / XPASS は0件。index のrelations SHA-256を実ファイルから再計算して照合し、`git diff --check` も成功。既定 `make test` は worktree の `.venv/bin/python` 不在で exit 2 だった。コード・依存・外部通信・モデル動作の変更はなく、今回の数値計測はその時点のローカルGit参照に限る。最新 upstream のlag、GPUや実モデル動作は未検証。
+
+## 2026-10-24 — Multidimensional sampler mask bounds
+
+Run: `20261023-193422-189800`。Task: `tas-task-508bebb6a4041f01ead1897a53705607288280ee17b06e7176056628f0451d5e`（AC1–AC4）。LOOP の最優先 gate を先に確認し、既存 ComfyUI venv で `make test` が exit 0（2031 collected: 1957 PASSED, 74 SKIPPED）だったため、次候補の `comfy/samplers.py` に残る `set_area_to_bounds` の `dim != 2` TODO を選んだ。旧 `get_mask_aabb` は2軸の座標だけを返し、resolver も固定4要素の area を生成していた。
+
+`get_mask_aabb` と area 生成を次元数に沿って計算するよう変更。area は従来通り sizes、offsets の順で、2D は既存の8×8最小サイズを保持。3D latent では先行軸の最小サイズを1、末尾2軸を8とし、時間方向に不要な領域を広げない。空 mask の offset は全軸0。テストは `get_area_and_mult` まで通し、3D crop と mask alignment を CPU/CUDA で検査した。
+
+ペルソナレビュー（`.claude/skills/persona-review/SKILL.md`、Codex による視点別自己レビュー。独立レビューではない）:
+
+| 視点 | 素の反応・粗指摘 | 適用 |
+|---|---|---|
+| ローカル生成ワークフロー利用者 | 「3D mask の時間方向まで最小8にすると、必要以上のフレームを計算しそう。」 | 先行軸は最小1にし、3D の temporal extent を保つ回帰テストを追加。 |
+| デバイス・回帰テスト保守者 | 「bounds の tuple だけでは、sampler が同じ範囲で latent と mask を切るか分からない。」 | `get_area_and_mult` の結果 shape、latent crop、mask multiplier を検査。CPU/CUDA で実行。 |
+
+検証: focused `pytest tests-unit/comfy_test/test_sampler_masks.py -q` → `8 passed`（CPU/CUDA）。`ruff check comfy/samplers.py tests-unit/comfy_test/test_sampler_masks.py` と `git diff --check` は成功。最終 gate `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` → exit 0、2039 collected: 1965 PASSED + 74 SKIPPED、FAILED / ERROR / XFAIL / XPASS は0件。ログ: `/home/jinno/.local/share/rtk/tee/1792785452_make_test_PYTHON__home_jinno_ComfyUI__ve.log`。既定の `make test` は worktree-local `.venv/bin/python` が無く exit 2、ai-hub 共通 venv は `torch` 不在で利用できなかった。
+
+証拠 SHA-256: `comfy/samplers.py` `62a5b7661039af57a91a3ac03ef7cbf324b8d6978265fa270d2359d60a249875`; `tests-unit/comfy_test/test_sampler_masks.py` `62e7069cc702acdb6fc3c5112ea15ea57b32ae39f5eb5f242aca54a6150d1d96`; `docs/llm-wiki/index.md` `5921d49413303d4939788aadfa8aa694f2026d819fd918f337e53415106d1e66`。relationships memo は repository 間の責務・依存に変更がないため更新なし。フル denoising workflow と CUDA 以外の device backend は未検証。
