@@ -73,26 +73,24 @@ canonical_terms:
     id: "TERM-FORK"
     layer: "domain"
     status: "stable"
-    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured fresh as a402fd40^2..HEAD; the count grows with autonomous loop work (13 on 2026-09-20, ~20 on 2026-09-26, 35 on 2026-10-16, 59 on 2026-10-23T01:21Z at fdf1eda3, 60 on 2026-10-23T01:41Z at f0a0a09f; older per-run snapshots are GC'd, retrievable from git history and claims.ndjson). The local up/master ref (f6c162dd, 2026-06-23) is stale and fully contained in HEAD; its ahead count includes merged upstream commits."
+    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured fresh on demand as a402fd40^2..HEAD; the count grows with autonomous loop work. The measured count is a time-series value, not part of this definition: dated values live only in claims.ndjson (append-only series) and the decisions.md verification-log cache. The local up/master ref (f6c162dd, 2026-06-23) is stale and fully contained in HEAD; its ahead count includes merged upstream commits."
     synonyms: ["フォーク乖離", "upstream sync"]
     boundaries:
       includes: ["fork-specific commits", "a402fd40^2..HEAD measurement method", "upstream merge compatibility"]
-      excludes: ["direct pushes to upstream", "PR/issue operations against upstream", "ahead-counts against the stale up/master ref"]
+      excludes: ["direct pushes to upstream", "PR/issue operations against upstream", "ahead-counts against the stale up/master ref", "per-run count snapshots embedded in SOT (dated values belong to claims.ndjson and the decisions.md cache)"]
     related_terms: ["ComfyUI"]
     assumptions:
       - id: "ASM-FORK-001"
-        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD (60 at f0a0a09f on 2026-10-23T01:41:55Z, in-worktree, measured inside the recording run); wiki/CODEBASE_ANALYSIS figures are dated historical snapshots plus a pointer to this command"
+        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD; the latest value is cached only in decisions.md (verification log) and the full series in claims.ndjson — dated counts are never re-embedded into ontology/invariants/ambiguities"
         decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
         expires_after_runs: 20
     evidence:
-      - source: "git:a402fd40^2..HEAD (2026-10-23T01:41:55Z)"
-        quote: "rev-list --count = 60 @ f0a0a09f; up/master..HEAD = 555; HEAD..up/master = 0 (upstream fully contained); measured inside the recording run (same clock as run_id)"
-      - source: "git:a402fd40^2..HEAD (2026-10-23T01:21:29Z)"
-        quote: "rev-list --count = 59 @ fdf1eda3; up/master..HEAD = 554; HEAD..up/master = 0 (upstream fully contained). Older per-run snapshots of the same series (33..57 across 2026-10-16..23) are GC'd from this file; retrievable from git history and claims.ndjson"
       - source: "docs/llm-wiki/index.md"
-        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する（2026-09-26 観測 20、2026-10-22T05:10Z 観測 43、2026-10-22T20:18Z 観測 48）"
+        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する"
       - source: "docs/CODEBASE_ANALYSIS.md#L6"
-        quote: "フォーク独自コミットは13件(2026-09-20 観測の履歴値。自律ループ作業で増え続けるため現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測 — 2026-10-22 時点で 43)"
+        quote: "フォーク独自コミットは13件(2026-09-20 観測の履歴値。自律ループ作業で増え続けるため現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測)"
+      - source: ".concept/claims.ndjson (append-only ForkUpstreamSync series)"
+        quote: "term_canonical=ForkUpstreamSync claims carry each dated measurement (stable example: 60 at f0a0a09f, 2026-10-23T01:41:55Z); this pointer never needs rewriting"
 
   Node:
     id: "TERM-NODE"

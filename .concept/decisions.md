@@ -10,8 +10,8 @@
 
 ## AUTO:ForkUpstreamSync.count:git_recency
 - Status: ACTIVE
-- Chosen: Latest recorded snapshot was measured as a402fd40^2..HEAD (60 at f0a0a09f on 2026-10-23T01:41:55Z, inside the recording run); older figures are dated historical snapshots
-- Policy: recency + primary_measurement
+- Chosen: Fork-specific count is measured fresh as a402fd40^2..HEAD; latest value cached below, full series in claims.ndjson; SOT files stay snapshot-free (2026-10-23 restructure)
+- Policy: recency + primary_measurement + bloat_control
 - Expires After Runs: 20
 - Linked: AMB-FORK-001 (resolved) / CFLT-FORK-001 (resolved 2026-10-16)
 - Revert Triggers: primary_evidence_contradiction
@@ -25,7 +25,6 @@
 - Revert Triggers: audited extractable-file inventory changes the denominator
 
 ## Verification Log (cache: latest measurement per decision key)
-- 2026-10-23T01:41:55Z (run_id clock) `git rev-list --count a402fd40^2..HEAD` → 60; `git rev-list --count up/master..HEAD` → 555; `git rev-list --count HEAD..up/master` → 0 (upstream fully contained); up/master tip f6c162dd (2026-06-23, stale)
-- Measured in worktree @ f0a0a09f, inside the run that records it; all 16 mapped file paths and 7 code symbols re-verified present at f0a0a09f
-- Evidence ingest (2026-10-23T01:21Z run): fdf1eda3 fixed docs/MAKEFILE.md Test table (`make test` = unit only; `make test-all` = unit + integration) — direct entailment of AUTO:UnitTestGate.scope:unit_only, docs now match the Makefile
+- 2026-10-23T01:50:20Z (run_id clock, worktree @ 0e3380c5) `git rev-list --count a402fd40^2..HEAD` → 61; `git rev-list --count up/master..HEAD` → 556; `git rev-list --count HEAD..up/master` → 0 (upstream fully contained); up/master tip f6c162dd (2026-06-23, stale). Growth since prior anchor 60 @ f0a0a09f is the single loop commit 0e3380c5 (.concept sync)
+- 2026-10-23T01:50Z run: SOT de-snapshot restructure per prior-run improvement feedback — dated per-run counts removed from ontology.yml (TERM-FORK), invariants.yml (INV-FORK-002) and ambiguities.yml (AMB-FORK-001); claims.ndjson and this cache are the only dated-value stores going forward
 - Run reports are each run's final CYCLE_SUMMARY output; this section carries only the latest durable measurement trace (not a history log)
