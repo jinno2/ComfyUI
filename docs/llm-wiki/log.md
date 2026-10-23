@@ -130,3 +130,27 @@ wiki index に確認済みの挙動とテストへのリンクを追加し、rel
 
 - AC3 最終gate: `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` → exit 0。最終集計行は出なかったため、ANSI色を除去した行末マーカーを数え、収集2031件＝`PASSED` 1957件＋`SKIPPED` 74件、`FAILED`・`ERROR`・`XFAIL`・`XPASS` 各0件を確認した。末尾の websocket テストまで到達。ログ: `/tmp/comfyui-20261023-170524-final-tests.log`。Ruffは上記の同じPython差分に対する成功結果を使用。既定の `make test` の環境不備は修正しておらず、実行時は既存のPythonを指定する。
 - AC4 記録検査: 新しいwikiのリンク先3件の実在とlog見出し、relations内の当リポ証拠2件（index・README）のSHA-256一致を確認した。最終 `git diff --check` も成功。成果はプレビュー検索の改善1件で、独立した別改善・upstream操作・merge・push・deployは行っていない。
+
+## 2026-10-23 — fork 履歴の現行計測 pointer を更新
+
+Run: `20261023-190012-301392`。Task: `tas-task-508bebb6a4041f01ead1897a53705607288280ee17b06e7176056628f0451d5e`（AC1–AC5）。LOOP の `make test` は `.venv/bin/python` 不在で exit 2（Makefile:452、recipe error 127）。これはテスト失敗ではなく、D1-1 の条件も venv 不在時は `not_needed` と定めている。次の具体作業として D1-2 を選択し、解析文書と wiki に残った古い fork 件数を、履歴値と再測定方法が区別できるよう更新した。
+
+仮定／反証: `up/master` の lag 0 を現在の upstream 同期状態と扱える、という仮定は、ref の tip が `f6c162ddcfbd7eefb39c06fe5b8d4c46e8d09f40`（2026-06-23）であることに反証される。したがって最新 upstream への遅れは未確認として、文書ではローカル ref の古さを明示した。
+
+計測時刻 `2026-10-23T19:02:33Z`。実行結果:
+
+- `git rev-list --count a402fd40^2..HEAD` → `69`
+- `git rev-list --left-right --count origin/main...HEAD` → `22 38`（origin/main 側のみ22、HEAD側のみ38）
+- `git rev-list --count HEAD..up/master` → `0`
+- `git log -1 --format=%H up/master` → `f6c162ddcfbd7eefb39c06fe5b8d4c46e8d09f40`
+
+`docs/CODEBASE_ANALYSIS.md` は13件を2026-09-20の履歴値と明記し、2026-10-23の計測値と再現コマンドを追記。Wiki index は20 / 43 / 48と、2026-10-22時点のup/master比較を履歴値として保持し、current値を再取得するコマンド群と古いrefの注意を明記した。現行数値の唯一の再現元はGit計測。relationsのindex SHA-256も更新した。
+
+ペルソナレビュー（`.claude/skills/persona-review/SKILL.md`、Codexによる視点別自己レビュー。独立レビューではない）:
+
+| 視点 | 素の反応・粗指摘 | 適用 |
+|---|---|---|
+| ローカル生成ワークフロー利用者 | 「up/master の lag 0 を見て、ComfyUI upstream に追いついていると誤解しそう。」 | ref の日付とSHAを記録し、現行 upstream の状態を示さないと明記。 |
+| デバイス・回帰テスト保守者 | 「件数だけだと追試できない。どの境界を数えたかと作業コピーの状態を分けてほしい。」 | fork固有件数、origin/mainとの差、ローカルup/masterとの差を別コマンドと結果で記録。 |
+
+検証: `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` → exit 0（約12分）。RTK保存ログ `/home/jinno/.local/share/rtk/tee/1792782944_make_test_PYTHON__home_jinno_ComfyUI__ve.log` の最終到達テストは websocket feature negotiation。詳細行を数えると 2031件＝PASSED 1957件＋SKIPPED 74件、FAILED / ERROR / XFAIL / XPASS は0件。index のrelations SHA-256を実ファイルから再計算して照合し、`git diff --check` も成功。既定 `make test` は worktree の `.venv/bin/python` 不在で exit 2 だった。コード・依存・外部通信・モデル動作の変更はなく、今回の数値計測はその時点のローカルGit参照に限る。最新 upstream のlag、GPUや実モデル動作は未検証。

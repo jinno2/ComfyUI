@@ -8,7 +8,7 @@ Repository: comfyui
 - Canonical sources: contracts:registry/organization/repositories/comfyui.yaml; contracts:registry/principles/escalation-chain.yaml
 - Change rule: resolve questions from this repository's wiki and canonical sources first, then escalate unresolved ownership questions to the parent.
 - Evidence: contracts:registry/organization/repositories/comfyui.yaml sha256:13d83bcea7a49803dc1a3cdb1bce5fb0a30404c6ef1458bb834eb284ba2df618
-- Evidence: ComfyUI:docs/llm-wiki/index.md sha256:53fdd74364df0e8c5aa6460b2888427540acddcc695d3e24df95f2f392bf81cd
+- Evidence: ComfyUI:docs/llm-wiki/index.md sha256:9d0167be9fc74020d51022448e0adbbc34ec6507f035c1e86f8e3f0c2d7e5ad1
 - Follow-up: [ ] business_operation_notes: its relations memo omits ComfyUI although the registry names it as the parent; add ComfyUI to the child list and complete when the entry has current evidence.
 
 ## Comfy-Org/ComfyUI
