@@ -10,7 +10,7 @@
 
 ## AUTO:ForkUpstreamSync.count:git_recency
 - Status: ACTIVE
-- Chosen: Latest recorded snapshot was measured as a402fd40^2..HEAD (55 at ae9f059d on 2026-10-22T23:47Z); older figures are dated historical snapshots
+- Chosen: Latest recorded snapshot was measured as a402fd40^2..HEAD (56 at 35d5cd46 on 2026-10-22T23:52Z); older figures are dated historical snapshots
 - Policy: recency + primary_measurement
 - Expires After Runs: 20
 - Linked: AMB-FORK-001 (resolved) / CFLT-FORK-001 (resolved 2026-10-16)
@@ -25,6 +25,6 @@
 - Revert Triggers: audited extractable-file inventory changes the denominator
 
 ## Verification Log (cache: latest measurement per decision key)
-- 2026-10-22T23:47Z `git rev-list --count a402fd40^2..HEAD` → 55; `git rev-list --count up/master..HEAD` → 550; `git rev-list --count HEAD..up/master` → 0 (upstream fully contained); up/master tip f6c162dd (2026-06-23, stale)
-- Measured in worktree @ ae9f059d
+- 2026-10-23T00:32Z `git rev-list --count a402fd40^2..HEAD` → 56; `git rev-list --count up/master..HEAD` → 551; `git rev-list --count HEAD..up/master` → 0 (upstream fully contained); up/master tip f6c162dd (2026-06-23, stale)
+- Measured in worktree @ 35d5cd46
 - Run reports are each run's final CYCLE_SUMMARY output; this section carries only the latest durable measurement trace (not a history log)
