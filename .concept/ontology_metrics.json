@@ -1,5 +1,5 @@
 {
-  "run_id": "2026-10-23T02:27:05Z",
+  "run_id": "2026-10-23T03:35:09Z",
   "total_terms": 12,
   "by_layer": {
     "core": 3,
@@ -8,7 +8,7 @@
   },
   "draft_ratio": 0.0,
   "queue_pending": 0,
-  "claims_retained_lines": 78,
+  "claims_retained_lines": 80,
   "decisions_md_lines": 37,
   "gc_actions": {
     "merged": 0,
@@ -29,10 +29,10 @@
       "basis": "Every canonical term has a nonempty code_symbols mapping."
     },
     "Q3": {
-      "value": "1/185 (0.5% test-anchored coverage)",
+      "value": "1/188 (0.53% unique-file coverage)",
       "threshold": "50%",
       "status": "FAIL",
-      "basis": "Revalidated .concept/test_constraint_inventory.ndjson against current tests/tests-unit paths: 185 of 188 files encode extractable repository constraints; 3 internal-helper-only. Only one file is currently anchored by invariant checks (INV-ASSET-001/002); 50% requires 93 anchored files. A single invariant may contain multiple test checks, so the 60-invariant cap alone does not prove the target impossible. Keep Q3 FAIL; do not infer coverage or relax threshold. See AMB-Q3-001/002."
+      "basis": "AST-audited docs/llm-wiki/test-constraint-inventory.ndjson against the exact current tests/tests-unit Python test-file set: 188/188 rows record a source SHA-256, a test_* symbol, and explicit assertion/unittest-assert/pytest.raises/pytest.fail line(s). The audit measures extraction eligibility, not captured invariant coverage. Only tests-unit/assets_test/test_upload_hashing_modes.py is referenced by current invariant checks (INV-ASSET-001/002); 50% of 188 requires 94 anchored files. Keep Q3 FAIL; do not infer coverage or relax the threshold. See AMB-Q3-001/002."
     },
     "Q4": {
       "value": "0/12 (0%)",
@@ -41,10 +41,10 @@
       "basis": "Zero canonical terms have status draft."
     },
     "Q5": {
-      "value": "4/78 (5.1% physical; 1/78 effective)",
+      "value": "4/80 (5.0% physical; 1/80 (1.3%) effective)",
       "threshold": "20% maximum",
       "status": "PASS",
-      "basis": "Four physical __UNMAPPED__ lines remain out of 78 retained claims (append-only). Three (lines 10/11/24, no-internet rule) are superseded by re-canonicalization claims under ComfyUI (boundary/INV-NO-NET-001); one (line 63, evidence-fidelity audit) is intentionally unmapped because ledger-maintenance facts belong to no domain concept. Effective UNMAPPED ratio 1/78 = 1.3%."
+      "basis": "Four physical __UNMAPPED__ lines remain in 80 retained claims. Three (lines 10/11/24, no-internet rule) are superseded by re-canonicalization claims under ComfyUI (boundary/INV-NO-NET-001); one (line 63, evidence-fidelity audit) is intentionally unmapped because ledger-maintenance facts belong to no domain concept. Effective __UNMAPPED__ ratio: 1/80 = 1.25%."
     },
     "Q6": {
       "value": 12,

@@ -16,9 +16,9 @@
 - Linked: AMB-FORK-001 (resolved) / CFLT-FORK-001 (resolved 2026-10-16)
 - Revert Triggers: primary_evidence_contradiction
 
-## AUTO:Q3.denominator:audited_extractable_subset
+## AUTO:Q3.denominator:all_test_files
 - Status: ACTIVE
-- Chosen: Use the revalidated audited subset (185 of 188 test files encode repository-level constraints); keep evidence-backed invariants only.
+- Chosen: Use all 188 current Python test files. Eligibility records explicit expectations per test file; this is not invariant coverage.
 - Policy: primary_evidence + budget_integrity
 - Expires After Runs: 20
 - Linked: AMB-Q3-001
@@ -26,7 +26,7 @@
 
 ## AUTO:Q3.coverage:report_observed
 - Status: ACTIVE
-- Chosen: Report the observed unique-file coverage as 1/185 (0.5%) and FAIL against the existing 50% threshold. Do not invent coverage or relax the threshold; the 60-invariant cap alone does not prove the target impossible.
+- Chosen: Report observed unique-file coverage as 1/188 (0.53%) and FAIL against 50%; 94 files are required. Do not infer coverage or relax the threshold.
 - Policy: primary_evidence + budget_integrity
 - Expires After Runs: 20
 - Linked: AMB-Q3-002

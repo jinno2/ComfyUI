@@ -93,18 +93,18 @@ ambiguities:
     linked_conflicts: []
     auto_decision:
       status: "applied"
-      decision_key: "AUTO:Q3.denominator:audited_extractable_subset"
-      chosen: "Use the audited extractable subset: 185 of 188 test files encode repository-level constraints; 3 test only internal helpers. Keep evidence-backed invariants only."
+      decision_key: "AUTO:Q3.denominator:all_test_files"
+      chosen: "Use all 188 current Python test files. Eligibility means a test_* function or method has an explicit assertion, unittest assert call, pytest.raises, or pytest.fail; each inventory row records the file hash and a matching test symbol/line. This records extractability, not invariant coverage."
       policy: "primary_evidence + budget_integrity"
       confidence_auto: 0.85
-      decided_at_run: "2026-10-23T02:27:05Z"
+      decided_at_run: "2026-10-23T03:25:02Z"
       expires_after_runs: 20
       revert_triggers:
         - "a current test-file inventory differs from the audited inventory"
-    last_touched_run: "2026-10-23T02:27:05Z"
+    last_touched_run: "2026-10-23T03:25:02Z"
     evidence:
-      - source: ".concept/test_constraint_inventory.ndjson"
-        quote: "188 entries: encodes=185, internal_only=3, unclassified=0; each current test path matched the inventory"
+      - source: "docs/llm-wiki/test-constraint-inventory.ndjson"
+        quote: "188 rows; each row records sha256, test_symbol, and explicit expectation line(s); every current test source is eligible under the documented AST criterion"
       - source: "10_concept_sync_system.md#B-10"
         quote: "invariants.yml|invariants 最大 **60**"
 
@@ -115,7 +115,7 @@ ambiguities:
     severity: "medium"
     uncertainty: 0.4
     candidates:
-      - "Count unique extractable test files with at least one invariant check (current 1/185; 93 files reach 50%)"
+      - "Count unique extractable test files with at least one invariant check (current 1/188; 94 files reach 50%)"
       - "Count test-anchored invariant checks per file; aggregation semantics need definition"
     missing_info:
       - "Whether one invariant may cover multiple test files and whether Q3 counts unique files or invariant checks"
@@ -123,16 +123,16 @@ ambiguities:
     auto_decision:
       status: "applied"
       decision_key: "AUTO:Q3.coverage:report_observed"
-      chosen: "Report the current unique-file observation as 1/185 (0.5%) and FAIL against the existing 50% threshold. Do not invent invariant coverage or relax the threshold; the 60-invariant cap alone does not prove the target impossible because one invariant may contain multiple test checks."
+      chosen: "Report the current unique-file observation as 1/188 (0.53%) and FAIL against the existing 50% threshold; 94 anchored files are required. Do not infer invariant coverage or relax the threshold; one invariant may have multiple test checks."
       policy: "primary_evidence + budget_integrity"
       confidence_auto: 0.85
-      decided_at_run: "2026-10-23T02:27:05Z"
+      decided_at_run: "2026-10-23T03:25:02Z"
       expires_after_runs: 20
       revert_triggers:
         - "owner or metric specification defines a different Q3 aggregation rule"
-    last_touched_run: "2026-10-23T02:27:05Z"
+    last_touched_run: "2026-10-23T03:25:02Z"
     evidence:
       - source: ".concept/ontology_metrics.json#quality_metrics.Q3"
-        quote: "1/185 (0.5% test-anchored coverage); 50% of 185 requires 93 anchored files"
+        quote: "1/188 (0.53% unique-file coverage); 50% of 188 requires 94 anchored files"
       - source: "10_concept_sync_system.md#C-3"
         quote: "invariants.yml schema represents checks as a list of test targets"
