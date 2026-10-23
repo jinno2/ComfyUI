@@ -43,3 +43,20 @@ Moved the per-file test audit out of `.concept/`, whose schema is a fixed 14-fil
 Removed dated fork-count samples from ontology, invariant, ambiguity, and resolved-conflict SOT records. Historical measurements remain in the append-only claims ledger; the latest observation stays in the decisions cache. Q3 remains 1/188 and FAIL under its active decision; no threshold or coverage claim was changed.
 
 - **Verification**: At HEAD `984d68f4`, `a402fd40^2..HEAD` = 64, `up/master..HEAD` = 559, `HEAD..up/master` = 0. All `.concept` YAML, JSON, and JSONL parsed; 14 `.concept` files remain; budget counts are within limits; `git diff --check` passed. `make test` was interrupted after 20m20s (exit 130), with no pytest summary; no pass/fail result is claimed.
+
+## 2026-10-23 — safe_linear 解析の現行実装への訂正
+
+Task: `tas-task-508bebb6a4041f01ead1897a53705607288280ee17b06e7176056628f0451d5e`。
+修正対象は `docs/CODEBASE_ANALYSIS.md` の safe_linear 記述のみ。旧来の全 GPU 一括切替・解放先未指定・テスト不在の指摘を、現行コードと既存回帰テストに基づいて訂正した。要約表、H5、M6、戦略的注記、検証表にも訂正を適用し、無関係な指摘は再確認済みと扱わない。ランタイムコードは変更していない。リポ間の関係・責務は変わらないため relations.md は更新しない。
+
+- AC1: `comfy/ops.py` の `safe_linear` と `_should_retry_cuda_linear`、`comfy/model_management.py` の `discard_cuda_async_error`、既存テスト6件の本文を照合。デバイス別 set、入力デバイスの指定、エラー allowlist、量子化・layout 除外を確認した。文書内のローカルリンク3件の実在も確認。
+- AC2（対象検証）: `/home/jinno/ComfyUI/.venv/bin/python -m pytest tests-unit/comfy_test/test_safe_linear.py -q` → `6 passed in 0.49s`、exit 0。CPU テンソルとモックによる検証であり、実機の複数 GPU・cuBLAS 障害回復・性能は未検証。
+- AC2（全体 gate）: `make test` はこの worktree に `.venv` がなく exit 2（Python 起動 error 127）。既存環境を指定した `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` は exit 0。ログ `/tmp/comfyui-113783-tests.log` は2002件の収集と末尾の websocket テスト成功を記録するが、pytest の最終集計行がないため、集計結果としての成功・スキップ件数は断定しない。`git diff --check` と文書内の旧記述の残存・リンク先・テスト数・スキルヘッダ検査も成功。
+- 証拠 SHA-256: `comfy/ops.py` = `39d4699f2cefea9f68e37a7833d67b474f3e4575c9c7454cfe3189aba3f34bec`、`comfy/model_management.py` = `44f981415e3b1c5882b881b98d9bb761d369739b3b29a5ff1b5d9eee74da88a8`、`tests-unit/comfy_test/test_safe_linear.py` = `3a5caffe55047c8d59a7f67409178628ac7162705d3cd582be4f8c6d1bbb0cbc`。
+
+ペルソナレビュー（AC3）: Codex がリポ固有の2視点で自己レビューした。独立した人物・モデルのレビューではない。手順は `.claude/skills/persona-review/SKILL.md` に新設。
+
+| 視点 | 反応・指摘 | 処置 |
+| --- | --- | --- |
+| ローカル生成ワークフロー利用者 | 「詳細節を直しても、冒頭と改善候補に全 GPU 一括切替・テスト不在と残っていると、まだ修正が必要なのか迷う。」 | 要約表、H5・M6、戦略的注記、検証表、末尾の未検証事項を同じ実装証拠で訂正した。 |
+| デバイス・回帰テスト保守者 | 「6件のテストだけで実機の複数 GPU も安全とは言えない。旧記述のオーバーヘッドゼロ・数値健全も測定根拠がない。」 | CPU・モックでの保証範囲と実機・性能の未検証を明記し、根拠のない性能・数値評価を削除。行番号に依存した参照をファイルリンクとシンボル名へ変更した。 |

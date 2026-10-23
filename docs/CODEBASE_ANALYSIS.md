@@ -17,8 +17,8 @@
 |---|---|
 | セキュリティ | API 認証ヘッダが無マスクで平文ログ化(`comfy_api_nodes/util/client.py:701` → `request_logger.py:103`)。/ws の clientId 乗っ取り(`server.py:270-278`) |
 | 信頼性 | `prompt_worker` に例外ガードが無く、ワーカー永久死滅 → キュー詰まり(`main.py:337-407`)。`/interrupt` のTOCTOU(`server.py:1136-1148`) |
-| フォーク保守性 | `safe_linear` のプロセス全局フラグはマルチGPUで過剰退化(`ops.py:1150/1214`)。マルチGPUcond経路の230行重複(`samplers.py:357`) |
-| テスト | 既知レッド1件が `continue-on-error: true` で隠蔽(`test-unit.yml:15`)。`comfy/ldm/` と `safe_linear` のテストゼロ |
+| フォーク保守性 | `safe_linear` の全 GPU 一括切替は解消済み（デバイス別 set、2.2節）。マルチGPUcond経路の230行重複(`samplers.py:357`) |
+| テスト | 既知レッド1件が `continue-on-error: true` で隠蔽(`test-unit.yml:15`)。`comfy/ldm/` のテスト不足。`safe_linear` は6件の CPU・モック回帰テストあり（2.2節） |
 
 ---
 
@@ -66,10 +66,10 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 **評価**: managed-weight 抽象(共有モジュール + `patches_uuid` でフォーク、weakref ライフサイクル)は意図が良いが、`ModelPatcher` は2000行のゴッドクラス。数値衛生は良好(推論結果は fp32 で返す `model_base.py:238`、fp8 書き込みは seeded stochastic rounding)。
 
-**フォーク改変 `safe_linear` の評価(裏取り済み)**: `ops.py:1146-1215`。cuBLAS のリトライ可能エラー2種のみを捕捉(allowlist 方式で保守的、ホットパスのオーバーヘドゼロ、matmul 置換は数学的に同型で数値健全)。問題は:
-- `CUDA_LINEAR_FORCE_MATMUL` が**プロセス全局・永続**。マルチGPU対応フォークで、GPU1 の一時的障害が全 GPU の GEMM を恒久退化させる
-- `discard_cuda_async_error()` がカレントデバイスに投げるため、テンソルの実デバイスとズレると sticky-error 解放が別 GPU に向かう(推測レベル)
-- フォーク最大のリスク改変でありながら**テストゼロ**
+**フォーク改変 `safe_linear` の評価（2026-10-23 現行コードで再確認）**: [`comfy/ops.py`](../comfy/ops.py) の `safe_linear` は、通常は `F.linear` を使い、CUDA の通常の浮動小数点テンソルに対する cuBLAS エラー2種だけを再試行する。量子化テンソルと非 strided layout はフォールバック対象外。再試行でも対象エラーが続くと matmul + bias に切り替える。
+- 強制フォールバック状態は `CUDA_LINEAR_FORCE_MATMUL_DEVICES` に**デバイス別**に保持される。全 GPU を一括切替する旧フラグに関する指摘は解消済み。状態はプロセス内で持続する。
+- エラー解放には `discard_cuda_async_error(input.device)` を呼び、[`comfy/model_management.py`](../comfy/model_management.py) の同関数は指定デバイスにテンソルを割り当てる。
+- [`tests-unit/comfy_test/test_safe_linear.py`](../tests-unit/comfy_test/test_safe_linear.py) に6件の回帰テストがある。通常経路、CPU の対象外判定、強制フォールバック、再試行後の切替、無関係なエラーの再送出、エラー解放先の指定を検査する。CPU テンソルとモックによる検証であり、実機の複数 GPU・cuBLAS 障害回復や性能は未検証。
 
 **構造的負債**:
 - レガシーVRAM管理と DynamicVRAM(AIMDO)の**二重体制**。`ModelPatcherDynamic` は hook 系を `assert False` / 例外で拒否(`model_patcher.py:2035,2041`)し、hooks 付き conds は `CFGGuider` が静かに非 dynamic clone へ委譲(`samplers.py:1197-1198`) — 挙動がサイレントに切り替わる
@@ -130,6 +130,8 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 ## 3. 統合改善提案(優先度付き)
 
+H5・M6 は 2026-10-23 に実装・テストを再確認し、対応済みに訂正した。その他の提案の現状は今回の再確認対象外。
+
 ### High(全体優先度順)
 
 | # | 提案 | 対象 | 種別 |
@@ -138,7 +140,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 | H2 | `prompt_worker` ループを try/except でガード(ログ + `task_done` エラー処理 + 継続) | `main.py:337-407` | upstream 継承 |
 | H3 | `/interrupt` を既存の `interrupt_if_running` に置換(コードは実装済み・実証済み) | `server.py:1136-1148` | upstream 継承 |
 | H4 | 赤テスト修正(`nodes_math_test.py:190` の期待メッセージ更新)+ fork の CI から `continue-on-error: true` を除去 | `tests-unit/`, `.github/workflows/` | **フォーク対応** |
-| H5 | `safe_linear` のフラグをデバイス別 dict 化 + `discard_cuda_async_error` に失敗テンソルのデバイスを渡す | `ops.py:1150/1214`, `model_management.py:1505` | **フォーク対応** |
+| H5 | **対応済み**: `safe_linear` のデバイス別 set と `discard_cuda_async_error(input.device)`（2.2節） | `comfy/ops.py`, `comfy/model_management.py` | **フォーク対応済み** |
 | H6 | DB マイグレーションをファイルロック取得後に実行 | `app/database/db.py:151-184` | upstream 継承 |
 | H7 | `LoadImage`: スキップフレームの警告化 + 全フレーム消失時の明示的エラー | `nodes.py:1734-1747` | upstream 継承 |
 | H8 | ldm の F821 潜在クラッシュ3件修正(実装 or 死んだ分岐削除)+ CI に F821 チェック | `sub_quadratic_attention.py:175` ほか | upstream 継承 |
@@ -150,7 +152,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 - **M3** `CastWeightBiasOp` の可変クラス属性をインスタンス初期化に(`ops.py:406-409`)
 - **M4** `progress_state` ブロードキャストの増分化/レート制限(`progress.py:160-185`)
 - **M5** `make test` を unit だけの高速デフォルトに、統合テストは `test-all` へ
-- **M6** `safe_linear` の最小単体テスト(CPU でフラグ+matmul経路をモニキーパッチ検証)を追加 — フォーク最大リスク改変の唯一の保険
+- **M6 対応済み** `tests-unit/comfy_test/test_safe_linear.py` に6件の CPU・モック回帰テストあり（2.2節）。実機での複数 GPU・障害回復・性能は未検証。
 - **M7** `generate_one.py` のパス相対化(`Path(__file__)` ベース)+ systemd unit の同梱または廃止
 - **M8** API 型付きエラー階層(`ApiTaskFailed` 等)+ 生成スキーマ層の再現可能化(.provider 毎分割)
 - **M9** リクエストランナー統合(アップロード PUT を `_request_base` へ、`_monitor` の単一化)
@@ -171,7 +173,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 ### 戦略的注記(フォークとしての方針)
 
-Upstream 継承の指摘(H1-H3, H6-H8)は「フォークで即パッチ(同期コストと引き換え)」か「上流 PR(いつ取り込まれるか不明)」かの選択を要る。**フォーク対応の4件(H4, H5, M5, M6, M7)は先に実施する価値が明確** — すべて自分のコード・自分のCIであり、upstream 再同期で壊れないから。upstream 継承分は、再同期時のコンフリクトを避けるため原則上流 PR を推奨(特に `server.py`/`main.py` は改変密度が高い領域)。
+Upstream 継承の指摘(H1-H3, H6-H8)は「フォークで即パッチ(同期コストと引き換え)」か「上流 PR(いつ取り込まれるか不明)」かの選択を要る。**フォーク対応の H5・M6 は対応済み**。当初の候補には H4・M5・M7 も含まれるが、今回その現状は再確認していない。upstream 継承分は、再同期時のコンフリクトを避けるため原則上流 PR を推奨(特に `server.py`/`main.py` は改変密度が高い領域)。
 
 ---
 
@@ -182,10 +184,10 @@ Upstream 継承の指摘(H1-H3, H6-H8)は「フォークで即パッチ(同期�
 | 認証ヘッダの平文ログ | `request_logger.py:95-125` と `client.py:699-710` を再読 | ✅ 確認(ヘッダを無マスクでファイル書き出し) |
 | prompt_worker に例外ガードなし | `main.py:312-420` の構造確認(try/except の不在) | ✅ 確認 |
 | /interrupt のTOCTOU + 原子版未使用 | `server.py:1136-1148` と `execution.py:1311-1330` を再読 | ✅ 確認(docstring が当該バグを自述) |
-| safe_linear のプロセス全局フラグ | `ops.py:1140-1220` を再読 | ✅ 確認(`CUDA_LINEAR_FORCE_MATMUL` 全局・永続) |
+| safe_linear のデバイス別切替とエラー解放先 | `comfy/ops.py` の `safe_linear`、`comfy/model_management.py` の `discard_cuda_async_error` と `test_safe_linear.py` を照合 | 2026-10-23 再確認: デバイス別 set、入力デバイス指定。CPU・モック回帰テスト6件成功（実機の複数 GPU は未検証） |
 | sub_quadratic の F821 | `sub_quadratic_attention.py:165-182` を再読 | ✅ 確認(del 後の参照、noqa 付き) |
 | LoadImage の無音フレーム破棄 | `nodes.py:1725-1750` を再読 | ✅ 確認(`continue` + 空 torch.cat) |
 | ハードコードパス | grep | ✅ 確認(`generate_one.py:102`) |
 | 赤テスト1件 | `pytest tests-unit/comfy_extras_test/nodes_math_test.py` を実行 | ✅ 再現(1 failed, 36 passed) |
 
-未検証(報告のまま採用、要ランタイム確認): `CastWeightBiasOp` 共有リスト汚染(静的解析上は妥当)、`discard_cuda_async_error` の非カレントデバイス問題、重複 prompt_id での heapq TypeError。
+未検証(報告のまま採用、要ランタイム確認): `CastWeightBiasOp` 共有リスト汚染(静的解析上は妥当)、重複 prompt_id での heapq TypeError。`safe_linear` のエラー解放先指定は CPU・モックで確認済みだが、実機の非カレント GPU での回復は未検証。
