@@ -75,7 +75,7 @@ def http_get_bytes(url: str, timeout: int = 60) -> bytes:
 
 
 def wait_for_completion(prompt_id: str, timeout: float = 600.0) -> dict:
-    """Poll /history/<id> until outputs appear."""
+    """Poll /history/<id> until completion, raising on execution failure."""
     history_url = f"{BASE}/history/{parse.quote(prompt_id)}"
     deadline = time.monotonic() + timeout
     last_log = 0.0
@@ -87,8 +87,12 @@ def wait_for_completion(prompt_id: str, timeout: float = 600.0) -> dict:
                 raise
             history = {}
         entry = history.get(prompt_id)
-        if entry and entry.get("outputs"):
-            return entry
+        if entry:
+            status = entry.get("status") or {}
+            if status.get("status_str") == "error":
+                raise RuntimeError(f"prompt {prompt_id} failed; check the ComfyUI server log")
+            if entry.get("outputs") or status.get("completed"):
+                return entry
         now = time.monotonic()
         if now - last_log > 10:
             print(f"  ... still waiting ({int(deadline - now)}s left)", flush=True)  # noqa: T201

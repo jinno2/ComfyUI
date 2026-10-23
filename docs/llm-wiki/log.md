@@ -81,3 +81,27 @@ AC4 ペルソナレビュー: `.claude/skills/persona-review/SKILL.md` に従い
 | デバイス・回帰テスト保守者 | 「片方向ずつ成功しても、リクエストとレスポンスが同時に渡る実際の呼び出しは検査していない。」 | 両方向同時のケースを追加し、マスク済みヘッダの記録数と入力辞書の不変性も確認した。全体 gate でも5件すべて PASSED を確認した。 |
 
 関連記録: 新規テスト追加に合わせ、wiki index の188ソース監査を過去のスナップショットと明記した（監査の再実施・現行カバレッジの更新ではない）。リポ間の責務は変更なし。指示された証拠検査で relations.md の古い index ハッシュを更新し、既存4エントリすべてのパス・SHA-256を実ファイルと照合した。今回の成果はヘッダログの修正1件であり、外部サービス・実モデル生成・デバイス別推論は検証対象外。
+
+## 2026-10-23 — smoke スクリプトで生成失敗を即座に検出
+
+Run: `20261023-160240-999153`。Task: `tas-task-508bebb6a4041f01ead1897a53705607288280ee17b06e7176056628f0451d5e`（今回の登録は 16:06:26 UTC、AC1–AC4）。LOOP、PURPOSE、charter、TODO、既存解析、ソース・テスト・Makefile・CI を比較し、`make smoke` が使う `scripts/generate_one.py::wait_for_completion` の終了判定を1件の改善として選択した。解析 H2・H3 は現行コードでは既に対応されていた。モデル一覧キャッシュや settings TODO の変更は今回の対象外。
+
+判断と反証: 「出力があれば生成成功」とは限らない。`main.py::prompt_worker` は失敗時も `status_str=error` の履歴を保存し、`execution.py::PromptQueue.task_done` は途中の出力をそのまま保持する。修正前の回帰テストは `3 failed, 4 passed`（exit 1）で、失敗時の不要な待機、途中出力の誤受理、出力なしの正常終了を待ち続ける挙動を再現した。エラーを出力・完了フラグより先に判定し、prompt ID とサーバログの確認先を示す例外にした。完了済みで出力が空の場合は呼び出し元の既存の「No images in outputs」判定へ戻す。
+
+- AC1・AC2: `/home/jinno/ComfyUI/.venv/bin/python -m pytest tests-unit/scripts_test/generate_one_test.py -q` → `10 passed in 0.04s`、exit 0。エラー時の出力有無×`completed=False/True`、正常終了の出力有無、`status=None`、履歴未登録・404 後の成功、500 の伝播、未完了時のタイムアウトを検査。エラーでは HTTP 呼び出し1回・sleep 0回を確認した。ログ: `/tmp/comfyui-20261023-160240-polling-final.log`。
+- AC3: 既定の `make test` は worktree の `.venv/bin/python` 不在で exit 2（recipe error 127）。既存環境を指定した変更前の `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` は exit 0。最終集計行は出なかったため、ANSI 色を除去した行末マーカーを集計し、収集2007件＝`PASSED` 1933件＋`SKIPPED` 74件、`FAILED`・`ERROR`・`XPASS`・`XFAIL` 0件を確認した。ログ: `/tmp/comfyui-20261023-160240-baseline.log`。
+- AC3: `/home/jinno/.local/bin/ruff check scripts/generate_one.py tests-unit/scripts_test/generate_one_test.py` → `All checks passed!`、exit 0。
+- 証拠 SHA-256: `scripts/generate_one.py` = `da105f2677a1de3e4253a23dc9ab44a6be7659ecd8299c6e3f861080e897f0f7`、`tests-unit/scripts_test/generate_one_test.py` = `20880f202acbbc1793fd9b5375d46adc3a8d4f3d706528442fa474fef36e1584`。
+
+検証環境の試行: `OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` は既存の `video_types_test.py::test_save_to_transcode_keeps_audio_of_sparse_video` で数分進捗が出なかったため中断を判断し、自分が起動した pytest に SIGTERM を送った（make は exit 2）。終了ログでは当該ケースは PASSED に進み、次の `test_save_to_transcode_vfr_audio_covers_video_span` の実行中に停止していた。遅延の原因は未特定で、この試行を成功として数えない。ログ: `/tmp/comfyui-20261023-160240-final-tests.log`。コードを変更せず、変更前に成功したスレッド制限なしの条件で最終 gate を再実行した。
+
+- AC3 最終 gate: `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` → exit 0。最終集計行は出なかったため、ANSI 色を除去した行末マーカーを集計し、収集2017件＝`PASSED` 1943件＋`SKIPPED` 74件、`FAILED`・`ERROR`・`XPASS`・`XFAIL` 0件を確認した。追加10ケースすべてを全体実行でも確認し、末尾の websocket テストまで到達した。ログ: `/tmp/comfyui-20261023-160240-final-default-tests.log`。`git diff --check` も成功。
+
+AC4 ペルソナレビュー: `.claude/skills/persona-review/SKILL.md` を使用し、Codex が元の終了判定、実際の履歴生成側、差分、回帰テストを照合した視点別自己レビュー。独立した人物・モデルによるレビューではない。
+
+| 視点 | 反応・粗指摘 | 適用した処置 |
+| --- | --- | --- |
+| ローカル生成ワークフロー利用者 | 「画像が途中まで出ていても、最後に失敗した生成を成功として保存してほしくない。完了フラグだけでも判断できない。」 | エラーを最優先にし、途中画像の有無と `completed=False/True` の4ケースで即時失敗を確認。エラー文には prompt ID とサーバログの確認先を入れた。 |
+| デバイス・回帰テスト保守者 | 「`task_done` は status を省略でき、履歴は `None` になり得る。新しい `.get` の連鎖で既存の履歴を壊していないか。」 | `status=None` を空辞書として扱い、既存の出力による終了を維持するテストを追加。HTTP と time はスクリプトの参照先をモックし、実通信・実 sleep を行わない。 |
+
+リポ間の責務・依存関係・既存の概念は変更しておらず、relations と concept の更新は不要。実モデルによる画像生成、外部サービス、GPU・各デバイスでの推論は未検証。今回は履歴判定の改善1件であり、実生成の成功や性能改善を主張しない。
