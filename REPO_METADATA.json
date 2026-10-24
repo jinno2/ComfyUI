@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "verified_at": "2026-10-24T13:26:12Z",
+  "verified_at": "2026-10-24T14:32:28Z",
   "long_term": {
     "summary": "charterの推定目的に沿い、forkを安定提供する。受入対象はmake test 0 failedとWoodpecker gate green。MS-001は記録済み、MS-002/003は証拠確認待ち。",
     "source": ".concept/charter.yml",
