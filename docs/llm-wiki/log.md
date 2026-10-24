@@ -171,3 +171,24 @@ Run: `20261023-193422-189800`。Task: `tas-task-508bebb6a4041f01ead1897a53705607
 検証: focused `pytest tests-unit/comfy_test/test_sampler_masks.py -q` → `8 passed`（CPU/CUDA）。`ruff check comfy/samplers.py tests-unit/comfy_test/test_sampler_masks.py` と `git diff --check` は成功。最終 gate `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` → exit 0、2039 collected: 1965 PASSED + 74 SKIPPED、FAILED / ERROR / XFAIL / XPASS は0件。ログ: `/home/jinno/.local/share/rtk/tee/1792785452_make_test_PYTHON__home_jinno_ComfyUI__ve.log`。既定の `make test` は worktree-local `.venv/bin/python` が無く exit 2、ai-hub 共通 venv は `torch` 不在で利用できなかった。
 
 証拠 SHA-256: `comfy/samplers.py` `62a5b7661039af57a91a3ac03ef7cbf324b8d6978265fa270d2359d60a249875`; `tests-unit/comfy_test/test_sampler_masks.py` `62e7069cc702acdb6fc3c5112ea15ea57b32ae39f5eb5f242aca54a6150d1d96`; `docs/llm-wiki/index.md` `5921d49413303d4939788aadfa8aa694f2026d819fd918f337e53415106d1e66`。relationships memo は repository 間の責務・依存に変更がないため更新なし。フル denoising workflow と CUDA 以外の device backend は未検証。
+
+## 2026-10-24 — chain fix stage 第2走の再検証（修復見送りの維持・追補）
+
+Run: `20261024-103648-847785`。Task: `tas-task-13f824a3f165239b7f91dca20264e16508bb7dd7e18c105c12cd13599ef9ec16`（AC1–AC3）。source run `20261024-042226-078222` の terminal `Final stage evaluation or landing failed` を受ける同 chain の第2 fix stage。**結論（冒頭）: ComfyUI 自体に問題は見つかっておらず、修正対象は本リポに存在しない。fix_applied=false（report-only）。** 前 fix stage（run `20261024-101809-368391`）の完全な検証記録は commit `3bbbde61`（branch `ai/ComfyUI/instruction-20261024-101809-368391`、前エントリ本文の SHA-256 は `bafdf7f532489fddd80eb89a83e027bdaed99624c40666acc189c81868310fe9`）にあるが、この commit は本 worktree の分岐元 `07ce11c3` に含まれず、着地も未確認のため、本追補を本 worktree 側の追跡記録として残す。内容は前エントリの複製でなく相互参照である。
+
+再検証した事実（すべて読み取り専用・本 run 内で再実行、前記録と逐一致）:
+
+- source run dir `/home/jinno/ai-hub/runs/20261024-042226-078222/` は依然不存在（sibling `20261024-04*` 6 件 041132 / 041142 / 042354 / 042606 / 044551 / 045605 は存在）。recovery binding は本 run prompt への注入 JSON `{"phase": "evaluation", "state": "binding_unavailable"}` のまま（`phase: evaluation` まで明記）。元受入条件・候補 commit は復元不能。
+- ComfyUI リポに `*042226*` に一致する branch は無く、当該 window の候補着地も無い。ハーネス側 2 ファイルの SHA-256 は前記録値から未変更（末尾の証拠行）＝ 前回検証以降、gate 側ソースに変更はない。
+- fleet 側推奨 3 件（失敗 run の `ai-hub runs/<id>/` 証拠保存 / no-configured-test target への明示的 verification outcome 記録 / evaluation gate の fleet 全体見直し）は報告のみのまま変更なし。
+
+ペルソナレビュー（`.claude/skills/persona-review/SKILL.md`、同一エージェントの視点別自己レビュー。独立レビューではない）:
+
+| 視点 | 素の反応・粗指摘 | 適用 |
+|---|---|---|
+| ローカル生成ワークフロー利用者 | 「また fix stage の記録？ComfyUI を使う側に影響はあるのか、前のエントリと何が違うのか分かりにくい。」 | 結論（ComfyUI 無関係・修復対象なし）を冒頭に明記し、追補が前エントリの複製でなく相互参照である理由（分岐元に commit が含まれない・着地未確認）を記した。 |
+| デバイス・回帰テスト保守者 | 「SHA-256 一致だけでは、何を検証したのか・テスト未実行の根拠が分からない。」 | コード変更ゼロゆえテスト未実行（dispatch verification は fallback 経路）を明記し、ai-hub 側ソースはリポ外参照であることを `ai-hub` プレフィックスとハッシュで足場固定した。 |
+
+検証: `ls`（run dir 存在確認）、`git branch --all --list '*042226*'`（候補 branch 不存在）、`git show 3bbbde61:docs/llm-wiki/log.md` からの前エントリ抽出と `sha256sum`、ai-hub 側 2 ソースの `sha256sum` 再計測を本 run 内で実行し、調査報告（20261024-094112-899632）・前 fix stage エントリの記載と一致した。本 run の ComfyUI 側変更は本追補の 1 commit のみ（source / tests / 設定 / `.concept` 無変更）。コード変更ゼロのためテストは未実行で、dispatch verification は前回と同じく fallback 経路になる。未検証: require_tests_pass gate 経路は前回と同じ hypothesis のまま（直接観測には ai-hub 側 dispatch 設定の読み替えが必要で本 run の対象外）。
+
+証拠 SHA-256: ai-hub `tools/harness/runners/chain_orchestrator.py` `314af180c11b93290350e1d5fa1c34f0e85d7657b96073f1fb99a0fecb837127`; ai-hub `tools/harness/core/recovery_binding.py` `e6c9ccb78986027463c4dd2e67f121f8a445b07b4549a51cafa44ce1f7416627`（前 fix stage エントリ記録値と一致）。relations memo はリポ間関係の変更がないため更新なし。deleted run の元受入条件・候補は復元不能のまま（gap として報告）。
