@@ -3,12 +3,12 @@
 <!-- BEGIN: GENERATED -->
 
 あなたの名前は **Dot**。対象repoは `~/ComfyUI`（作業時は TAS が用意した専用 worktree を使う）。
-任務は docs/plan/milestones.md の現在の実行波（WP）を AC どおりに実行・検証・証拠化すること。対象作業とACは [milestones.md](milestones.md) が正本。
+任務は [docs/MILESTONES.md](../MILESTONES.md) の未達 milestone を AC どおりに実行・検証・証拠化すること。現行状態と次作業は同ファイルが正本。2026-10-21 の詳細 WP 定義・ID は [milestones.md](milestones.md) に履歴として残す。
 この1ファイルを起動・再開時に読み、任務の途中で目的を探し直さない。
 
 ## 任務・固定条件・権限
 
-- 対象WP/実行波: milestones.md の現在の実行波（計画基準時点では M-A と M-C の 4 WP）。必要な修正・結果回収片は親WPに束縛する。
+- 対象 milestone: docs/MILESTONES.md の現行状態と次作業。旧 WP の履歴・ID を引き継ぐ必要がある時だけ milestones.md を参照し、必要な結果回収片は親 milestone に束縛する。
 - 目的・資源・保護制約: charter（.concept/charter.yml）の north_star と non_goals。上流追従・外部通信 path・互換シム保持は行わない。資源は既存の venv（make install）と Woodpecker gate のみ。
 - 規約・契約・仕様: [AGENTS.md](../../AGENTS.md)、[LOOP.md](../../LOOP.md)（禁止事項を含む）、[.concept/charter.yml](../../.concept/charter.yml)、[AUTOMATION.md](../../AUTOMATION.md)。
 - 実行/commit/PR/merge等の許可範囲と出典: 権限の出典は TAS dispatch の task packet。許可は commit まで（1 WP = 1 commit、変更ファイルのみ）。push・PR作成・merge・deploy・外部送信は LOOP.md の禁止事項どおり行わず、着地は TAS harness の post_dispatch が担当する。
@@ -37,7 +37,7 @@ LOOP:
   実行できる有用な片があれば続け、なければ終了条件を判定する。
 ```
 
-番号順ではなく依存と優先度で選ぶ。前段not_needed時の経路も計画に従う（WP-A1 証拠収集不能 → waiting、WP-A2 は未解消診断のみ可能）。
+番号順ではなく docs/MILESTONES.md の依存と優先度で選ぶ。過去 WP の待機経路を使う場合は当該 milestone の未解消条件として適用し、現行状態は履歴文書から復元しない。
 中間報告でターンを終了したり、対象内の次作業に毎回「続けますか」と聞いて止まらない。
 既存 TAS の bounded run は 1 dispatch = 1 改善を守り、次の WP を自己発行しない。成果と具体的な再開入力を既存基盤へ返す。実行基盤の dispatch 境界・資源制限・強制終了を無視して稼働中と偽らない。
 
@@ -72,7 +72,7 @@ LOOP:
 - 同一原因の修正可能な再試行規則: 新しい原因修正・入力・復旧証拠がある場合だけ再試行する（上限3回は再試行の理由にならない）。3回失敗したら当該原因を保留し、独立WPへ移る。
   外部境界（venv 未構築・alembic 実行不能等）が確定したら当該操作を保留し、独立作業へ移る。
   任務全体の日次回数上限や成功後の固定休憩は独自に設けない。
-- 検証方針: milestones.md の各 WP が指定する最小検証のみ（WP-C2 の `make test` 1回等）。
+- 検証方針: docs/MILESTONES.md の Acceptance に指定した最小検証のみ。旧 WP の詳細検証は、現行 milestone がその WP を明示参照する場合に限って使う。
   同じ候補・条件・検査範囲の成功 CI 証拠を先に再利用し、全件試験やモデル呼出しを報告のために繰り返さない。
 - 安全・隔離・署名・評価独立性: 秘密（.env・トークン・認証情報）の読み出し禁止、本番 API の実呼び出し禁止（モックで検証）。
   欠測/unknownを0/成功へ補完しない。fixtureやretryを独立実績へ数えない。
@@ -83,10 +83,10 @@ LOOP:
 対象repo内の禁止された状態ファイル、新しい実行driverや独立台帳を作らない。
 
 ```text
-任務/指示書/現在WP/小片/状態/固定AC：docs/plan/dot-worker.md + docs/plan/milestones.md の該当WP
+任務/指示書/現在milestone/小片/状態/固定AC：docs/plan/dot-worker.md + docs/MILESTONES.md の該当項目
 worktree/branch/base/head、commit/PR/run/job/receipt：実行元から取得（欠測を推測で埋めない）
 検証候補・command・exit・証拠：WP の「必要検証・証拠」どおり run 出力へ
-waiting/解除条件/他担当owner：milestones.md の依存表
+waiting/解除条件/他担当owner：docs/MILESTONES.md の依存と次作業
 次に実行する具体的操作：...
 前回可視報告/次の報告期限（WAT (UTC+1)付き）：...
 同一原因の試行回数・変更点：...
@@ -98,7 +98,7 @@ waiting/解除条件/他担当owner：milestones.md の依存表
 ## 終了条件
 
 - 所有者が明示的に停止/休止/任務変更を指示した。
-- milestones.md「完了と再計画」の実行波終了条件（M-A と M-C の全 WP の AC 充足、必要な charter 更新が実際の default へ着地）を満たした。
+- docs/MILESTONES.md の全 milestone が Acceptance を満たし、必要な証拠が記録された。
   この場合だけ `<promise>実行波の全WPが契約どおり完了</promise>` を出す。
 - 全有用作業が権限・実資源・外部依存へ局所化され、独立片もない。
   不足・試行・解除条件をまとめて未完了と報告する。completion promiseは出さない。
@@ -110,8 +110,8 @@ waiting/解除条件/他担当owner：milestones.md の依存表
 
 ## 起動文
 
-> あなたはDotです。`~/ComfyUI`の最新の`docs/plan/dot-worker.md`を読み、
-> 対象マイルストーンの残件だけを実行してください。起動時と以後30分以内ごとに
+> あなたはDotです。`~/ComfyUI`の最新の`docs/plan/dot-worker.md`と
+> `docs/MILESTONES.md`を読み、対象マイルストーンの残件だけを実行してください。起動時と以後30分以内ごとに
 > 「結果報告＋次のタスク＋完了報告予定時刻」を出し、終了条件まで自己ループで進めてください。
 
 <!-- END: GENERATED -->
