@@ -192,3 +192,33 @@ Run: `20261024-103648-847785`。Task: `tas-task-13f824a3f165239b7f91dca20264e165
 検証: `ls`（run dir 存在確認）、`git branch --all --list '*042226*'`（候補 branch 不存在）、`git show 3bbbde61:docs/llm-wiki/log.md` からの前エントリ抽出と `sha256sum`、ai-hub 側 2 ソースの `sha256sum` 再計測を本 run 内で実行し、調査報告（20261024-094112-899632）・前 fix stage エントリの記載と一致した。本 run の ComfyUI 側変更は本追補の 1 commit のみ（source / tests / 設定 / `.concept` 無変更）。コード変更ゼロのためテストは未実行で、dispatch verification は前回と同じく fallback 経路になる。未検証: require_tests_pass gate 経路は前回と同じ hypothesis のまま（直接観測には ai-hub 側 dispatch 設定の読み替えが必要で本 run の対象外）。
 
 証拠 SHA-256: ai-hub `tools/harness/runners/chain_orchestrator.py` `314af180c11b93290350e1d5fa1c34f0e85d7657b96073f1fb99a0fecb837127`; ai-hub `tools/harness/core/recovery_binding.py` `e6c9ccb78986027463c4dd2e67f121f8a445b07b4549a51cafa44ce1f7416627`（前 fix stage エントリ記録値と一致）。relations memo はリポ間関係の変更がないため更新なし。deleted run の元受入条件・候補は復元不能のまま（gap として報告）。
+
+## 2026-10-26 — auto_merge_blocked 反復の根本原因検証（修復オーナーは本リポ外の tas_autopilot）
+
+Run: `20261026-142919-061901`。Task: `tas-task-42e250c42d29ef36755b6681f059e36f63cf52102971bd9fad8b5e28a1a2efcb`（AC1–AC3）。investigate stage（`20261026-140924-105242`）の報告を受け、証拠不足で評価 N/A だった前 fix stage（`20261026-142512-752205`）を引き継ぐ fix stage 記録。**結論（冒頭）: ComfyUI 本体に欠陥はなく、修復オーナーは tas_autopilot `tas_autopilot/control_plane/post_dispatch.py` の PR 衝突採用経路。fix_applied=false（report-only）。**
+
+再現（すべて読み取り専用。worktree `/home/jinno/ComfyUI-aihub-20261026-142919-061901`、観測 2026-10-26T14:32–14:34Z、gh 2.46.0）:
+
+- リモート: `origin=jinno2/ComfyUI`、`up`/`upstream=Comfy-Org/ComfyUI`、`jinno=nobu007/ComfyUI`。`.git/config` に gh 既定リポの保存値（gh-resolved 相当）は無く `GH_REPO` も未設定 — 解決は gh の複数リモート解決による。
+- `gh repo view --json nameWithOwner`（--repo なし）→ `{"nameWithOwner":"Comfy-Org/ComfyUI"}` — origin でなく upstream 側を既定リポに解決。
+- `gh pr list --head tas/auto/4b4cfc7bb619 --base main --state open --json number,url,headRefName,baseRefName,state`（--repo なし）→ `[]`。
+- 同クエリに `--repo jinno2/ComfyUI` → PR #46（`state: OPEN`、base `main`、作成 `2026-10-23T14:06:03Z`）— inbox 記録 `a pull request for branch "tas/auto/4b4cfc7bb619" into branch "main" already exists: https://github.com/jinno2/ComfyUI/pull/46` と一致。
+
+ソース非対称（tas_autopilot commit `3dfc7d0f` 時点、ファイル sha256 は末尾の証拠行、行番号はこの時点のもの）:
+
+- `gh_create_pr`（:942）は `_origin_repo_slug`（:932）で origin slug を計算し `args.extend(["--repo", repo_slug])`（:982）で `pr create` をピン留めする。直上のコメントに「fork checkout では gh が fork 親を既定リポに昇格させる（2026-10-23 Roo-Code-Auto の archived 親リポ事例）」という既知挙動への対処としての rationale が明記されている。
+- 一方、衝突回収は `_adopt_existing_pr`（:886）→ `gh_list_open_pr`（:229）へ委譲し、`pr list` 引数は `args = ["pr", "list", "--head", branch, ...]` と `--repo` なしで組み立てられる。`gh_create_pr` が計算済みの slug は採用照会へ渡されない。
+- 効果: 衝突検出後の採用照会だけが upstream（Comfy-Org/ComfyUI）を検索して `None` を返し、`gh_create_pr` は `PostDispatchError(kind="auto_merge_blocked")` を raise する。既存 PR を採用できるはずの正常な再 dispatch まで偽陽性エスカレーションとして inbox に記録される — 本件が反復する構造。
+
+修復方針（本リポ外。tas_autopilot lane のフォローアップ）: `gh_create_pr` の計算済み `repo_slug` を `_adopt_existing_pr` / `gh_list_open_pr` へ渡し、`pr list` 引数に `["--repo", slug]` を追加する（:982 と同一の fork 親ピン留め rationale）。upstream リモートを持つ fork 構成を模した回帰テストを推奨。LOOP.md の対象外リポ編集禁止により本 run では実装せず、relations memo に完了条件付きフォローアップを追補した。実用上の注意: この checkout で素の `gh pr` 系コマンドは upstream 側を既定解決するため、fork 側を扱う場合は `--repo jinno2/ComfyUI` か `GH_REPO` の明示が必要。既存 PR #46 自体は OPEN のまま有効であり、本件は偽陽性エスカレーションであって PR 側の異常ではない。
+
+ペルソナレビュー（`.claude/skills/persona-review/SKILL.md`、同一エージェントの視点別自己レビュー。独立レビューではない）:
+
+| 視点 | 素の反応・粗指摘 | 適用 |
+|---|---|---|
+| ローカル生成ワークフロー利用者 | 「この checkout で `gh pr list` を素で叩くと upstream を見るという利用上の落とし穴は？ PR #46 自体はどうなるのか分からない。」 | gh 既定解決の実用上の注意（`--repo` / `GH_REPO` 明示）と、PR #46 は有効なまま・本件は偽陽性エスカレーションであることを本文に追記した。 |
+| デバイス・回帰テスト保守者 | 「行番号と gh の解決挙動は時点・バージョン依存では？ 追試できる形にしてほしい。」 | 行番号を tas_autopilot commit `3dfc7d0f` とファイル sha256 に紐付け、gh 2.46.0 と `.git/config` 既定値なし（ヒューリスティック解決の裏取り）を記録した。 |
+
+検証: `git remote -v`、`git config --local --list`（gh 既定値なし）、`gh repo view` 1 件と `gh pr list` 2 パターン（上記の通り）、`grep -n` によるシンボル位置と `--repo` 追加箇所の確認、外部ソースの `sha256sum` を本 run 内で実行。本 run の ComfyUI 側変更は本エントリと relations 追補の 1 commit のみ（source / tests / 設定 / `.concept` 無変更）で、コード変更ゼロのため ComfyUI 側テストは未実行。未検証: tas_autopilot 側の修正適用とその回帰（修復 lane の担当）。
+
+証拠 SHA-256: tas_autopilot:tas_autopilot/control_plane/post_dispatch.py `2fa168013ddd7a4fe7b8a3581d81d52c6d730a8f28410d2a5ae2a1215f15a7a4`（観測時点・commit 3dfc7d0f）。
