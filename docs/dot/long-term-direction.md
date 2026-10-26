@@ -63,4 +63,19 @@
 
 <!-- END: GENERATED -->
 <!-- BEGIN: HUMAN -->
+
+## S3 — 初期候補ショートリスト（2026-10-26）
+
+`LOOP.md` の候補源 #2 を調べた初期順位。全 TODO/FIXME の網羅順位ではない。
+順位は影響の可能性・根拠の強さ・検証可能性による仮比較で、性能や不具合の実測結果ではない。
+テスト側に該当動作の専用回帰が見つからない候補は、実装前の追加テストを次の一手とする。
+MS-D2/S3 の開始条件である MS-D1 の全WP判定は未確認。.concept の claims / decisions がこのworktreeに無く、wiki logの検証記録だけではマイルストーン完了を確定しない。
+
+|順位|候補・根拠|次の具体作業|確認・制約|
+|---|---|---|---|
+|1|`comfy/ops.py:126` の単一モジュール VBAR cache-hit fast path（明示 FIXME）。`cast_bias_weight` は単体モジュールでこの経路を呼ぶ。|単体の resident / non-resident と複数モジュールの挙動を固定する回帰テストを足し、VBAR 対応機で cache-hit の代表形状を比較する。測定できる改善がある場合だけ最小 fast path を実装する。|`tests-unit/comfy_quant/test_mixed_precision.py` は別の cast fallback を検証するが、この VBAR 経路の直接テストではない。現ホストでは VBAR 性能を未測定。|
+|2|`comfy/context_windows.py:567` は `get_context_windows` で `x_in.size(self.dim)` を使い、「model に応じた dim 選択」が TODO。`execute` は同じ dim を latent と window に適用する。|対象モデルごとの latent layout と `self.dim` の設定元を追い、誤った軸を選ぶ再現ケースがあればモデル形式別テストを先に追加する。|`tests-unit/comfy_extras_test/nodes_lt_test.py::test_attention_entry_lets_context_windows_rederive_the_factor` は隣接する guide factor を検証し、軸選択そのものは検証しない。現時点では不具合モデルを特定できていない。|
+|3|`app/model_manager.py:143` は hidden directory / filename の走査を `include_hidden_files = False` に固定し、「settings を使う」TODO がある。|hidden model file を表示する既存ユーザー設定があるか、設定面と期待動作を確認する。設定契約が無ければ追加仕様を先に定め、走査設定と回帰テストを一緒に設計する。|`AppSettings` は汎用キーを保存するが、調べた `app/`・`comfy_api/` と model manager tests には hidden file 用キーがない。`tests-unit/app_test/model_manager_test.py::test_get_model_folders_includes_registered_extensions` は拡張子公開のみで、hidden file の扱いは未検証。UI側と機能要件は未確認なので実装着手は保留。|
+
+選定時の gate 観測: `make test` は `.venv/bin/python` 不在で pytest 起動前に exit 2（Makefile recipe error 127）。これはテスト失敗ではない。候補評価はこの結果を green / red の根拠に使わない。
 <!-- END: HUMAN -->
