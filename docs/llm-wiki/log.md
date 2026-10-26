@@ -222,3 +222,26 @@ Run: `20261026-142919-061901`。Task: `tas-task-42e250c42d29ef36755b6681f059e36f
 検証: `git remote -v`、`git config --local --list`（gh 既定値なし）、`gh repo view` 1 件と `gh pr list` 2 パターン（上記の通り）、`grep -n` によるシンボル位置と `--repo` 追加箇所の確認、外部ソースの `sha256sum` を本 run 内で実行。本 run の ComfyUI 側変更は本エントリと relations 追補の 1 commit のみ（source / tests / 設定 / `.concept` 無変更）で、コード変更ゼロのため ComfyUI 側テストは未実行。未検証: tas_autopilot 側の修正適用とその回帰（修復 lane の担当）。
 
 証拠 SHA-256: tas_autopilot:tas_autopilot/control_plane/post_dispatch.py `2fa168013ddd7a4fe7b8a3581d81d52c6d730a8f28410d2a5ae2a1215f15a7a4`（観測時点・commit 3dfc7d0f）。
+
+## 2026-10-26 — auto_merge_blocked 修復の検証（tas_autopilot a7b32ab、衝突採用クエリの origin ピン留め）
+
+Run: `20261026-151359-308869`。Task: `tas-task-42e250c42d29ef36755b6681f059e36f63cf52102971bd9fad8b5e28a1a2efcb`（AC1, AC2）。fix stage（`20261026-150152-218452`）が tas_autopilot 側に残した修復 commit を検証した記録。**結論（冒頭）: 修復は実在し検証に合格 — tas_autopilot commit `a7b32ab`（branch `tas/auto-care/20261026`、2026-10-26T15:11Z 作成）。fork 親リポ構成での PR 衝突採用クエリが origin slug でピン留めされ、fork 親回帰テスト 2 件を含む `test_post_dispatch.py` 全 148 件がパス。ただし main（`3dfc7d0f`）には未マージで、着地は tas_autopilot 自身の PR 経路の担当。ComfyUI 側の変更は本 wiki 記録のみ。**
+
+修復内容（`a7b32ab` の diff を実読。investigate stage `20261026-140924-105242` の修正方針に一致）:
+
+- `gh_list_open_pr` が `repo_slug` 引数を新設し、指定時 `pr list` 引数へ `["--repo", slug]` を追加。
+- `_adopt_existing_pr` も `repo_slug` を受けて採用照会へ伝播。
+- `gh_create_pr` の衝突回収パスが計算済みの `repo_slug` を `_adopt_existing_pr` へ渡す（`pr create` の既存ピン留めと同一の fork 親 rationale）。slug 未導出時は従来どおり gh 既定解決。
+
+検証（読み取り専用。観測 2026-10-26T15:23Z）: `git archive a7b32ab` を空の一時ディレクトリへ展開し、tas_autopilot の venv pytest で実行。`tests/unit/control_plane/test_post_dispatch.py` 全体 148 collected・全パス（exit 0）。`GhCreatePRAdoptionTests` 10 件パス。新規回帰 2 件 — `GhCreatePRAdoptionTests::test_fork_parent_adoption_query_pins_origin_repo`（origin+upstream リモートの fork checkout で採用クエリが `--repo jinno2/ComfyUI` を持ち PR #46 を採用）と `::test_adoption_query_without_slug_omits_repo_flag`（slug 無しでは `--repo` を付けない）— を個別指定でも 2 件パス。ハーネスのテストキャプチャは ComfyUI worktree 基準のため tas_autopilot 側セレクタを収集できず（前 fix stage で matched=0）、本検証は上記コマンドの実行記録による。
+
+未検証・残課題: `a7b32ab` は `tas/auto-care/20261026` に停まっており tas_autopilot main への着地は未確認（本 run では push/merge を行わない）。relations memo の当該フォローアップは検証済みとしてチェックし、着地を完了条件付きの新フォローアップに分割した。偽陽性エスカレーションが実際に止まるかの観測（着地後の再 dispatch）は将来の run で確認する。
+
+ペルソナレビュー（`.claude/skills/persona-review/SKILL.md`、同一エージェントの視点別自己レビュー。独立レビューではない）:
+
+| 視点 | 素の反応・粗指摘 | 適用 |
+|---|---|---|
+| ローカル生成ワークフロー利用者 | 「main に未マージなら、この checkout の偽陽性エスカレーションはまだ続くのでは？」 | 冒頭と残課題に「main 未マージ・着地は tas_autopilot の PR 経路」を明記し、relations memo に着地フォローアップを新設した。 |
+| デバイス・回帰テスト保守者 | 「148 件パスは一時展開ツリーでの結果。実 gh 呼び出しではなくモック単体では？」 | 検証元を `git archive a7b32ab` の展開（commit 内容そのもの）と明記し、回帰テストが `gh_runner` をモックした単体テストであることを記録。実 gh での再現は前 investigate stage 記録を参照（本 run では再実行せず）。 |
+
+証拠 SHA-256: tas_autopilot:tas_autopilot/control_plane/post_dispatch.py（a7b32ab 時点）`3a15807d6432bf5ea0bc8b9ed35f6bdb403903c9a52bab397381700541a88af3`、tas_autopilot:tests/unit/control_plane/test_post_dispatch.py（同時点）`11f929b4ee9dd9a29c92ee279842f851223094df48d27ff4e390200cae9e84fe`。
