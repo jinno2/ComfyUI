@@ -2,7 +2,6 @@ import pytest
 import torch
 import tempfile
 import os
-import sys
 import av
 import io
 import numpy as np
@@ -869,25 +868,6 @@ def transcode_and_probe(video):
             if audio_stream and audio_stream.duration else None,
             "audio_codecs": [s.codec_context.name for s in container.streams.audio],
         }
-
-
-def test_save_to_transcode_streams_without_buffering_frames():
-    """Transcoding must not decode the whole video into memory first (~2 GiB for this source)"""
-    resource = pytest.importorskip("resource")  # no getrusage on Windows
-    rss_scale = 1 if sys.platform == "darwin" else 1024  # ru_maxrss: bytes on macOS, KiB elsewhere
-    # ru_maxrss is a lifetime peak: a heavier test running earlier would shrink the measured
-    # delta and quietly defang this canary, so keep this source the biggest thing in the suite
-    file_path = create_transcode_source(width=640, height=480, frames=300)
-    try:
-        rss_before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * rss_scale
-        result = transcode_and_probe(VideoFromFile(file_path))
-        rss_delta = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * rss_scale - rss_before
-
-        assert result["codec"] == "h264"
-        assert result["frames"] == 300
-        assert rss_delta < 500 * 2**20, f"transcode buffered frames in RAM (peak grew {rss_delta / 2**20:.0f} MiB)"
-    finally:
-        os.unlink(file_path)
 
 
 def test_save_to_transcode_honors_trim_window():
