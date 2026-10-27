@@ -1,50 +1,34 @@
-# ComfyUI fork — 長期方針の見直し
+# ComfyUI fork — 長期方針と現在地
 
-<!-- BEGIN: GENERATED -->
+計画確認日: 2026-10-24。基準コミット: `5fa1cf5ab0fe5b5fb47968bcddbe3a0960523376`。
+目的・成功指標・非目標の正本は [`.concept/charter.yml`](../../.concept/charter.yml)。charter の north star は「推定」と明記された現行記述であり、所有者が別途確定した事業目的として扱わない。本書はその記述を現状証拠と結び、長期の差分・順序・出口を示す。実行項目の唯一の入口は [`../MILESTONES.md`](../MILESTONES.md)。
 
-計画確認日: 2026-10-21 13:05 WAT。基準: jinno2/ComfyUI @ 4c0788db9379bfe8013093b8339436b0175622c4。
-文書の役割: ゴール・マイルストーン・非目標の正本は `.concept/charter.yml`。本書はその見直し記録と現在地の観測であり、現状・AC・作業一覧の正本を増やさない。実行波の正本は [milestones.md](milestones.md)。
+## 目的と到達点
 
-## 目的と変更してはいけない条件
+charter の現行 north star は、上流へ自動追従しない恒久自律開発で、モジュラーなノードグラフ型 AI コンテンツ生成エンジンの ComfyUI fork を安定提供すること（推定）。成功指標は `make test` が 0 failed であること（MET-001）と、Woodpecker の Ruff + `tests-unit` gate が PR と `main` push で green であること（MET-002）。
 
-- 目的: charter `product_goal.north_star` — モジュラーなノードグラフ型 AI コンテンツ生成エンジンとして、上流に自動追従しない恒久自律開発で安定提供する ComfyUI fork であり続ける（推定）
-- 最終的な成果と判定範囲: MET-001（`make test` 0 failed 維持）、MET-002（Woodpecker の Ruff + tests-unit が green）。判定はリポ内テストと CI gate。
-- 保護制約・資源・権限: AGENTS.md（No Internet Requests、最小変更、互換シム削除）、LOOP.md の禁止事項（push/履歴改変/deploy/外部送信/対象外リポ編集の禁止）、AUTOMATION.md（上流取り込みは所有者の明示指示時のみ）。権限の出典は TAS dispatch の task packet。
-- 他担当/外部システムとの責務境界: TAS が driver/dispatch/着地、Woodpecker が CI gate、所有者が upstream merge と driver 変更を担当。upstream (Comfy-Org/ComfyUI) は読み取り対象のみ。
+到達点は、charter の各 milestone の成果と受入証拠が現行実装に一致し、MET-001/002 を対象 commit に結び付く記録で確認でき、次の保守作業を同じ正本から再開できる状態。現時点では全体の達成を宣言しない。
 
-## 全体構造と現在地
+## 現状と差分
 
-|実際の経路/責務|コード・契約|実装/受入/運転の状態|証拠と観測日|残る原因|
-|---|---|---|---|---|
-|ノードグラフ実行エンジン|comfy/, comfy_execution/, execution.py, server.py, nodes.py|実装あり（上流継承、fork 固有は局所修正。現候補の実機運転は未観測）|docs/llm-wiki/index.md（git log 実測、2026-09-26 時点で fork 固有 20 commits）|fork 固有修正の upstream 追従は所有者指示時のみ（非ゴール領域）|
-|fork 基盤（Makefile/CI gate）|Makefile, .woodpecker.yml, AUTOMATION.md|履歴上の受入済み・最新稼働は未観測|charter MS-001 status: done。AUTOMATION.md（2026-09-27 時点で TAS timer 有効・Woodpecker 有効・GitHub Actions 無効）|なし（維持）|
-|アセット永続化|app/assets/database/, alembic_db/|実装済み・受入証拠待ち|models.py に 6 テーブル、versions 0001..0008（2026-10-21 観測）|README 実態一致と CFLT-ASSETPERSIST-001 解消の証拠が記録に残っていない|
-|.concept 同期|.concept/（charter.yml, autopilot.yml, ontology_budget.yml の 3 ファイル）|限定受入|820d2ae4 (#43) で runtime metadata を非追跡化、ガードテスト tests-unit/concept_metadata_tracking_test.py 追加（2026-10-15 前後）|charter MS-003 の「固定 14 ファイル構成」記載が現構成と乖離|
-|自律改善ループ|LOOP.md（loop-md:spec v2、管理印付き）|契約定義済み（TAS dispatch の 1 run = 1 改善。定義だけでは運転実績にならない）|LOOP.md 本体|LOOP の候補順位と本計画の残課題が未接続|
+|領域|確認済みの現状|未確認・残る差分|
+|---|---|---|
+|MS-001 Fork infrastructure stability|charter は done。MET-001 に 2026-10-10 の `1930 passed / 0 failed / 74 skipped` が記録され、`.woodpecker.yml` に Ruff と unit gate が定義されている。|最新候補のテスト結果と Woodpecker run の green はこの checkout から確認できていない。記録値を現在の実測へ読み替えない。|
+|MS-002 Asset persistence layer integrity|`models.py` に 6 テーブル、`alembic_db/versions/` に 0001..0008 があり、README は autogenerate の手順を記載する。charter status は active。|隔離 DB での `upgrade head` / `current` 実測と、README の手順が現行 migration 群に合うかの判定が未記録。`make test` の新しい実測も未確認。|
+|MS-003 Concept synchronization|Git 追跡対象は `.concept/charter.yml`、`autopilot.yml`、`ontology_budget.yml` の3ファイル。runtime metadata を ignore し seeds を追跡するテストがある。|charter の記載を現構成に整合させた。ガードテストと `git ls-files .concept` の再検証結果は未記録。|
 
-## 以前の計画から変える判断
+## 優先順・依存・出口
 
-|以前の前提・順序|最新の事実|維持/変更/後回し/終了|理由・影響先|
-|---|---|---|---|
-|MS-003 は「固定 14 ファイル構成」と ontology/invariants/mappings の保守|820d2ae4 (#43) で生成物 12 ファイルを Git 追跡から除外し、追跡は 3 ファイルになった|変更|charter MS-003 の deliverables を現構成へ修正する（WP-C1）|
-|MET-001 の実測 1930 passed / 0 failed / 74 skipped（2026-10-10）|基準 commit 以降も更新が継続（2026-10-01 以降 21 commits）。現値は未観測|維持（観測時点の記録として保存）|本値を現在値として転記しない。同一候補・条件の既存 CI 証拠を先に確認し、足りない場合だけ WP-C2 で観測する|
-|MS-002 を active として継続|中核成果物（6 テーブル・マイグレーション 0001..0008）は実装済み。残るのは受入証拠と文書整合|変更（実装追加入口から受入証拠確定へ寄せる）|WP-A1 / WP-A2|
-|進行中 PR（#42 #41 #35 #33 #31、2026-10-12〜15 に open）|他担当 run 由来の tas/auto ブランチ|後回し|本計画では内容を複製せず、着地後の再評価のみ。重複発行しない|
+1. **P0 — MS-001 を維持する。** charter では既に done で、2026-10-10 の `make test` 記録があるため再実装はしない。charter の milestone 出口は `make test` が 0 failed で、`.woodpecker.yml` に既定 gate が定義されていること。MET-002 の継続運転は別途対象 SHA の green run で確認する。最新 CI 観測はこの checkout では未確認。
+2. **P1 — MS-002 の受入証拠を確定する。** まず隔離した一時 DB の migration 連鎖を確認し、その後 README の手順と現行 migration 群、および有効な `make test` 証拠を照合する。WP-A2 の判定は WP-A1 の結果に依存する。全条件が確認できるまで active のままにする。
+3. **P2 — MS-003 の構成同期を受入確認する。** MS-002 とは独立。追跡対象が3 seed のみで、runtime metadata が ignore され、専用ガードテストが通ることを確認する。
 
-古い成功・失敗はその候補/条件の記録として保持する。現在の仕様・実績へ付け替えない。
+MS-002 / MS-003 は実装物の存在だけでは出口に達しない。各 milestone は `docs/MILESTONES.md` の Acceptance と Evidence に照らして判定する。観測不能・失敗は pending のまま保持し、commit/PR の存在だけで achieved にしない。全項目の確認後に MET-002 の継続状態を再確認し、目的全体が満たされた証拠がある場合だけ計画を achieved とする。
 
-## 到達状態から逆算した段階
+## 守る境界と次の一手
 
-|段階|利用者が得る成果|必要な証拠|未達原因・依存|次の実行波に進む条件|
-|---|---|---|---|---|
-|S1 受入証拠の確定|MS-002 / MS-003 の status が証拠付きで確定する|`make test` 実測、alembic upgrade head の成功記録、README 実態一致の判定、charter 更新 commit|WP-A1 / WP-A2 / WP-C1 / WP-C2（WP-A2 は WP-A1 に依存、同じ charter の最終編集は直列化）|現在波の AC 充足 + charter 更新の実際の default 着地。観測不能・失敗は未完了|
-|S2 継続運転の安定|LOOP の候補選択が plan の残課題を拾う|LOOP run の最終出力に plan 由来候補の記録|S1 完了後に評価|次の実行波で WP 再計画を行う|
-|S3 上流追従の準備|所有者指示時に upstream merge を安全に実行できる状態|merge リハーサルの記録|所有者の明示指示が前提（自動追従は非ゴール）|指示到着時に分割する|
+- charter の目的・非目標と、[`AUTOMATION.md`](../../AUTOMATION.md) の driver 分担を維持する。上流取り込みは所有者の明示指示時のみ。TAS が dispatch / 着地、Woodpecker が CI gate を担当する。
+- `AGENTS.md` の No Internet Requests と最小変更方針を守り、外部通信 path、事業目的、権限、予算を計画作業で変更しない。
+- 次の一手は **MS-002 / WP-A1**: 既存環境で隔離した一時 DB のみを使い、`alembic upgrade head`、`alembic heads`、`alembic current` の結果と exit code を保存する（約30分）。本番 DB を使わず、実測を得るまでは Evidence を pending にする。
 
-現在の実行波は [milestones.md](milestones.md) に約30分単位で定義する。
-遠い段階の実装詳細は、入力・必要性が確定した時に分割する。
-目的・保護条件以外の計画を変えるときは理由、影響する依存、再検証範囲を残す。
-
-<!-- END: GENERATED -->
-<!-- BEGIN: HUMAN -->
-<!-- END: HUMAN -->
+計画の短期投影は [`../../REPO_METADATA.json`](../../REPO_METADATA.json)、履歴を含む前回の実行波は [`milestones.md`](milestones.md) を参照する。後者は 2026-10-21 時点の WP 定義を保持する記録であり、現行状態の管理には使わない。
