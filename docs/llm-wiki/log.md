@@ -245,3 +245,27 @@ Run: `20261026-151359-308869`。Task: `tas-task-42e250c42d29ef36755b6681f059e36f
 | デバイス・回帰テスト保守者 | 「148 件パスは一時展開ツリーでの結果。実 gh 呼び出しではなくモック単体では？」 | 検証元を `git archive a7b32ab` の展開（commit 内容そのもの）と明記し、回帰テストが `gh_runner` をモックした単体テストであることを記録。実 gh での再現は前 investigate stage 記録を参照（本 run では再実行せず）。 |
 
 証拠 SHA-256: tas_autopilot:tas_autopilot/control_plane/post_dispatch.py（a7b32ab 時点）`3a15807d6432bf5ea0bc8b9ed35f6bdb403903c9a52bab397381700541a88af3`、tas_autopilot:tests/unit/control_plane/test_post_dispatch.py（同時点）`11f929b4ee9dd9a29c92ee279842f851223094df48d27ff4e390200cae9e84fe`。
+
+## 2026-10-27 — chain fix stage 第4走の再検証（task_outcome unverified ゲートの一次確認・未着地候補 a8eb8bf は回収可能）
+
+Run: `20261027-100223-919601`。Task: `tas-task-2ce4c9716dce3b620f73a7af2eacab93bba64a8973749c781a479df0df9b598d`（AC1, AC2）。alert-remediation ミッション（run `run-cbb2a1fb5bb3`、trigger: consecutive-run-failures）の fix stage。**結論（冒頭）: ComfyUI 側に修復対象は存在しない（fix_applied=false、report-only）。source run `20261027-090453-090835` の候補 commit `a8eb8bf8`（直上の「第3走」エントリ）は実在し、その内容は source AC を満たす（investigate stage `20261027-094339-074520` の判定: AC2 は claude_stdout で検証済み、AC1 は commit 内に実在）。回収（着地）はハーネスの通常 publication gate の担当であり、本 run が実行してよい修復ではない。修復オーナーは ai-hub ハーネス。**
+
+再検証した事実（すべて読み取り専用・本 run 内で再実行）:
+
+- source run 自身の失敗点を一次確認: `eval/20261027-090453-090835/eval.json` は `task_outcome.status = unverified`・judge score `96.0`（閾値以上）。criterion 行の reason は前向きな判定文と `criterion_lacks_observation_evidence`。つまり stage 失敗はスコア不足ではなく task_outcome ゲート due to citation 検証による格下げ。ai-hub `tools/harness/core/chain_execution.py` の `_evaluate_with_llm`（:534）は `task_outcome_unmet`（:539）をスコアゲート（:547）より先行させ、`tools/harness/runners/chain_mission_contract.py` の `accepted()`（:197、:205）も `task_outcome_unmet` に従属する。`data/chain_runs/bug_fix_cycle/error_context_20261027-090453-090835.json` も quality_score=0.93 / tests_passed=True / reasoning 前向きで「Stage evaluation failed」を記録。
+- 格下げ機構の実在: ai-hub `tools/eval/criterion_outcomes.py` が `evidence_quote_mismatch`（:217）/ `invalid_criterion_evidence`（:232）/ `criterion_lacks_observation_evidence`（:252）を raise し、`_criterion`（:296）はこれらの例外を status `unverified` + reason 文字列へ落とす。訂正: investigate 報告のパス `tools/harness/runners/criterion_outcomes.py` は実在せず、実パスは `tools/eval/`。同日再発分 `eval/20261027-092317-170191/eval.json` は `unverified`・4 criterion 全行 `invalid_criterion_evidence` を直接示す。
+- 第3走エントリ（a8eb8bf8、未着地）内の「score gate が原因」（`chain_execution.py:547`）の診断を部分訂正: 同行は実在するが、source run は閾値以上のスコアを持つためスコアゲート単独では説明できず、実際の失敗点はその手前の task_outcome ゲート。criterion citation 検証による機械的 `unverified` 格下げが原因（2026-10-24/27 エントリの score-gate-only 診断の精緻化）。
+- 候補の回収可能性と binding: `git branch -a --contains a8eb8bf` は `ai/ComfyUI/instruction-20261027-090453-090835` のみ（未着地）。同 commit は本 worktree の分岐元 `728ad7bf` に含まれず、本エントリは log.md 末尾追記での相互参照（内容重複なし）。recovery binding 注入は `{"phase": "evaluation", "state": "binding_unavailable"}`。ただし 2026-10-24 事例（run dir 削除で候補不能）と異なり、今回は source run dir・eval・候補 commit がいずれも実在し identity は解決済み — 不足しているのは binding 証拠そのものであり、回収済みとは主張しない。
+
+修復方針（本リポ外。ai-hub ハーネス lane のフォローアップ。investigate 報告の候補を転記）: (a) citation 検証による格下げをハードな stage 失敗でなく judge-retry（unverified 用の judge_resume 経路が既存）として扱う、(b) worker 最終回答を harness 観測チャネルに含め `authorized_observation` 基準に独立証拠源を与える、(c) task_outcome status で「judge 出力不良」と「task 基準未達」を区別する。LOOP.md の対象外リポ編集禁止により本 run では実装せず。
+
+ペルソナレビュー（`.claude/skills/persona-review/SKILL.md`、同一エージェントの視点別自己レビュー。独立レビューではない）:
+
+| 視点 | 素の反応・粗指摘 | 適用 |
+|---|---|---|
+| ローカル生成ワークフロー利用者 | 「第3走も第4走も結局何も直っていないのでは？ a8eb8bf はどこへ行ったのか。」 | 冒頭に候補の実在・回収可能性・着地担当（ハーネス）を明記し、本エントリは追跡記録で機能変更ゼロであることを記した。 |
+| デバイス・回帰テスト保守者 | 「investigate 報告のパス間違い（runners/ vs eval/）を鵜呑みにしていないか。行番号は時点依存では？」 | 実パスを実読で特定して訂正を明記し、gate 行・例外理由の行番号を本 run 内の `grep -n` で確認した上で、ai-hub 側 4 ソースの現行 `sha256sum` を末尾に足場固定した。 |
+
+検証: `sed`/`grep -n` による gate 行（:534/:539/:547、:197/:205）と例外理由（:217/:232/:252、:296）の実読、`eval/20261027-090453-090835/eval.json` と `eval/20261027-092317-170191/eval.json` および error_context JSON の実読、`git branch -a --contains`、`git show a8eb8bf8 --stat`、ai-hub 側 4 ソースの `sha256sum` を本 run 内で実行。コード変更ゼロのため ComfyUI 側テストは未実行（dispatch verification は fallback 経路になる）。未検証: ai-hub 側の修復適用とその回帰、a8eb8bf8 の着地（いずれも修復/着地 lane の担当）。
+
+証拠 SHA-256: ai-hub `tools/harness/core/chain_execution.py` `0c93bcded5c2bc5ca3b69e9dc6b7d42b7f16c320f720f707155101d16956b924`; ai-hub `tools/harness/runners/chain_mission_contract.py` `63676e95bba88ff23dbce4762f58dd1485269eeba249d3a15c3995192b601359`; ai-hub `tools/eval/criterion_outcomes.py` `3900f6e0b872e96302dbe403e5cf1ef86af81bfbe26083af9b59c5dc35e99fc7`; ai-hub `data/chain_runs/bug_fix_cycle/error_context_20261027-090453-090835.json` `a41475c56e729e09c2318df7b37b396f32de756d7c570468eedcc7a94d9ba877`（いずれも 2026-10-27 観測時点）。
