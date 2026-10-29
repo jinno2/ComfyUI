@@ -5,7 +5,7 @@ product_goal:
   success_metrics:
     - id: "MET-001"
       name: "unit suite health"
-      target: "make test で 0 failed を維持（最新計測 2026-10-10: 1930 passed / 0 failed / 74 skipped）"
+      target: "make test で 0 failed を維持（最新計測 2026-10-29 @ cf4004d0: 1923 passed / 0 failed / 72 skipped）"
     - id: "MET-002"
       name: "CI gate"
       target: "Woodpecker（Ruff + tests-unit）が PR と main への push で green"
