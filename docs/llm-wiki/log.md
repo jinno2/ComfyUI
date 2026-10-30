@@ -48,3 +48,9 @@ milestones.md 実行波 WP-S2-1。TAS dispatch の LOOP run が docs/plan/ を�
 milestones.md 実行波 WP-S2-2。WP-S2-1 の判定（接続は機能している・維持で足りる、commit 8bb2cfcc）に基づき、plan 残課題を LOOP 候補集合へ継続的に取り込む経路の方針を (a) 現状維持 に確定した。LOOP.md の候補源への docs/plan/ 追加（b）は管理印（loop-md:spec v3）削除＝owner 判断を伴うが判定上不要のため起こさず、接続不全時の是正案（c）は対象事象が観測されていないため成立しない。owner 判断事項は発生していない。観測 gap G1（重複並列 claiming・dispatch 側）/ G2（worktree venv・runner 側）/ G3（未着地候補・harness/TAS 側）は解除条件つきで milestones.md に記録し、本波では着手しない。S2 波は両 WP の記録完了で着地待ち。着地後は plan 由来残課題の有無を確認して LOOP の通常候補順へ戻り、S3 は所有者の明示指示が前提。charter の MS status は変更していない。
 
 - **Verification**: LOOP.md・.concept/charter.yml の無変更を git diff で確認（loop-md:spec v3 印は残存）、方針記録と AUTOMATION.md の driver 構成（TAS が dispatch と着地、Woodpecker が CI gate）の突合で矛盾なし、milestones.md の「WP-S2-2 方針記録」と long-term-direction.md の現在地・段階表 S2 行の突合。
+
+## 2026-10-30 — CODEBASE_ANALYSIS.md を現行コードと同期（解決済み欠陥の台帳反映）
+
+fork の欠陥台帳 `docs/CODEBASE_ANALYSIS.md` について、オープンと記載されていた指摘のうち 6 件（H1 認証ヘッダ平文ログ、H2 prompt_worker 例外ガード、H3 /interrupt TOCTOU、H6 マイグレーション前ロック、H7 LoadImage 無音フレーム破棄、M4 progress_state 再送レート制限）が現行コードで解決済みであることを実コード再読と `git log -S` で裏取りし、根拠 commit（`fd7bfcd3` フォーク対応 / `985fb9d6` 上流 #14774 / `c8b61a95` / `19e1058f` #16295）付きで解決記載に更新した。現存は unblockedEvent 無タイムアウト待ち（`graph.py:290`）と audio 系 F821 2件（`audio/dit.py:190` / `audio/autoencoder.py:94`）のみ。H8 は `sub_quadratic_attention.py` 削除済みのため対象縮小、`flux/model.py` の旧指摘行は上流書き換えで要再確認と記録。フォーク固有コミット数は 63（`a402fd40^2..HEAD`、2026-10-30 実測）、unit スイート実測は 1923 passed / 0 failed / 72 skipped（`make test` 約6分）。コード・charter・LOOP.md は変更していない。
+
+- **Verification**: `make test` で 1923 passed / 0 failed / 72 skipped（1995 collected）、`git log -S "keeping the worker alive" -- main.py` 等で解決 commit の実在照合、`sed` による `server.py` / `comfy_api_nodes/util/request_logger.py` / `app/database/db.py` / `comfy_execution/graph.py` / `comfy/ldm/audio/*.py` の現行コード再読、`git diff` で変更が `docs/CODEBASE_ANALYSIS.md` と本ログのみであることを確認。

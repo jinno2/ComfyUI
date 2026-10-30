@@ -4,6 +4,7 @@
 - 対象: jinno2/ComfyUI(tracked 961ファイル、Python 約9.3MB ≒ 約230万トークン)
 - 手法: 6領域に分解した並列エージェント分析(実行エンジン / モデル管理 / ldm アーキテクチャ / ノード定義 / API ノード / 開発インフラ・フォーク独自部分)。主要指摘8件は本体セッションで実コードを再読して裏取り検証済み(§4)。
 - 更新: 2026-10-10 再検証。解決済み指摘は §0 / §2.2 / §2.6 / §3 に反映。フォーク独自コミットは 13 → 40 件に増加(`a402fd40^2..HEAD` 実測)。
+- 更新: 2026-10-30 再検証。解決済み指摘は §0 / §2.1 / §2.3 / §2.4 / §2.5 / §3 に反映(H1/H2/H3/H6/H7/M4)。フォーク独自コミットは 63 件(`a402fd40^2..HEAD` 実測 2026-10-30)。
 - 性格: このフォークはほぼ最新の upstream ComfyUI(最終同期 2026-06-20 頃)。フォーク独自コミットは 40 件超(`a402fd40^2..HEAD` 実測、自動コミットで増加しうる)で、実質的に Makefile 群・`scripts/`・`comfy/ops.py` の `safe_linear`・Pipfile/mise・docs のみ。
 
 ---
@@ -17,7 +18,7 @@
 | 系列 | 最重要項目 |
 |---|---|
 | セキュリティ | API 認証ヘッダが無マスクで平文ログ化(`comfy_api_nodes/util/client.py:701` → `request_logger.py:103`)。/ws の clientId 乗っ取り(`server.py:270-278`) |
-| 信頼性 | `prompt_worker` に例外ガードが無く、ワーカー永久死滅 → キュー詰まり(`main.py:337-407`)。`/interrupt` のTOCTOU(`server.py:1136-1148`) |
+| 信頼性 | ~~`prompt_worker` に例外ガードが無く、ワーカー永久死滅 → キュー詰まり。`/interrupt` のTOCTOU~~ → **解決済み**(2026-10-30 確認。例外ガード+エラー時 `task_done` と `/interrupt` の `interrupt_if_running` 原子化は `fd7bfcd3` で対応、`tests-unit/app_test/prompt_worker_test.py` 追加。§2.1) |
 | フォーク保守性 | ~~`safe_linear` のプロセス全局フラグ~~ 解決済み(デバイス別 set 化、`fdfb9395`)。残る課題はマルチGPUcond経路の230行重複(`samplers.py:357`) |
 | テスト | 解決済み(2026-10-10 再実測): レッド0件・CI は upstream ガード化。`safe_linear` テスト追加済み、`comfy/ldm/` は seedvr2 系テストが部分カバー |
 
@@ -52,14 +53,14 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 **評価**: 非同期ノードの external block 機構(`graph.py:168-176` + `unblockedEvent` 待ち)は単一消費者順序を保ちつつ非同期を許すエレガントな設計。jobs API のTOCTOU処理(`jobs.py:443-488`)は文書化込みで模範的。キャッシュ無効化は健全(検証と IS_CHANGED が prompt dict を**変異させる**点 `execution.py:977-991` と、既知のサブグラフUI値キャッシュ問題 `execution.py:405-408` は疣)。
 
-**重大な欠陥(裏取り済み)**:
-1. `prompt_worker` のループ本体に try/except が**存在しない**。想定外の例外が1回でも `e.execute` 外に出るとワーカースレッドが永久死滅し、HTTP はジョブを受け付け続けるが誰も捌かない
-2. `/interrupt` は `get_current_queue()` スナップショット → ミューテックス外で `interrupt_processing()` の非原子構造(`server.py:1136-1148`)。ギャップで**別のプロンプトをキャンセルし得る**。原子版 `interrupt_if_running`(`execution.py:1311-1328`)は既に実装済みだが jobs API からしか使われていない
-3. DB マイグレーションがマルチプロセスファイルロック取得**前に**走る(`app/database/db.py:151-184`)。同時起動で SQLite マイグレーション競合の可能性
-4. /ws は既存 clientId を名乗るだけでソケットを奪取できる(認証なし、`server.py:270-278`)。LAN 露出時は結果/プレビューが偽装者へ流れる
-5. 非同期ノードのタスクが永远に解決しないと `unblockedEvent.wait()` がタイムアウト・割り込み不可でパイプラインを恒久ブロック(`graph.py:241-245`)
+**重大な欠陥(裏取り済み)** — 2026-10-30 再検証: 1-3 は解決済み、4 は導入見送り(所有者決定)、5 のみ現存:
+1. ~~`prompt_worker` の例外ガード不在~~ → **解決済み**(`fd7bfcd3`、フォーク対応)。ループ本体を try/except でガードし、例外時も `task_done`(error status)+ websocket 通知+ background scan 再開してワーカーを維持。単体テスト `tests-unit/app_test/prompt_worker_test.py` 追加済み(現行 `main.py` の `prompt_worker` 参照)
+2. ~~`/interrupt` のTOCTOU~~ → **解決済み**(`fd7bfcd3`、フォーク対応)。prompt_id 指定時は原子版 `prompt_queue.interrupt_if_running(prompt_id)` を使用し「終了済みジョブが後続にフラグ漏れする」経路を除去(現行 `server.py` の `/interrupt` 参照)。prompt_id 未指定の全体中断はフラグ方式 `nodes.interrupt_processing()` のまま(全体中断の意味論)
+3. ~~DB マイグレーションがファイルロック取得前に走る~~ → **解決済み**(19e1058f、#16295)。現行 `app/database/db.py` は `_acquire_file_lock` 後に `_migrate_and_bind` を実行(コメントで上流 master との意図的な diverge を明記)
+4. /ws は既存 clientId を名乗るだけでソケットを奪取できる(認証なし、`server.py:270-278`)。LAN 露出時は結果/プレビューが偽装者へ流れる → **導入見送り決定済み**(所有者決定、§3 M12 参照。構造準備のみ実施 `7b063601`、再提案不要)
+5. 非同期ノードのタスクが永遠に解決しないと `unblockedEvent.wait()` がタイムアウト・割り込み不可でパイプラインを恒久ブロック(**現存**、`graph.py:290` — 無タイムアウトの `await self.unblockedEvent.wait()` を 2026-10-30 再確認)
 
-**性能**: `progress_state` がノードの全ステップ毎にノード状態マップ全体を再送(O(nodes×steps)、`progress.py:160-185`)。`send_sync` は逐次 fan-out のため、読まない websocket クライアント1つが全体の配信を遅延させ得る。
+**性能**: `progress_state` がノードの全ステップ毎にノード状態マップ全体を再送(O(nodes×steps)、`progress.py:160-185`)。`send_sync` は逐次 fan-out のため、読まない websocket クライアント1つが全体の配信を遅延させ得る。→ **送信は間隔制限済み**(c8b61a95。`PROGRESS_STATE_MIN_INTERVAL = 0.1` 秒の coalesce を導入、pending 以外のノードのみ送信。全件再送の構造自体は現存)。
 
 ### 2.2 モデル管理・サンプリング層
 
@@ -84,11 +85,11 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 **評価**: 重複(census 測定)は FeedForward 12件、PatchEmbed 7件、TimestepEmbedding 6件、timestep_embedding 関数9件、RoPE apply 8件。ただし**これは意図的戦略** — 各ポートは upstream ベンダーリポジトリのミラーになっておりベンダーリリースと diff できる(`flux/model.py:1` のヘッダコメント)。税はブロック本体でなくヘルパー関数に集中。text_encoder 側は `sd1_clip.py` の基底継承で本物の再利用が機能している。
 
-**実バグ(全て upstream 継承、noqa 付き = 既知の受容済み負債)**:
-1. `sub_quadratic_attention.py:170-179` — OOM回復経路が壊れている: try で `del attn_scores` した後、except が未定義の `attn_scores` を参照 → OOM 時に NameError(裏取り済み、`# noqa: F821` 付き)
-2. `audio/dit.py:194` — RoPE スケーリング有り時の NameError
-3. `audio/autoencoder.py:94` — antialias=True 時の NameError
-4. `flux/model.py:268` — 結果を捨てる死んでいる lambda、`:339-341` は zeros 初期化依存の脆弱な順序
+**実バグ(全て upstream 継承、noqa 付き = 既知の受容済み負債)** — 2026-10-30 再検証:
+1. ~~`sub_quadratic_attention.py:170-179` の OOM回復経路破損~~ → **対象ファイル削除済み**(2026-10-30 確認、リポ内に存在しない)
+2. `audio/dit.py:190` — RoPE スケーリング有り時の NameError(**現存**、`# noqa: F821` 付き)
+3. `audio/autoencoder.py:94` — antialias=True 時の NameError(**現存**、`# noqa: F821` 付き)
+4. `flux/model.py:268` — 結果を捨てる死んでいる lambda、`:339-341` は zeros 初期化依存の脆弱な順序 → **要再確認**(該当行周辺は上流の書き換えで現行コードと不一致、2026-10-30)
 
 **設計リスク**: `supported_models.models` のリスト順が load-bearing(部分集合マッチのため、先に広いクラスがあると後の狭いクラスが影を落とす)。 specificity の強制が何もない。
 
@@ -98,7 +99,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 **評価**: 登録機構は堅実(ファイル毎の失敗分離、トレースバック記録)。バリデーションは中央集権かつ強力。課題:
 - 120行のボイラープレートリストは、既に glob 方式の `init_builtin_api_nodes`(nodes.py:2482)が社内実証 — 新ファイル追加忘れが**無音の no-op**になる故障クラス
-- `LoadImage` がサイズ不一致フレームを**無音破棄**し(`nodes.py:1734-1735`)、空リストで `torch.cat` し得る(`:1747`)(裏取り済み)
+- ~~`LoadImage` がサイズ不一致フレームを**無音破棄**し、空リストで `torch.cat` し得る~~ → **解決済み**(`fd7bfcd3`、フォーク対応)。スキップフレーム数を `logging.warning` で報告(現行 `nodes.py` の `load_image`「dropped N frame(s)」)。先頭フレームが基準寸法になるため空 `torch.cat` 経路は到達不能(2026-10-30 現行コード確認)
 - bare `except:` 5件、`common_upscale` 呼び出し32ファイル、resize ヘルパー独自再実装3件
 - 廃止ノードは "(DEPRECATED)" 表示名で意図維持。trailing-space クラス名 `ConditioningAverage `(nodes.py:94)のレガシーハック
 
@@ -107,7 +108,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 **構成**: 36プロバイダノード(V3で統一)+ `util/client.py`(990行)のリクエスト基盤。リトライ(408/5xx + 429別枠16回、Retry-After 150秒上限)、中断モニタ、presigned 2段アップロード。全プロバイダ呼び出しは `api.comfy.org/proxy/<provider>/...` 経由で**ローカルにサードパーティ鍵は存在しない**設計(良好)。
 
 **評価**:
-- **最重要**: `log_request_response` が全リクエストのヘッダ(`Authorization: Bearer` 含む)を無条件・無マスクで `temp/api_logs/*.log` に書き出す(`client.py:701-708` → `request_logger.py:103-104`)(裏取り済み)。ディスク上の平文資格情報経路
+- ~~**最重要**: `log_request_response` が全リクエストのヘッダ(`Authorization: Bearer` 含む)を無条件・無マスクで `temp/api_logs/*.log` に書き出す~~ → **解決済み**(上流 985fb9d6、#14774)。`request_logger.py` の `_redact_headers()` がログ書き出し前に認証系ヘッダをマスクする(2026-10-30 現行コード確認)。ディスク上の平文資格情報経路は解消
 - `apis/__init__.py` が209KBなのは datamodel-codegen 生成物(580クラス、`Type1`/`Status2` 等の衝突名、生成元の `filtered-openapi.yaml` がリポジトリ外で再現不能)
 - poll 失敗が裸 `Exception`(`client.py:402-405`)で呼び出し側に区別不可能
 - `_generate_operation_id`/`_monitor` クロージャの3重実装、アップロード PUT ループが `_request_base` の手書き並行品
@@ -115,10 +116,10 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 ### 2.6 開発インフラ・フォーク独自部分
 
-**フォーク独自コミットの内容**(40件超): Makefile(528行、macOS launchd / Linux systemd 方針、arm64 venv ガード、torch 2.4 以上への自動更新)、`scripts/generate_one.py`(stdlib-only のワンショット生成)、WAI-ANIMA ワークフロー自動化(`setup-anima`/`smoke-anima`、Civitai トークンは env/`~/.civitai_token` のみで健全、バイト数完全照合)、`safe_linear`。
+**フォーク独自コミットの内容**(63件、2026-10-30 `git rev-list --count a402fd40^2..HEAD` 実測): Makefile(528行、macOS launchd / Linux systemd 方針、arm64 venv ガード、torch 2.4 以上への自動更新)、`scripts/generate_one.py`(stdlib-only のワンショット生成)、WAI-ANIMA ワークフロー自動化(`setup-anima`/`smoke-anima`、Civitai トークンは env/`~/.civitai_token` のみで健全、バイト数完全照合)、`safe_linear`、`fd7bfcd3`(無人運転保守: prompt_worker 例外ガード・/interrupt 原子化・LoadImage 警告・DB 関連修正+単体テスト)。
 
-**評価(再実測 2026-10-10)**:
-- ユニットスイート: **1930 passed / 0 failed / 74 skipped / 約8分**(2004 collected)。旧レッド `nodes_math_test.py:190` は期待メッセージ追従済みで解消
+**評価(再実測 2026-10-30)**:
+- ユニットスイート: **1923 passed / 0 failed / 72 skipped / 約6分**(1995 collected、`make test` 2026-10-30 実測)。旧レッド `nodes_math_test.py:190` は期待メッセージ追従済みで解消
 - `test-unit.yml` / `test-execution.yml` は `if: github.repository == 'Comfy-Org/ComfyUI'` の upstream ガード付き(フォークでは実行されず、フォーク独自 CI は Woodpecker)。`continue-on-error` は除去済み
 - `test-launch.yml:16` は Comfy-Org/ComfyUI(本家)を checkout — フォークのコードを検査していない(現存・upstream ファイルのため維持)
 - `comfy/ldm/` は seedvr2 系テスト5ファイルが部分カバー。`safe_linear` は `tests-unit/comfy_test/test_safe_linear.py` でカバー済み
@@ -135,21 +136,21 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 | # | 提案 | 対象 | 種別 |
 |---|---|---|---|
-| H1 | API リクエストログの `Authorization`/`X-API-KEY`/`Cookie` ヘッダをマスク | `request_logger.py` | upstream 継承(要パッチ or 上流PR) |
-| H2 | `prompt_worker` ループを try/except でガード(ログ + `task_done` エラー処理 + 継続) | `main.py:337-407` | upstream 継承 |
-| H3 | `/interrupt` を既存の `interrupt_if_running` に置換(コードは実装済み・実証済み) | `server.py:1136-1148` | upstream 継承 |
+| H1 | API リクエストログの `Authorization`/`X-API-KEY`/`Cookie` ヘッダをマスク → **解決済み**(上流 985fb9d6 #14774 の `_redact_headers` 取り込み済み) | `request_logger.py` | upstream 継承 |
+| H2 | `prompt_worker` ループを try/except でガード(ログ + `task_done` エラー処理 + 継続) → **解決済み**(`fd7bfcd3` フォーク対応、単体テスト付き) | `main.py` | **フォーク対応** |
+| H3 | `/interrupt` を既存の `interrupt_if_running` に置換(コードは実装済み・実証済み) → **解決済み**(`fd7bfcd3` フォーク対応) | `server.py` | **フォーク対応** |
 | H4 | 赤テスト修正(`nodes_math_test.py:190` の期待メッセージ更新)+ fork の CI から `continue-on-error: true` を除去 → **解決済み**(メッセージ追従済み・CI は upstream ガード化) | `tests-unit/`, `.github/workflows/` | **フォーク対応** |
 | H5 | `safe_linear` のフラグをデバイス別 dict 化 + `discard_cuda_async_error` に失敗テンソルのデバイスを渡す → **解決済み**(`fdfb9395` デバイス別 set 化 + `input.device` 渡し + 単体テスト追加) | `ops.py`, `model_management.py` | **フォーク対応** |
-| H6 | DB マイグレーションをファイルロック取得後に実行 | `app/database/db.py:151-184` | upstream 継承 |
-| H7 | `LoadImage`: スキップフレームの警告化 + 全フレーム消失時の明示的エラー | `nodes.py:1734-1747` | upstream 継承 |
-| H8 | ldm の F821 潜在クラッシュ3件修正(実装 or 死んだ分岐削除)+ CI に F821 チェック | `sub_quadratic_attention.py:175` ほか | upstream 継承 |
+| H6 | DB マイグレーションをファイルロック取得後に実行 → **解決済み**(19e1058f #16295。現行 `app/database/db.py` はロック取得後に `_migrate_and_bind`) | `app/database/db.py` | upstream 継承 |
+| H7 | `LoadImage`: スキップフレームの警告化 + 全フレーム消失時の明示的エラー → **解決済み**(`fd7bfcd3` フォーク対応の警告化+先頭フレーム基準で空 cat 到達不能) | `nodes.py` | **フォーク対応** |
+| H8 | ldm の F821 潜在クラッシュ修正(実装 or 死んだ分岐削除)+ CI に F821 チェック → **対象縮小**(`sub_quadratic_attention.py` は削除済み、残存は `audio/dit.py:190` と `audio/autoencoder.py:94` の 2件。`flux/model.py` 該当行は上流書き換えで要再確認) | `comfy/ldm/audio/` | upstream 継承 |
 
 ### Medium
 
 - **M1** マルチGPU cond 経路の統合: `_calc_cond_batch`(2.2節)をデバイス戦略注入型の単一関数に(`samplers.py:220/357`)
 - **M2** extras 120行手書きリストを sorted glob 化(`init_builtin_api_nodes` と同じ方式、今日ゼロ挙動変更)
 - **M3** `CastWeightBiasOp` の可変クラス属性をインスタンス初期化に(`ops.py:406-409`)
-- **M4** `progress_state` ブロードキャストの増分化/レート制限(`progress.py:160-185`)
+- **M4** `progress_state` ブロードキャストの増分化/レート制限(`progress.py:160-185`) → **レート制限は解決済み**(c8b61a95 の `PROGRESS_STATE_MIN_INTERVAL = 0.1` 秒 coalesce+pending 除外送信)。全件マップ再送の構造(増分化)は現存
 - **M5** `make test` を unit だけの高速デフォルトに、統合テストは `test-all` へ → **解決済み**
 - **M6** `safe_linear` の最小単体テスト(CPU でフラグ+matmul経路をモニキーパッチ検証)を追加 → **解決済み**(`tests-unit/comfy_test/test_safe_linear.py`)
 - **M7** `generate_one.py` のパス相対化(`Path(__file__)` ベース)+ systemd unit の同梱または廃止 → **解決済み**(相対化 + `scripts/comfyui.service.example` 同梱、`82ec6364`)
@@ -172,7 +173,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 ### 戦略的注記(フォークとしての方針)
 
-Upstream 継承の指摘(H1-H3, H6-H8)は「フォークで即パッチ(同期コストと引き換え)」か「上流 PR(いつ取り込まれるか不明)」かの選択を要る。**フォーク対応の4件(H4, H5, M5, M6, M7)は先に実施する価値が明確** — すべて自分のコード・自分のCIであり、upstream 再同期で壊れないから。upstream 継承分は、再同期時のコンフリクトを避けるため原則上流 PR を推奨(特に `server.py`/`main.py` は改変密度が高い領域)。
+Upstream 継承の指摘のうち未解消は H8(audio F821 2件)のみで、上流 PR が推奨路線(再同期時のコンフリクトを避けるため)。**フォーク対応の5件(H2, H3, H4, H5, H7 + M5, M6, M7)は実施済み** — すべて自分のコード・自分のCIであり、upstream 再同期で壊れない。
 
 ---
 
@@ -180,13 +181,14 @@ Upstream 継承の指摘(H1-H3, H6-H8)は「フォークで即パッチ(同期�
 
 | 指摘 | 検証方法 | 結果 |
 |---|---|---|
-| 認証ヘッダの平文ログ | `request_logger.py:95-125` と `client.py:699-710` を再読 | ✅ 確認(ヘッダを無マスクでファイル書き出し) |
-| prompt_worker に例外ガードなし | `main.py:312-420` の構造確認(try/except の不在) | ✅ 確認 |
-| /interrupt のTOCTOU + 原子版未使用 | `server.py:1136-1148` と `execution.py:1311-1330` を再読 | ✅ 確認(docstring が当該バグを自述) |
-| safe_linear のプロセス全局フラグ | `ops.py:1140-1220` を再読 | ✅ 確認(`CUDA_LINEAR_FORCE_MATMUL` 全局・永続) |
-| sub_quadratic の F821 | `sub_quadratic_attention.py:165-182` を再読 | ✅ 確認(del 後の参照、noqa 付き) |
-| LoadImage の無音フレーム破棄 | `nodes.py:1725-1750` を再読 | ✅ 確認(`continue` + 空 torch.cat) |
-| ハードコードパス | grep | ✅ 確認(`generate_one.py:102`) |
-| 赤テスト1件 | `pytest tests-unit/comfy_extras_test/nodes_math_test.py` を実行 | ✅ 再現(1 failed, 36 passed) |
+| 認証ヘッダの平文ログ | `request_logger.py:95-125` と `client.py:699-710` を再読 | ✅ 確認(ヘッダを無マスクでファイル書き出し) → **解決済み**(上流 985fb9d6 `_redact_headers`、2026-10-30 再確認) |
+| prompt_worker に例外ガードなし | `main.py:312-420` の構造確認(try/except の不在) | ✅ 確認 → **解決済み**(`fd7bfcd3` ガード+エラー時 `task_done`+`prompt_worker_test.py`、2026-10-30 再確認) |
+| /interrupt のTOCTOU + 原子版未使用 | `server.py:1136-1148` と `execution.py:1311-1330` を再読 | ✅ 確認(docstring が当該バグを自述) → **解決済み**(`fd7bfcd3` で `interrupt_if_running` 使用、2026-10-30 再確認) |
+| safe_linear のプロセス全局フラグ | `ops.py:1140-1220` を再読 | ✅ 確認(`CUDA_LINEAR_FORCE_MATMUL` 全局・永続) → **解決済み**(`fdfb9395` デバイス別 set 化) |
+| sub_quadratic の F821 | `sub_quadratic_attention.py:165-182` を再読 | ✅ 確認(del 後の参照、noqa 付き) → **対象ファイル削除済み**(2026-10-30) |
+| LoadImage の無音フレーム破棄 | `nodes.py:1725-1750` を再読 | ✅ 確認(`continue` + 空 torch.cat) → **解決済み**(`fd7bfcd3` 警告化、2026-10-30 再確認) |
+| ハードコードパス | grep | ✅ 確認(`generate_one.py:102`) → **解決済み**(`82ec6364` 相対化) |
+| 赤テスト1件 | `pytest tests-unit/comfy_extras_test/nodes_math_test.py` を実行 | ✅ 再現(1 failed, 36 passed) → **解決済み**(メッセージ追従済み) |
+| 2026-10-30 再検証 | `make test`(1923 passed / 0 failed / 72 skipped)、`git rev-list --count a402fd40^2..HEAD`(63)、現行 `main.py` / `server.py` / `request_logger.py` / `db.py` / `nodes.py` / `progress.py` / `graph.py:290` / `audio/dit.py:190` / `audio/autoencoder.py:94` の再読 | 解決済み 6件の裏取り + 現存 3件(unblockedEvent、audio F821 ×2)の確認。`git log -S` で根拠 commit(`fd7bfcd3` / `985fb9d6` / `c8b61a95` / `19e1058f`)を実在照合 |
 
 未検証(報告のまま採用、要ランタイム確認): `CastWeightBiasOp` 共有リスト汚染(静的解析上は妥当)、`discard_cuda_async_error` の非カレントデバイス問題、重複 prompt_id での heapq TypeError。
