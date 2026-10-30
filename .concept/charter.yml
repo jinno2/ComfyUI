@@ -5,7 +5,7 @@ product_goal:
   success_metrics:
     - id: "MET-001"
       name: "unit suite health"
-      target: "make test で 0 failed を維持（最新計測 2026-10-10: 1930 passed / 0 failed / 74 skipped）"
+      target: "make test で 0 failed を維持（最新計測 2026-10-29 @ cf4004d0: 1923 passed / 0 failed / 72 skipped）"
     - id: "MET-002"
       name: "CI gate"
       target: "Woodpecker（Ruff + tests-unit）が PR と main への push で green"
@@ -27,16 +27,16 @@ milestones:
   - id: "MS-002"
     name: "Asset persistence layer integrity"
     intent: "fork 固有のアセット永続化レイヤ（app/assets/database の SQLAlchemy スキーマと alembic_db/versions のマイグレーション）の整合を保ち、文書と実装の乖離を解消する"
-    deliverables: ["app/assets/database/models.py の 6 テーブル", "alembic_db/versions 0001..0008", "alembic_db/README.md の実態一致（CFLT-ASSETPERSIST-001 の解消）"]
+    deliverables: ["app/assets/database/models.py の 6 テーブル", "alembic_db/versions 0001..0008 単一 head 0008_missing_content_age（隔離一時 DB で alembic upgrade head exit 0・6 テーブル生成確認、2026-10-30 観測、run 20261030-022229-254289/evidence/wp-a1-alembic-upgrade.log）", "alembic_db/README.md の実態一致、CFLT-ASSETPERSIST-001 解消（README の autogenerate 手順が env.py の metadata 接続と versions 実態に一致、2026-10-30 判定）"]
     acceptance:
       - type: "test"
-        target: "make test"
+        target: "make test で 0 failed を維持（最新計測 2026-10-30 @ 1d188bb9: 1923 passed / 0 failed / 72 skipped、run 20261030-022229-254289/evidence/wp-ms002-make-test.log）"
     priority: "P1"
-    status: "active"
+    status: "done"
   - id: "MS-003"
     name: "Concept synchronization"
-    intent: ".concept/ 辞書を実コード・テストと同期させ、autopilot 品質基準（Q1-Q8）を満たし続ける"
-    deliverables: [".concept/ の固定 14 ファイル構成", "ontology/invariants/mappings の保守"]
+    intent: ".concept/ 辞書を実コード・テストと同期させ、追跡構成（手管理シード 3 ファイル + 非追跡ランタイムガード）を維持し続ける"
+    deliverables: [".concept/ 手管理シード 3 ファイル構成（charter.yml / autopilot.yml / ontology_budget.yml、820d2ae4）", "生成ランタイムメタデータ非追跡ガードの維持（tests-unit/concept_metadata_tracking_test.py）"]
     acceptance:
       - type: "test"
         target: "yaml parse of .concept/*.yml"
