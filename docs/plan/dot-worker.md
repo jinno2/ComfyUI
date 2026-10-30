@@ -13,7 +13,7 @@
 - 規約・契約・仕様: [AGENTS.md](../../AGENTS.md)、[LOOP.md](../../LOOP.md)（禁止事項を含む）、[.concept/charter.yml](../../.concept/charter.yml)、[AUTOMATION.md](../../AUTOMATION.md)。
 - 実行/commit/PR/merge等の許可範囲と出典: 権限の出典は TAS dispatch の task packet。許可は commit まで（1 WP = 1 commit、変更ファイルのみ）。push・PR作成・merge・deploy・外部送信は LOOP.md の禁止事項どおり行わず、着地は TAS harness の post_dispatch が担当する。
 - 配達経路と必要gate: commit 1件/WP → TAS harness が PR 化 → Woodpecker（Ruff + tests-unit）が gate。Dot は merge を待たず次へ進む。
-- 既存driver/control planeとの境界: driver は TAS（AUTOMATION.md）、ループ仕様は LOOP.md（loop-md:spec v2、管理印付き）。セッション内で仕事を進める。新しいcron・daemon・台帳・通知経路を作らない。LOOP.md の管理印や仕様は変更しない。
+- 既存driver/control planeとの境界: driver は TAS（AUTOMATION.md）、ループ仕様は LOOP.md（loop-md:spec v3、管理印付き）。セッション内で仕事を進める。新しいcron・daemon・台帳・通知経路を作らない。LOOP.md の管理印や仕様は変更しない。
 - 無関係なTODO、別任務、計画の作り直しへ脱線せず、他担当の進行中成果（tas/auto PR #42 #41 #35 #33 #31 相当）を重複作成しない。
 
 ## 起動・再開
@@ -37,7 +37,7 @@ LOOP:
   実行できる有用な片があれば続け、なければ終了条件を判定する。
 ```
 
-番号順ではなく依存と優先度で選ぶ。前段not_needed時の経路も計画に従う（WP-A1 証拠収集不能 → waiting、WP-A2 は未解消診断のみ可能）。
+番号順ではなく依存と優先度で選ぶ。前段not_needed時の経路も計画に従う。
 中間報告でターンを終了したり、対象内の次作業に毎回「続けますか」と聞いて止まらない。
 既存 TAS の bounded run は 1 dispatch = 1 改善を守り、次の WP を自己発行しない。成果と具体的な再開入力を既存基盤へ返す。実行基盤の dispatch 境界・資源制限・強制終了を無視して稼働中と偽らない。
 
@@ -98,7 +98,7 @@ waiting/解除条件/他担当owner：milestones.md の依存表
 ## 終了条件
 
 - 所有者が明示的に停止/休止/任務変更を指示した。
-- milestones.md「完了と再計画」の実行波終了条件（M-A と M-C の全 WP の AC 充足、必要な charter 更新が実際の default へ着地）を満たした。
+- milestones.md「完了と再計画」の実行波終了条件を満たした。
   この場合だけ `<promise>実行波の全WPが契約どおり完了</promise>` を出す。
 - 全有用作業が権限・実資源・外部依存へ局所化され、独立片もない。
   不足・試行・解除条件をまとめて未完了と報告する。completion promiseは出さない。
