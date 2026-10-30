@@ -26,6 +26,7 @@
 
 ### WP-S2-1 | LOOP run の plan 由来候補接続の評価（約30分）
 
+- **状態**: done（2026-10-30 実行。判定は本カード直後の「WP-S2-1 判定記録」参照）
 - **主旨**: S2 の中核判定。TAS dispatch の LOOP run が docs/plan/（本書の残 WP・「完了と再計画」の後続条件、long-term-direction.md の段階表）を候補源として参照し、plan 由来の残課題を実際に拾っているかを着地済み証拠から評価する。
 - **ゴール・成果物**: 判定記録 1 件（接続の有無・根拠 commit/run・不足がある場合の解除条件）を docs/plan/ 内に残す（1 commit）。
 - **入力・対象**: 着地済み main の LOOP run 由来 commit（d633a060 / 1d188bb9 / c102509a、S2 再計画 commit）、TAS run の最終出力、LOOP.md の候補順、docs/plan/ の残課題。
@@ -36,6 +37,41 @@
 - **担当・変更範囲**: 読み取り中心。書き込みは docs/plan/milestones.md（判定の記録）または docs/llm-wiki/log.md への追記のみ。
 - **待ち・失敗・再開**: run 最終出力が参照不能なら commit 側の着地証拠だけで判定し、限界を記録する。
 - **条件付き不要の判定**: なし（S2 の中核）。
+
+#### WP-S2-1 判定記録（2026-10-30 実行）
+
+**判定: 接続は機能している。維持で足りる。** 根拠は下の判定表と集計（2026-10-30 観測）。本判定は charter の MS status（MS-003 等）を done へ読み替えるものではなく、charter は変更していない。
+
+- **評価範囲**: TAS dispatch の `bounded_improvement` stage（LOOP run）で ComfyUI を対象にした run のうち、計画スパイン（`docs/plan/`。465db8db で着地）が正本として存在する 2026-10-23 以降の 14 run。証拠は各 run の `~/ai-hub/runs/<run_id>/claude_stdout.txt`・`accepted_work.json` と main の git log。
+- **接続の実体**: 接続は LOOP.md 自体ではなく dispatch mission の指示で成立する。mission は「LOOP.md and all other relevant repository task sources on every selection, including its purpose, plans, issues, specs, source, tests, docs, ...」（各 run の `prompt.md`）を要求し、LOOP.md 10-13 行の候補順（①make test の失敗 ②TODO/FIXME ③README/docs の手順と実装の不一致）自体は計画ソースを含まない。選択は候補源の優先順位ではなく価値・緊急度・依存の比較で決まり、plan は LOOP 項目と同列の追加候補源として扱われる。
+- **判定表**:
+
+|run_id|plan 参照|plan 由来候補の比較|選択結果|根拠 commit|着地|
+|---|---|---|---|---|---|
+|20261023-221515-995678|あり|あり（WP-A1 は環境未達で不選択 → WP-C1 を選択）|WP-C1|ca8d3d82|未着地|
+|20261024-042226-078222|あり|あり（WP-C1）|WP-C1|ab1abc55|未着地|
+|20261026-153352-460865|あり（docs/MILESTONES.md）|あり（次候補は MS-002 / WP-A1）|調査のみ（venv 不在で waiting）|なし|—|
+|20261027-082355-034909|あり|あり（WP-C2）|WP-C2 waiting（venv 不在）|なし|—|
+|20261029-230727-883012|あり|あり（WP-C2）|WP-C2|d633a060|着地|
+|20261029-233715-643981|あり|あり（WP-A1/WP-A2）|WP-A1+WP-A2|7004c49e|未着地|
+|20261030-001418-213762|あり|あり（WP-C1）|WP-C1|1d188bb9|着地|
+|20261030-003957-209557|あり|あり（WP-A1/WP-A2）|WP-A1→WP-A2|762c79b3|未着地|
+|20261030-010847-523518|あり|あり（M-A）|WP-A1→WP-A2|86cc64fe|未着地|
+|20261030-022229-254289|あり|あり（M-A の残作業）|WP-A1→WP-A2|c102509a|着地|
+|20261030-024733-230902|なし|なし（docs 不整合 C1-C4 を自発発見）|Woodpecker gate への fork suite 追加|0b46de87|未着地|
+|20261030-033123-255278|あり（次波 S2 を認識）|なし（比較対象は plan 由来外の MET-002 整合）|charter MET-002 整合|ce66a68d|未着地|
+|20261030-050738-755039|あり|あり（plan 現在地の乖離）|long-term-direction.md の現在地更新|07ab2fba|着地|
+|20261030-051929-484490|あり|あり（S1 完了条件由来の S2 再計画）|S2 波の再計画|858c337b|着地|
+
+- **集計**: plan ソース参照 13/14 run、plan 由来候補の比較 12/14 run、plan 由来候補の選択・実行 10/14 run、waiting 2 run（20261026-153352-460865 / 20261027-082355-034909、venv 不在）。着地 5 commit（d633a060 / 1d188bb9 / c102509a / 07ab2fba / 858c337b）はいずれも plan 由来作業の成果物（WP-C2 / WP-C1 / WP-A1+A2 / 現在地反映 / S2 再計画）で、`accepted_work.json` の candidate_sha と一致する。
+- **根拠の実在照合**: `git log --no-walk d633a060 1d188bb9 c102509a 07ab2fba 858c337b` で着地 5 commit の実在を確認、`git merge-base --is-ancestor <sha> HEAD` で未着地 7 commit が HEAD に含まれないことを確認。各 run の `accepted_work.json`（`candidate_sha`・`base_sha`・`acceptance_status: passed`）と判定表の run_id 対応を突合。
+- **維持で足りる根拠**: 接続は既に実効しており、LOOP.md の候補順（①→②→③）を弱めていない。20261030-033123-255278 は plan の次波（S2）を認識したうえで plan 由来でない候補を選んだが、これは mission の「queue や class が空になるのを待って止めるな／候補源は優先順位の phase gate ではない」指示と整合する挙動であり、接続の欠落ではない。よって (b) LOOP.md の候補源へ docs/plan/ を追加する（管理印 `loop-md:spec v3` の削除＝手動管理切替を伴う owner 判断）は、判定上は必要なし。WP-S2-2 はこの判定を前提に (a) 現状維持／(b)／(c) を確定する作業。
+- **観測した gap（いずれも接続の不在ではない）**:
+  - G1 重複並列: 同一 plan 由来 WP（MS-002 の WP-A1/WP-A2）へ 3 run（20261029-233715-643981 / 20261030-003957-209557 / 20261030-010847-523518）が同時着手し、3 つの別 commit（7004c49e / 762c79b3 / 86cc64fe）が未着地のまま残る。着地は 1 件（c102509a、run 20261030-022229-254289）のみ。解除条件: dispatch 側で plan 由来 WP の排他 claiming を持ち、同一 WP への同時着手を 1 件に絞る。本波では着手しない。
+  - G2 実行環境: plan 由来候補を正当に比較した 2 run が worktree に .venv が無く waiting へ転じた。解除条件: worktree での `make install` または利用可能な既存 venv（docs/plan/dot-worker.md の資源制約に従う）。
+  - G3 未着地候補の残置: 未着地 7 commit（ca8d3d82 / ab1abc55 / 7004c49e / 762c79b3 / 86cc64fe / 0b46de87 / ce66a68d）が各 run ブランチに残存。解除条件: harness/TAS 側の landing 判定。
+- **判定の限界**: (1) run 出力に残るのは選択理由と実行結果のみで、比較した全候補の一覧は残っていない。(2) 評価範囲は 2026-10-23 以降の `bounded_improvement` stage 14 run。2026-10-21 の 2 run（20261021-180833-628279 / 20261021-180913-784195）は exit 7 で出力なし、2026-10-22 / 2026-10-23 の 2 run（20261022-101456-865799 / 20261023-022407-465770）は別 stage（概念同期）のため対象外。(3) 未着地 commit は着地証拠として数えていない。
+- **WP-S2-2 への引き継ぎ**: 判定は (a) 現状維持を支持する。long-term-direction.md の S2 行の現在地更新と WP-S2-2 の完了記録は WP-S2-2 の書き込み範囲で行う（本 WP の書き込み範囲は本節と docs/llm-wiki/log.md のみ）。
 
 ### WP-S2-2 | 評価結果に応じた LOOP 候補接続の維持・是正方針の確定（約30分）
 
@@ -62,6 +98,7 @@
 - 追加修正片は親WPに束縛し、目的・成果・AC・依存を保つ。無関係なbacklogを増やさない。
 - 目的・資源・保護制約を守り、計画変更の理由と影響する再検証を残す。
 - 現在の実行波の終了条件: M-S2 の全 WP（2件）の AC を満たし、判定・方針の更新が実際の default へ着地したこと。waiting・失敗・PR 引継ぎだけを完了にしない。完了後は plan 由来の残課題の有無を確認し、無ければ LOOP の通常候補順へ戻る。S3（上流追従の準備）は所有者の明示指示が前提のため、S2 完了でも着手しない。（S1 波 M-A/M-C は全 WP 着地済みで終了。）
+- S2 波の進行（2026-10-30）: WP-S2-1 は done（判定記録は上記「WP-S2-1 判定記録」）。次は WP-S2-2（維持・是正方針の確定）。判定記録で観測した gap（G1 排他 claiming / G2 venv / G3 未着地候補）は WP-S2-2 の判断材料であり、本波では着手しない。
 
 <!-- END: GENERATED -->
 <!-- BEGIN: HUMAN -->
