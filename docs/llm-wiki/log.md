@@ -24,3 +24,9 @@ contracts の llm-wiki-discipline 原則に基づき `docs/llm-wiki/` を新設�
 `docs/plan/` に長期方針の見直し・約30分実行波・Dot 向けワーカー指示書を新設した。charter MS-003 の「固定 14 ファイル構成」が 820d2ae4 (#43) 後の追跡 3 ファイル構成と乖離していることを観測し、実行波 WP-C1 で charter 整合を計画。MET-001 の実測（2026-10-10）は観測時点の記録として保持し、再観測を WP-C2 で計画。スキル適用は計画整備までで、Dot の起動は含まない。
 
 - **Verification**: 観測基準 4c0788db9379bfe8013093b8339436b0175622c4。.concept/ 追跡 3 ファイル（ls 実測）、models.py 6 テーブル、alembic versions 0001..0008（本日観測）。テスト実測は未取得（docs-only のため製品 suite は再実行せず、WP-C2 として計画）。
+
+## 2026-10-30 — charter MS-003 を現 .concept 追跡構成へ整合（WP-C1）
+
+milestones.md 実行波 WP-C1。820d2ae4 (#43) 後の実態に合わせ、charter MS-003 の deliverables を「固定 14 ファイル構成」から手管理シード 3 ファイル（charter.yml / autopilot.yml / ontology_budget.yml）+ 生成ランタイム非追跡ガード（tests-unit/concept_metadata_tracking_test.py）へ更新した。intent の不存在参照（autopilot 品質基準 Q1-Q8 — 現行 autopilot.yml には存在しない）も除去。status は継続活動のため active のまま。
+
+- **Verification**: `git ls-files .concept`（3 seeds）と deliverables 記載の一致、`.venv/bin/python -c "import yaml; yaml.safe_load(open('.concept/charter.yml'))"` 成功、`pytest tests-unit/concept_metadata_tracking_test.py` 15 passed。

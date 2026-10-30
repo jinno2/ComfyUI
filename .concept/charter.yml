@@ -35,8 +35,8 @@ milestones:
     status: "active"
   - id: "MS-003"
     name: "Concept synchronization"
-    intent: ".concept/ 辞書を実コード・テストと同期させ、autopilot 品質基準（Q1-Q8）を満たし続ける"
-    deliverables: [".concept/ の固定 14 ファイル構成", "ontology/invariants/mappings の保守"]
+    intent: ".concept/ 辞書を実コード・テストと同期させ、追跡構成（手管理シード 3 ファイル + 非追跡ランタイムガード）を維持し続ける"
+    deliverables: [".concept/ 手管理シード 3 ファイル構成（charter.yml / autopilot.yml / ontology_budget.yml、820d2ae4）", "生成ランタイムメタデータ非追跡ガードの維持（tests-unit/concept_metadata_tracking_test.py）"]
     acceptance:
       - type: "test"
         target: "yaml parse of .concept/*.yml"
