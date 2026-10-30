@@ -2,7 +2,7 @@
 
 <!-- BEGIN: GENERATED -->
 
-計画確認日: 2026-10-21 13:05 WAT。基準: jinno2/ComfyUI @ 4c0788db9379bfe8013093b8339436b0175622c4。現在地観測の最新: 2026-10-30（S2 波（LOOP 接続の評価）の再計画後）。
+計画確認日: 2026-10-21 13:05 WAT。基準: jinno2/ComfyUI @ 4c0788db9379bfe8013093b8339436b0175622c4。現在地観測の最新: 2026-10-30（S2 波の判定・方針確定後、着地待ち）。
 文書の役割: ゴール・マイルストーン・非目標の正本は `.concept/charter.yml`。本書はその見直し記録と現在地の観測であり、現状・AC・作業一覧の正本を増やさない。実行波の正本は [milestones.md](milestones.md)。
 
 ## 目的と変更してはいけない条件
@@ -20,7 +20,7 @@
 |fork 基盤（Makefile/CI gate）|Makefile, .woodpecker.yml, AUTOMATION.md|履歴上の受入済み・最新稼働は未観測|charter MS-001 status: done。AUTOMATION.md（2026-09-27 時点で TAS timer 有効・Woodpecker 有効・GitHub Actions 無効）|なし（維持）|
 |アセット永続化|app/assets/database/, alembic_db/|受入確定（charter MS-002 done）|models.py に 6 テーブル、versions 0001..0008 単一 head。隔離一時 DB で alembic upgrade head exit 0・6 テーブル生成確認（2026-10-30 観測、run 20261030-022229-254289/evidence/wp-a1-alembic-upgrade.log）。make test 0 failed（2026-10-30 @ 1d188bb9）|なし（CFLT-ASSETPERSIST-001 は解消済み、charter MS-002 deliverables 参照）|
 |.concept 同期|.concept/（charter.yml, autopilot.yml, ontology_budget.yml の 3 ファイル）|整合済み（charter MS-003 deliverables が現追跡構成と一致）|820d2ae4 (#43) で runtime metadata を非追跡化、ガードテスト tests-unit/concept_metadata_tracking_test.py 追加。charter MS-003 の記載整合は 1d188bb9 で完了|なし（yaml parse が MS-003 の acceptance、継続維持）|
-|自律改善ループ|LOOP.md（loop-md:spec v3、管理印付き）|契約定義済み・運転実績あり（TAS dispatch の 1 run = 1 改善。MS-002/MS-003 の charter 更新と S2 再計画は LOOP run 由来 commit）|5fa1cf5a で spec v3 へ更新。d633a060 / 1d188bb9 / c102509a が run 由来の着地|なし（S2 波を milestones.md に再計画済み。残課題は WP-S2-1/WP-S2-2 の判定・方針）|
+|自律改善ループ|LOOP.md（loop-md:spec v3、管理印付き）|契約定義済み・運転実績あり（TAS dispatch の 1 run = 1 改善。MS-002/MS-003 の charter 更新と S2 再計画は LOOP run 由来 commit）|5fa1cf5a で spec v3 へ更新。d633a060 / 1d188bb9 / c102509a が run 由来の着地。WP-S2-1 判定（接続機能・維持で足りる）と WP-S2-2 方針（(a) 現状維持）を milestones.md に記録済み|なし（残課題は判定・方針の着地のみ。gap G1/G2/G3 は解除条件つきで記録済み）|
 
 ## 以前の計画から変える判断
 
@@ -39,7 +39,7 @@
 |段階|利用者が得る成果|必要な証拠|未達原因・依存|次の実行波に進む条件|
 |---|---|---|---|---|
 |S1 受入証拠の確定|MS-002 / MS-003 の status が証拠付きで確定する|`make test` 実測、alembic upgrade head の成功記録、README 実態一致の判定、charter 更新 commit|なし（全 WP 完了・着地済み: WP-A1/A2 は c102509a、WP-C1 は 1d188bb9、WP-C2 は d633a060）|達成（S2 は 2026-10-30 に milestones.md へ再計画済み）|
-|S2 継続運転の安定|LOOP の候補選択が plan の残課題を拾う|LOOP run の最終出力に plan 由来候補の記録|なし（S2 再計画の着地後に WP-S2-1 → WP-S2-2 を実行。S2 再計画自体が plan 完了条件由来の候補を拾った最初の証拠）|WP-S2-1/2 の判定・方針が着地した後。S3 は所有者の明示指示が前提|
+|S2 継続運転の安定|LOOP の候補選択が plan の残課題を拾う|LOOP run の最終出力に plan 由来候補の記録|なし（2026-10-30 に WP-S2-1 判定（接続機能・維持で足りる）と WP-S2-2 方針（(a) 現状維持）を記録済み。着地待ち）|達成（着地後。S3 は所有者の明示指示が前提）|
 |S3 上流追従の準備|所有者指示時に upstream merge を安全に実行できる状態|merge リハーサルの記録|所有者の明示指示が前提（自動追従は非ゴール）|指示到着時に分割する|
 
 現在の実行波は [milestones.md](milestones.md) に約30分単位で定義する。

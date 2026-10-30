@@ -42,3 +42,9 @@ S1 波（M-A/M-C）の完了条件「完了後に S2（LOOP 接続の評価）�
 milestones.md 実行波 WP-S2-1。TAS dispatch の LOOP run が docs/plan/ を候補源として参照し plan 由来の残課題を実際に比較・選択・実行しているかを、2026-10-23 以降の `bounded_improvement` stage 14 run の出力（`~/ai-hub/runs/<run_id>/claude_stdout.txt`・`accepted_work.json`）と着地済み commit から判定した。判定は「接続は機能している（維持で足りる）」。plan ソース参照 13/14 run、plan 由来候補の比較 12/14 run、選択・実行 10/14 run、waiting 2 run。着地 5 commit（d633a060 / 1d188bb9 / c102509a / 07ab2fba / 858c337b）はいずれも plan 由来作業の成果物で accepted_work.json の candidate_sha と一致する。接続経路は LOOP.md の候補順ではなく dispatch mission の候補源比較であり、LOOP.md への docs/plan/ 追加（管理印削除＝owner 判断）は判定上不要。判定記録・判定表・観測 gap（同一 WP への重複並列 / venv 不在による waiting / 未着地候補の残置）と解除条件は docs/plan/milestones.md に記載。charter の MS status は変更していない（判定は MS の done に読み替えない）。
 
 - **Verification**: `git log --no-walk d633a060 1d188bb9 c102509a 07ab2fba 858c337b` で 5 commit の実在照合、`git merge-base --is-ancestor` で未着地 7 commit（ca8d3d82 / ab1abc55 / 7004c49e / 762c79b3 / 86cc64fe / 0b46de87 / ce66a68d）が HEAD に含まれないことを確認、各 run の `accepted_work.json` の candidate_sha と判定表の run_id 対応を突合。
+
+## 2026-10-30 — LOOP 候補接続の維持方針を現状維持に確定（WP-S2-2）
+
+milestones.md 実行波 WP-S2-2。WP-S2-1 の判定（接続は機能している・維持で足りる、commit 8bb2cfcc）に基づき、plan 残課題を LOOP 候補集合へ継続的に取り込む経路の方針を (a) 現状維持 に確定した。LOOP.md の候補源への docs/plan/ 追加（b）は管理印（loop-md:spec v3）削除＝owner 判断を伴うが判定上不要のため起こさず、接続不全時の是正案（c）は対象事象が観測されていないため成立しない。owner 判断事項は発生していない。観測 gap G1（重複並列 claiming・dispatch 側）/ G2（worktree venv・runner 側）/ G3（未着地候補・harness/TAS 側）は解除条件つきで milestones.md に記録し、本波では着手しない。S2 波は両 WP の記録完了で着地待ち。着地後は plan 由来残課題の有無を確認して LOOP の通常候補順へ戻り、S3 は所有者の明示指示が前提。charter の MS status は変更していない。
+
+- **Verification**: LOOP.md・.concept/charter.yml の無変更を git diff で確認（loop-md:spec v3 印は残存）、方針記録と AUTOMATION.md の driver 構成（TAS が dispatch と着地、Woodpecker が CI gate）の突合で矛盾なし、milestones.md の「WP-S2-2 方針記録」と long-term-direction.md の現在地・段階表 S2 行の突合。
