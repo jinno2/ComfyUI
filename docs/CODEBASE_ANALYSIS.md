@@ -5,6 +5,7 @@
 - 手法: 6領域に分解した並列エージェント分析(実行エンジン / モデル管理 / ldm アーキテクチャ / ノード定義 / API ノード / 開発インフラ・フォーク独自部分)。主要指摘8件は本体セッションで実コードを再読して裏取り検証済み(§4)。
 - 更新: 2026-10-10 再検証。解決済み指摘は §0 / §2.2 / §2.6 / §3 に反映。フォーク独自コミットは 13 → 40 件に増加(`a402fd40^2..HEAD` 実測)。
 - 更新: 2026-10-30 再検証。解決済み指摘は §0 / §2.1 / §2.3 / §2.4 / §2.5 / §3 に反映(H1/H2/H3/H6/H7/M4)。フォーク独自コミットは 63 件(`a402fd40^2..HEAD` 実測 2026-10-30)。
+- 更新: 2026-10-30 flux/model.py 旧指摘の再確認(§2.3 row 4 / H8 / §3)。死に lambda は fork `5bceba74` で解決済み、zeros 依存の順序は現行 `:337-341` に現存。
 - 性格: このフォークはほぼ最新の upstream ComfyUI(最終同期 2026-06-20 頃)。フォーク独自コミットは 40 件超(`a402fd40^2..HEAD` 実測、自動コミットで増加しうる)で、実質的に Makefile 群・`scripts/`・`comfy/ops.py` の `safe_linear`・Pipfile/mise・docs のみ。
 
 ---
@@ -89,7 +90,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 1. ~~`sub_quadratic_attention.py:170-179` の OOM回復経路破損~~ → **対象ファイル削除済み**(2026-10-30 確認、リポ内に存在しない)
 2. `audio/dit.py:190` — RoPE スケーリング有り時の NameError(**現存**、`# noqa: F821` 付き)
 3. `audio/autoencoder.py:94` — antialias=True 時の NameError(**現存**、`# noqa: F821` 付き)
-4. `flux/model.py:268` — 結果を捨てる死んでいる lambda、`:339-341` は zeros 初期化依存の脆弱な順序 → **要再確認**(該当行周辺は上流の書き換えで現行コードと不一致、2026-10-30)
+4. `flux/model.py` — 死んでいる lambda(結果を捨てる式文 `lambda a: 0 if a == 0 else a + txt.shape[1]`) → **解決済み**(上流 44f1246c #12905 が導入、fork `5bceba74` PR #7 で除去済み。現行ファイルの唯一の lambda は `:268` で、map 結果を `modulation_dims_combined` に格納して使用するため指摘対象外)。zeros 初期化依存の脆弱な順序は **現存**(`process_img` の現行 `:337-341`。`img_ids[:,:,0]` を ch1 がゼロの状態で読むため、行順序の入れ替えで ch0 が暗黙に h 位置 + index に変わる。現行動作は正しいが潜在リスク、upstream 継承のため upstream PR 経路)。2026-10-30 再確認
 
 **設計リスク**: `supported_models.models` のリスト順が load-bearing(部分集合マッチのため、先に広いクラスがあると後の狭いクラスが影を落とす)。 specificity の強制が何もない。
 
@@ -143,7 +144,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 | H5 | `safe_linear` のフラグをデバイス別 dict 化 + `discard_cuda_async_error` に失敗テンソルのデバイスを渡す → **解決済み**(`fdfb9395` デバイス別 set 化 + `input.device` 渡し + 単体テスト追加) | `ops.py`, `model_management.py` | **フォーク対応** |
 | H6 | DB マイグレーションをファイルロック取得後に実行 → **解決済み**(19e1058f #16295。現行 `app/database/db.py` はロック取得後に `_migrate_and_bind`) | `app/database/db.py` | upstream 継承 |
 | H7 | `LoadImage`: スキップフレームの警告化 + 全フレーム消失時の明示的エラー → **解決済み**(`fd7bfcd3` フォーク対応の警告化+先頭フレーム基準で空 cat 到達不能) | `nodes.py` | **フォーク対応** |
-| H8 | ldm の F821 潜在クラッシュ修正(実装 or 死んだ分岐削除)+ CI に F821 チェック → **対象縮小**(`sub_quadratic_attention.py` は削除済み、残存は `audio/dit.py:190` と `audio/autoencoder.py:94` の 2件。`flux/model.py` 該当行は上流書き換えで要再確認) | `comfy/ldm/audio/` | upstream 継承 |
+| H8 | ldm の F821 潜在クラッシュ修正(実装 or 死んだ分岐削除)+ CI に F821 チェック → **対象縮小**(`sub_quadratic_attention.py` は削除済み、残存は `audio/dit.py:190` と `audio/autoencoder.py:94` の 2件。旧 flux/model.py 指摘は再確認済み — 死に lambda は fork `5bceba74` で解決済み、zeros 依存の順序は `:337-341` に現存だが audio スコープ外) | `comfy/ldm/audio/` | upstream 継承 |
 
 ### Medium
 
@@ -165,7 +166,7 @@ blueprints/       3.9MB   サブグラフテンプレートJSON 90個
 
 - extras 残り9ファイルの V3 移行 → ローダー/バリデータ二重経路の解消
 - `nodes.py` からローダー/レジストリ部分の分離、`node_info`/object_info のキャッシュ化
-- 死にコード除去(flux 死蔵 lambda、`map_node_over_list` stub、`IsChangedCache.outputs_cache`)
+- 死にコード除去(`map_node_over_list` stub、`IsChangedCache.outputs_cache`。flux 死蔵 lambda は解決済み `5bceba74`)
 - bare `except:` 全廃(ruff E722)、`hook_breaker_ac10a0.py` の改名・文書化
 - Pipfile/mise.toml の削除または Makefile への統合、blueprint JSON のスキーマ検証
 - `supported_models` マッチの specificity 強制(最も具体的な設定を優先)
