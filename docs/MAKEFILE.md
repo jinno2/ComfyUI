@@ -35,6 +35,17 @@ curl -L -o models/checkpoints/v1-5-pruned-emaonly.safetensors \
 | `make full_update` | `clean` + `git pull` + `install` + `build`                |
 | `make device-info` | Print platform, Python, torch backend (cuda / mps)        |
 
+### Models
+
+WAI-ANIMA setup (Civitai token required — see [Configuration knobs](#configuration-knobs)):
+
+| Target                | What it does                                                                                                                |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `make setup-anima`    | `install` + `anima-models` + `anima-workflow` in one command                                                                |
+| `make anima-models`   | Download the WAI-ANIMA UNet / text encoder / VAE into `models/` from Civitai, verifying byte sizes; already-complete files are skipped |
+| `make anima-workflow` | Install `scripts/wai_anima_workflow.json` into the user workflow dir as `user/default/ComfyUI/workflows/wai_anima.json`      |
+| `make smoke-anima`    | Start the server on `127.0.0.1:8188`, queue the WAI-ANIMA workflow with a random seed, wait for `output/wai_anima_*.png`, then stop. Requires `jq`; logs go to `.run/comfyui-smoke.log` |
+
 ### Run
 
 | Target      | What it does                                                |
@@ -99,6 +110,8 @@ of the log for debugging.
 ## Configuration knobs
 
 - `SERVICE_NAME` — systemd unit name on Linux (default: `comfyui`)
+- `CIVITAI_TOKEN` — Civitai API token used by `anima-models`; taken from the
+  environment or a token file at `~/.civitai_token` (whitespace stripped)
 
 ## Why this Makefile exists
 
