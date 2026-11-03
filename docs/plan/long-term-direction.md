@@ -47,4 +47,5 @@
 
 <!-- END: GENERATED -->
 <!-- BEGIN: HUMAN -->
+手動追記（2026-11-03）: 本書の「全体構造と現在地」が現状との差、「到達状態から逆算した段階」が到達点・依存・出口条件の正本。MS-### 形式の実行用分解と次の一手は [docs/MILESTONES.md](../MILESTONES.md)、目標・マイルストーンの正本は [`.concept/charter.yml`](../.concept/charter.yml)。
 <!-- END: HUMAN -->

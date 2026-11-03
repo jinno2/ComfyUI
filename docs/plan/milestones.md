@@ -92,4 +92,5 @@
 
 <!-- END: GENERATED -->
 <!-- BEGIN: HUMAN -->
+手動追記（2026-11-03）: MS-### 形式の実行用分解（Outcome / Acceptance / Evidence / Status、依存、次の一手）と直近の約30分枠は [docs/MILESTONES.md](../MILESTONES.md) に置く。本書の WP カードが各枠の実装手順の正本であり、状態は charter（`.concept/charter.yml`）が正本。現在の wave は M-A（WP-A1 → WP-A2）と M-C（WP-C1 → WP-C2）。
 <!-- END: HUMAN -->

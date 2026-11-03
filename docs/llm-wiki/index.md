@@ -8,3 +8,4 @@
 - 成果物: 上流 comfyanonymous/ComfyUI（モジュラー型 AI コンテンツ生成エンジン）のローカル fork/ワーキングコピー。README は上流本文のまま。（出典: README.md、上流 GitHub リポ表示）
 - カスタマイズ: fork 固有は約 20 commits（jinno author 実測）。Makefile 標準化とクロスプラットフォーム対応、Woodpecker gate 追加と upstream テスト workflow のガード、safe_linear のデバイス別フォールバック、seedvr2 テスト順依存修正、CODEBASE_ANALYSIS.md・AUTOMATION.md。先行 515 の大半は upstream merge による上流新規分。（出典: git log up/master..HEAD 515 commits / a402fd40^2..HEAD = 20 commits）
 - 計画スパイン: 長期方針の見直し・約30分の実行波・Dot 向けワーカー指示書は `docs/plan/`（long-term-direction.md / milestones.md / dot-worker.md）。ゴールの正本は charter のまま、見直し記録と実行波のみを保持。（出典: docs/plan/、2026-10-21 @ 4c0788db 観測）
+- 実行用マイルストーン索引: `docs/MILESTONES.md` が charter の MS-001..MS-003 を Outcome / Acceptance / Evidence / Status・依存・次の一手の形で実行可能な分解として持ち、正本 `REPO_METADATA.json` は charter と `docs/plan/milestones.md` の投影（source_hash は git blob ID）。charter MS-003 の deliverables は 2026-11-03 に追跡3ファイル構成へ修正。（出典: docs/MILESTONES.md、.concept/charter.yml、REPO_METADATA.json、2026-11-03 観測）

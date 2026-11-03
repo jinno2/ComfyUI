@@ -1,5 +1,12 @@
 version: "1.0"
 
+planning:
+  long_term_direction: "docs/plan/long-term-direction.md"
+  current_wave: "docs/plan/milestones.md"
+  executable_milestones: "docs/MILESTONES.md"
+  status_vocabulary: "本書の milestone status は done / active。docs/MILESTONES.md は同じ状態を achieved / in_progress 等（DoD 指定の語彙）で表記する。"
+  note: "本書の product_goal が目的・非目標・成功条件の正本。docs/plan/long-term-direction.md は見直し記録と現在地（現状との差・到達段階）、docs/plan/milestones.md は約30分の実行波、docs/MILESTONES.md は MS-### 形式の実行用分解（正本への相対リンク）。"
+
 product_goal:
   north_star: "モジュラーなノードグラフ型 AI コンテンツ生成エンジンとして、画像・動画・3D・音声生成を上流に自動追従しない恒久自律開発で安定提供する ComfyUI fork であり続ける（推定）"
   success_metrics:
@@ -18,30 +25,64 @@ milestones:
   - id: "MS-001"
     name: "Fork infrastructure stability"
     intent: "無人稼働の阻害要因を排除し、fork 固有基盤（Makefile 標準化・クロスプラットフォーム対応・Woodpecker gate と upstream workflow ガード）を安定させる"
+    supports: ["MET-001", "MET-002"]
     deliverables: ["Makefile 標準ターゲット（install/build/run/start/test/lint）", ".woodpecker.yml gate", "upstream テスト workflow のガード"]
     acceptance:
       - type: "test"
         target: "make test"
     priority: "P0"
     status: "done"
+    depends_on: []
+    exit_criteria:
+      - "make test が 0 failed（最新記録: 2026-10-10 1930 passed / 0 failed / 74 skipped）"
+      - "Woodpecker gate（Ruff + tests-unit 選別）が PR と main push で green"
+    next_action: "維持のみ。新規の改善は LOOP.md の候補順に従い、この milestone には新たな成果を追加しない"
+    evidence:
+      - "Makefile に install/build/run/start/test/lint の標準ターゲットが存在（2026-11-03 観測）"
+      - ".woodpecker.yml が pull_request / main push で Ruff + tests-unit を選別実行（2026-11-03 観測）"
+      - "GitHub Actions 無効・Woodpecker 有効の運用記録: AUTOMATION.md Status"
   - id: "MS-002"
     name: "Asset persistence layer integrity"
     intent: "fork 固有のアセット永続化レイヤ（app/assets/database の SQLAlchemy スキーマと alembic_db/versions のマイグレーション）の整合を保ち、文書と実装の乖離を解消する"
+    supports: ["MET-001"]
     deliverables: ["app/assets/database/models.py の 6 テーブル", "alembic_db/versions 0001..0008", "alembic_db/README.md の実態一致（CFLT-ASSETPERSIST-001 の解消）"]
     acceptance:
       - type: "test"
         target: "make test"
     priority: "P1"
     status: "active"
+    depends_on: []
+    exit_criteria:
+      - "隔離した一時 DB に対し alembic upgrade head が exit 0 で完了し alembic current が単一 head と一致する"
+      - "alembic_db/README.md の手順と versions 0001..0008 の実態が一致する（CFLT-ASSETPERSIST-001 の解消）"
+      - "MS-002 の既存 acceptance（make test）を同一候補の有効な証拠で満たす"
+    next_action: "WP-A1（docs/plan/milestones.md）: 一時 DB へ alembic upgrade head を実行し exit code と alembic heads / current を記録する（約30分）。完了後 WP-A2 で本 milestone の status と acceptance を証拠付きで確定する"
+    evidence:
+      - "app/assets/database/models.py に 6 テーブル（asset_contents / assets / asset_meta / asset_tags / tags / asset_system_state）: 2026-11-03 観測"
+      - "alembic_db/versions に 0001..0008 の連鎖が存在: 2026-11-03 観測"
+      - "alembic upgrade head の実行証拠と README 実態一致の判定は未取得（WP-A1 / WP-A2）"
   - id: "MS-003"
     name: "Concept synchronization"
     intent: ".concept/ 辞書を実コード・テストと同期させ、autopilot 品質基準（Q1-Q8）を満たし続ける"
-    deliverables: [".concept/ の固定 14 ファイル構成", "ontology/invariants/mappings の保守"]
+    supports: ["MET-001"]
+    deliverables:
+      - "追跡する .concept ファイルは charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイル"
+      - "生成される runtime メタデータ 12 ファイルは Git 追跡から除外し、除外を tests-unit/concept_metadata_tracking_test.py でガードする"
+      - "ontology / invariants / mappings 相当の辞書追加は対応する概念を観測した時点で個別に判断する（常設ファイルを作らない）"
     acceptance:
       - type: "test"
         target: "yaml parse of .concept/*.yml"
     priority: "P2"
     status: "active"
+    depends_on: []
+    exit_criteria:
+      - ".concept/*.yml の yaml parse が成功する"
+      - "git ls-files .concept が charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイルと一致し、非追跡 runtime 12 ファイルが check-ignore される"
+    next_action: "WP-C2（docs/plan/milestones.md）: `make test` を 1 回実行して MET-001 の実測と対象 SHA を記録し、charter の MET-001 記載を実測値へ更新する（約30分）。deviations があれば本 milestone の deliverables へ反映する"
+    evidence:
+      - "820d2ae4 (#43) で runtime 生成物 12 ファイルの Git 追跡を解除し、追跡は 3 ファイルになった（git ls-files .concept 実測）"
+      - "ガードテスト tests-unit/concept_metadata_tracking_test.py が追跡/除外の回帰を検査する"
+      - "旧記載だった deliverables『固定 14 ファイル構成』は 2026-11-03 に現構成へ修正した（未了の乖離は解消）"
 
 work_policy:
   default_mode: "commit"
