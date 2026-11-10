@@ -93,4 +93,5 @@
 <!-- END: GENERATED -->
 <!-- BEGIN: HUMAN -->
 手動追記（2026-11-03）: MS-### 形式の実行用分解（Outcome / Acceptance / Evidence / Status、依存、次の一手）と直近の約30分枠は [docs/MILESTONES.md](../MILESTONES.md) に置く。本書の WP カードが各枠の実装手順の正本であり、状態は charter（`.concept/charter.yml`）が正本。現在の wave は M-A（WP-A1 → WP-A2）と M-C（WP-C1 → WP-C2）。
+手動追記（2026-11-10）: WP-C1 は完了 — charter MS-003 deliverables の現構成整合（追跡 3 ファイル + runtime 生成物の非追跡ガード）は 2026-11-03 の eadbeeeb で main へ着地した（`git ls-files .concept` 実測と tests-unit/concept_metadata_tracking_test.py の存在で確認、2026-11-10 観測）。残る wave は M-A（WP-A1 → WP-A2）と WP-C2。
 <!-- END: HUMAN -->

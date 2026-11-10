@@ -46,5 +46,5 @@ Outcome: .concept/ の記述が実コード・テスト・追跡構成から乖�
 Acceptance: `.concept/*.yml` の yaml parse が成功し、`git ls-files .concept` が charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイルと一致し、非追跡の runtime 12 ファイルが check-ignore される（MET-001 の再観測は WP-C2 で charter へ反映）
 Evidence: 820d2ae4 (#43) で runtime 生成物 12 ファイルの Git 追跡を解除して追跡は 3 ファイルになり、ガードテスト `tests-unit/concept_metadata_tracking_test.py` が追跡/除外を検査する。旧記載だった deliverables「固定 14 ファイル構成」は 2026-11-03 に現構成へ修正した
 Status: in_progress
-依存: なし。WP-C1（charter deliverables を現構成へ整合）は本コミットの charter 修正に含まれる（着地は TAS 側）、残りは WP-C2。同じ charter を触るため反映は直列化する
+依存: なし。WP-C1（charter deliverables を現構成へ整合）は 2026-11-03 の eadbeeeb で main へ着地済み（2026-11-10 確認）、残りは WP-C2。同じ charter を触るため反映は直列化する
 次の一手: WP-C2 を約30分枠で実行 — `make test` を1回だけ走らせ MET-001 の実測（passed/failed/skipped と対象 SHA）を記録し、charter の MET-001 記載を実測値へ更新する

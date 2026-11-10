@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "verified_at": "2026-11-03T07:57:34Z",
+  "verified_at": "2026-11-10T08:06:25Z",
   "long_term": {
     "summary": "モジュラーなノードグラフ型 AI コンテンツ生成エンジンとして、上流に自動追従しない恒久自律開発で安定提供する ComfyUI fork であり続ける（推定）。成功指標: make test 0 failed 維持と Woodpecker CI gate green、上流自動追従・外部通信path追加・互換シム保持は非目標",
     "source": ".concept/charter.yml#product_goal",
@@ -8,10 +8,10 @@
     "updated_at": "2026-11-03"
   },
   "short_term": {
-    "summary": "現行実行波: charter MS-002（WP-A1→WP-A2）と MS-003（WP-C2）の受入証拠確定。WP カードの正本は docs/plan/milestones.md、MS-### 形式の実行用分解は docs/MILESTONES.md。直近の一枠は WP-A1（隔離した一時 DB への alembic upgrade head 実走、約30分）",
+    "summary": "現行実行波: charter MS-002（WP-A1→WP-A2）と MS-003（WP-C2）の受入証拠確定（WP-C1 は 2026-11-03 完了・eadbeeeb 着地）。WP カードの正本は docs/plan/milestones.md、MS-### 形式の実行用分解は docs/MILESTONES.md。直近の一枠は WP-A1（隔離した一時 DB への alembic upgrade head 実走、約30分）",
     "source": "docs/plan/milestones.md",
-    "source_hash": "git-blob:97afdd0350b0d1671fdfadf4e8cecc2683ab1866",
-    "updated_at": "2026-11-03",
+    "source_hash": "git-blob:37ae7e62134c6fff699c71c15e7236473cbd9115",
+    "updated_at": "2026-11-10",
     "status": "in_progress"
   }
 }
