@@ -15,8 +15,8 @@
 
 |ID|利用者が得る能力・成果|対象WP|完了ゲート|標準作業枠|
 |---|---|---|---|---|
-|M-A|MS-002 の受入状態が証拠付きで確定する（実装済み/実証待ちの区別が charter に反映）|WP-A1, WP-A2|charter MS-002 が証拠参照付きで status 更新されている|2枠|
-|M-C|charter の記載が現実（.concept 構成・テスト実測）と一致する|WP-C1, WP-C2|charter の MS-003 deliverables と MET-001 観測が 2026-10-21 時点の実測と一致|2枠|
+|M-A|MS-002 の受入状態が証拠付きで確定する（実装済み/実証待ちの区別が charter に反映）|WP-A1, WP-A2|charter MS-002 が証拠参照付きで status 更新され、その成果が default へ着地している|WP-A1 / WP-A2 の成果は未着地ブランチに存在。着地確認が次|
+|M-C|charter の記載が現実（.concept 構成・テスト実測）と一致する|WP-C1, WP-C2|charter の MS-003 deliverables が現構成と一致し（WP-C1 は 2026-11-03 の eadbeeeb で着地済）、MET-001 観測が実測値と一致する（WP-C2 未実施）|WP-C2 の1枠|
 
 依存: WP-A1 → WP-A2 のみ。WP-C1 と WP-C2 は独立。M-A 系と M-C 系は相互に並行進行できる。
 
@@ -94,4 +94,5 @@
 <!-- BEGIN: HUMAN -->
 手動追記（2026-11-03）: MS-### 形式の実行用分解（Outcome / Acceptance / Evidence / Status、依存、次の一手）と直近の約30分枠は [docs/MILESTONES.md](../MILESTONES.md) に置く。本書の WP カードが各枠の実装手順の正本であり、状態は charter（`.concept/charter.yml`）が正本。現在の wave は M-A（WP-A1 → WP-A2）と M-C（WP-C1 → WP-C2）。
 手動追記（2026-11-10）: WP-C1 は完了 — charter MS-003 deliverables の現構成整合（追跡 3 ファイル + runtime 生成物の非追跡ガード）は 2026-11-03 の eadbeeeb で main へ着地した（`git ls-files .concept` 実測と tests-unit/concept_metadata_tracking_test.py の存在で確認、2026-11-10 観測）。残る wave は M-A（WP-A1 → WP-A2）と WP-C2。
+手動追記（2026-11-11）: 各 WP の現状 — WP-A1 / WP-A2 は未着地ブランチ（6d8fbffd / 886ec49a / ae41a228）で実走・README 実態整合・charter 更新まで完了しているが、main には未着地のため MS-002 は active のまま。WP-C1 は eadbeeeb で着地済み。WP-C2 は未着手で、main で実行可能な唯一の枠。MS-003 の exit_criteria 2 項（yaml parse / 追跡3ファイルと runtime 12 ファイルの check-ignore）は 2026-11-11 再観測で充足を確認済み、未充足は MET-001 の再観測（WP-C2）のみ。
 <!-- END: HUMAN -->
