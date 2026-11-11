@@ -20,7 +20,7 @@
 |fork 基盤（Makefile/CI gate）|Makefile, .woodpecker.yml, AUTOMATION.md|履歴上の受入済み・最新稼働は未観測|charter MS-001 status: done。AUTOMATION.md（2026-09-27 時点で TAS timer 有効・Woodpecker 有効・GitHub Actions 無効）|なし（維持）|
 |アセット永続化|app/assets/database/, alembic_db/|実装済み・受入証拠待ち|models.py に 6 テーブル、versions 0001..0008（2026-10-21 観測）|README 実態一致と CFLT-ASSETPERSIST-001 解消の証拠が記録に残っていない|
 |.concept 同期|.concept/（charter.yml, autopilot.yml, ontology_budget.yml の 3 ファイル）|限定受入|820d2ae4 (#43) で runtime metadata を非追跡化、ガードテスト tests-unit/concept_metadata_tracking_test.py 追加（2026-10-15 前後）|charter MS-003 の「固定 14 ファイル構成」記載が現構成と乖離|
-|自律改善ループ|LOOP.md（loop-md:spec v2、管理印付き）|契約定義済み（TAS dispatch の 1 run = 1 改善。定義だけでは運転実績にならない）|LOOP.md 本体|LOOP の候補順位と本計画の残課題が未接続|
+|自律改善ループ|LOOP.md（loop-md:spec v4、管理印付き。2026-11-10 観測 @ b3aed15a、基準時点 2026-10-21 は v2）|契約定義済み（TAS dispatch の 1 run = 1 改善。定義だけでは運転実績にならない）|LOOP.md 本体|LOOP の候補順位と本計画の残課題が未接続|
 
 ## 以前の計画から変える判断
 
