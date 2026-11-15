@@ -16,11 +16,11 @@ Plan-Status: in_progress
 
 ## 直近の一枠（約30分・現在 ready）
 
-- 対象: WP-A1 — alembic マイグレーション連鎖の受入確認（カード全文は [docs/plan/milestones.md](plan/milestones.md)）
-- 検証可能な行動: 隔離した一時 DB ファイルに対し `alembic upgrade head` を実行し、exit code 0 と `alembic current` が単一 head と一致することを確認する
-- 完了判定: 実行コマンドと exit code、`alembic heads` / `alembic current` の出力を run 出力へ残す（計画 MD への転記は不要）
-- 前提: 既存 venv（`make install` 済み）。新規依存の追加とコード変更はしない
-- 戻り先: WP-A2 — charter MS-002 の status / acceptance を証拠付きで確定する
+- 対象: WP-A2 — CFLT-ASSETPERSIST-001 解消判定と charter MS-002 更新（カード全文は [docs/plan/milestones.md](plan/milestones.md)）
+- 前提: WP-A1 の実行記録は取得済み（[docs/plan/evidence/wp-a1-alembic-chain.md](plan/evidence/wp-a1-alembic-chain.md)、着地 commit 0075fd4f、2026-11-07 観測）。既存 venv（`make install` 済み）
+- 検証可能な行動: `alembic_db/README.md` の手順と versions 0001..0008 の実態一致を判定表にし、同一候補の make test 証拠（既存 CI 証拠の再利用可）と合わせて charter MS-002 の status を確定する
+- 完了判定: 判定と根拠の記録、成功時は charter 更新の実際の default 着地まで
+- 戻り先: WP-C2 — make test 再観測と MET-001 実測の更新（独立着手可、charter 編集は直列化）
 
 ## MS-001: Fork infrastructure stability
 
@@ -35,10 +35,10 @@ Status: achieved
 
 Outcome: アセット永続化レイヤ（models.py の 6 テーブル、alembic_db 0001..0008、alembic_db/README.md）が実態と一致し、マイグレーション連鎖が隔離環境で実行可能であることが証拠で示される
 Acceptance: 隔離した一時 DB で `alembic upgrade head` が exit 0、`alembic current` が単一 head と一致、README の手順が versions 0001..0008 の実態と一致（CFLT-ASSETPERSIST-001 の解消）、`make test` が 0 failed
-Evidence: `app/assets/database/models.py` に 6 テーブル、`alembic_db/versions` に 0001..0008 の連鎖（いずれも 2026-11-03 観測）。alembic upgrade head の実行証拠と README 実態一致の判定は未取得（WP-A1 / WP-A2）
+Evidence: `app/assets/database/models.py` に 6 テーブル、`alembic_db/versions` に 0001..0008 の連鎖（いずれも 2026-11-03 観測）。WP-A1 の隔離実行証拠は取得済み: `docs/plan/evidence/wp-a1-alembic-chain.md`（run 20261107-235007-331852、着地 commit 0075fd4f — upgrade head が exit 0、heads/current とも単一 `0008_missing_content_age` に一致、2026-11-07 観測）。README 実態一致の判定と make test 同一候補証拠は未取得（WP-A2）
 Status: in_progress
-依存: なし。WP-A2 は WP-A1 の実行記録に依存し、charter の編集は直列化する
-次の一手: WP-A1 を約30分枠で実行 — 一時 DB へ `alembic upgrade head` を実行し、exit code と `alembic heads` / `alembic current` を記録する
+依存: WP-A1 は完了済み。WP-A2 の残りは README 判定と make test 証拠で、charter の編集は直列化する
+次の一手: WP-A2 を約30分枠で実行 — README と versions 0001..0008 の実態一致を判定し、同一候補の make test 証拠と合わせて charter MS-002 の status を確定する
 
 ## MS-003: Concept synchronization
 
@@ -46,5 +46,5 @@ Outcome: .concept/ の記述が実コード・テスト・追跡構成から乖�
 Acceptance: `.concept/*.yml` の yaml parse が成功し、`git ls-files .concept` が charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイルと一致し、非追跡の runtime 12 ファイルが check-ignore される（MET-001 の再観測は WP-C2 で charter へ反映）
 Evidence: 820d2ae4 (#43) で runtime 生成物 12 ファイルの Git 追跡を解除して追跡は 3 ファイルになり、ガードテスト `tests-unit/concept_metadata_tracking_test.py` が追跡/除外を検査する。旧記載だった deliverables「固定 14 ファイル構成」は 2026-11-03 に現構成へ修正した
 Status: in_progress
-依存: なし。WP-C1（charter deliverables を現構成へ整合）は本コミットの charter 修正に含まれる（着地は TAS 側）、残りは WP-C2。同じ charter を触るため反映は直列化する
+依存: なし。WP-C1 は着地済み（charter MS-003 deliverables を 2026-11-03 に現構成へ修正、eadbeeeb で着地）、残りは WP-C2。同じ charter を触るため反映は直列化する
 次の一手: WP-C2 を約30分枠で実行 — `make test` を1回だけ走らせ MET-001 の実測（passed/failed/skipped と対象 SHA）を記録し、charter の MET-001 記載を実測値へ更新する
