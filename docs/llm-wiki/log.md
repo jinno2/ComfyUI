@@ -31,3 +31,18 @@ contracts の llm-wiki-discipline 原則に基づき `docs/llm-wiki/` を新設�
 
 - **Verification**: 指定構造検証スクリプト（`VERIFY_PLANNING`）が `planning structure verified; semantic acceptance remains separate` で exit 0。charter は yaml parse 成功。追跡構成は `git ls-files .concept` で charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイルを確認。
 - 未了: MS-002 の alembic 実走証拠（WP-A1）と README 実態一致判定（WP-A2）、MET-001 の再観測（WP-C2）は未実行・未取得。MS-002 / MS-003 は in_progress、MS-001 は achieved（charter status=done と MET-001 記録 2026-10-10 が根拠）。
+
+## 2026-11-07 — WP-A1 alembic 受入証拠の永続化（recovery run 20261107-235007-331852）
+
+TAS run-853297c93e02（child 20261107-233514-229391）は WP-A1 を実行したが、定義が
+`authorized_observation`（評価器構造上 supported にできず）＋ run レポートが worker
+stdout のみで全 criteria unverified・評価 40 となった。本 recovery run で隔離一時 DB
+（/tmp、ini 上書き、`user/comfyui.db` は実行前後とも不在）に対する実行を実施し直し、
+コマンド・exit code・heads/current 出力・stepwise 8-revision トレース・DB 終状態を
+`docs/plan/evidence/wp-a1-alembic-chain.md` として永続化した。MS-002 の charter 反映
+（WP-A2）は別枠のまま。
+
+- **Verification**: `upgrade head` exit 0（DB ファイル不在確認後の空 DB から）、
+  `heads`/`current` = `0008_missing_content_age (head)`、stepwise 8×`upgrade +1`
+  exit 0、`alembic_version` 行 = 0008、テーブル 6+alembic_version。元 run の失敗分類は
+  評価証拠窓であって連鎖自体の失敗ではない。
