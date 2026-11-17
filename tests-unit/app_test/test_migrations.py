@@ -46,17 +46,6 @@ def migration_db(tmp_path):
     yield cfg
 
 
-def test_upgrade_to_head(migration_db):
-    """Upgrade from baseline to head must succeed on a file-backed DB."""
-    command.upgrade(migration_db, "head")
-
-
-def test_downgrade_to_baseline(migration_db):
-    """Upgrade to head then downgrade back to baseline."""
-    command.upgrade(migration_db, "head")
-    command.downgrade(migration_db, _BASELINE)
-
-
 def test_upgrade_downgrade_cycle(migration_db):
     """Full cycle: upgrade → downgrade → upgrade again."""
     command.upgrade(migration_db, "head")

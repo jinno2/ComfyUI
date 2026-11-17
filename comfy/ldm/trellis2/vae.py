@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from fractions import Fraction
 from typing import List, Any, Dict, Optional, overload, Union
+import comfy.model_management
 import comfy.ops
 from comfy.ldm.trellis2.flexgemm import TorchHashMap, sparse_submanifold_conv3d
 
@@ -51,8 +52,8 @@ def sparse_conv3d_forward(self, x):
     neighbor_cache_key = f'SubMConv3d_neighbor_cache_{Kw}x{Kh}x{Kd}_dilation{self.dilation}'
     neighbor_cache = x.get_spatial_cache(neighbor_cache_key)
     feats = x.feats
-    weight = comfy.ops.cast_to(self.weight, feats.dtype, feats.device)
-    bias = comfy.ops.cast_to(self.bias, feats.dtype, feats.device) if self.bias is not None else None
+    weight = comfy.model_management.cast_to(self.weight, feats.dtype, feats.device)
+    bias = comfy.model_management.cast_to(self.bias, feats.dtype, feats.device) if self.bias is not None else None
 
     out, neighbor_cache_ = sparse_submanifold_conv3d(
         x.feats,

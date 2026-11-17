@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import comfy.model_management
 import comfy.ops
 from comfy.image_encoders.dino2 import Dinov2Model
 from comfy.ldm.trellis2.flexgemm import sparse_pool3d_mean, sparse_submanifold_conv3d, sparse_upsample3d_nearest
@@ -216,8 +217,8 @@ class SubmanifoldConv3d(nn.Module):
         self.bias = nn.Parameter(torch.empty(out_channels, dtype=dtype, device=device))
 
     def forward(self, feats, coords, spatial, neighbor_cache=None):
-        weight = comfy.ops.cast_to(self.weight, feats.dtype, feats.device)
-        bias = comfy.ops.cast_to(self.bias, feats.dtype, feats.device)
+        weight = comfy.model_management.cast_to(self.weight, feats.dtype, feats.device)
+        bias = comfy.model_management.cast_to(self.bias, feats.dtype, feats.device)
         return sparse_submanifold_conv3d(feats, coords, spatial, weight, bias, neighbor_cache, (1, 1, 1))
 
 

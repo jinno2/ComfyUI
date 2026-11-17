@@ -19,6 +19,12 @@ contracts の llm-wiki-discipline 原則に基づき `docs/llm-wiki/` を新設�
 - relations.md の階層関係を草案から確定版へ更新。親: business_operation_notes。
 - Verification: contracts registry `organization/repositories/comfyui.yaml` の spec.parent（ecbc226）と突合し一致を確認。
 
+## 2026-10-21 — 計画スパイン新設（dot-milestone-loop 適用、docs-only）
+
+`docs/plan/` に長期方針の見直し・約30分実行波・Dot 向けワーカー指示書を新設した。charter MS-003 の「固定 14 ファイル構成」が 820d2ae4 (#43) 後の追跡 3 ファイル構成と乖離していることを観測し、実行波 WP-C1 で charter 整合を計画。MET-001 の実測（2026-10-10）は観測時点の記録として保持し、再観測を WP-C2 で計画。スキル適用は計画整備までで、Dot の起動は含まない。
+
+- **Verification**: 観測基準 4c0788db9379bfe8013093b8339436b0175622c4。.concept/ 追跡 3 ファイル（ls 実測）、models.py 6 テーブル、alembic versions 0001..0008（本日観測）。テスト実測は未取得（docs-only のため製品 suite は再実行せず、WP-C2 として計画）。
+
 ## 2026-10-22 — fork 固有コミット数の pointer 化（Dot D1-2）
 
 docs/CODEBASE_ANALYSIS.md と本 wiki index の fork 数値（13 件 / 約 20 commits・先行 515）を観測日付きの履歴値として明記し、現行値への pointer（`git rev-list --count a402fd40^2..HEAD`）を追記した。値の唯一の所在は git 計測で、文書側は pointer に留める（charter MET-002・CFLT-FORK-001 解決方針に整合）。
@@ -30,7 +36,6 @@ docs/CODEBASE_ANALYSIS.md と本 wiki index の fork 数値（13 件 / 約 20 co
 fork 固有コミット数とローカル upstream ref との差分を最新 HEAD で再計測し、`.concept/` と wiki index の履歴値を更新した。`up/master` は 2026-06-23 の stale ref のため、この ahead 数は upstream の最新状態を表さない。
 
 - **Verification**: 2026-10-22T20:18Z、worktree c6904572 で計測: `git rev-list --count a402fd40^2..HEAD` = 48、`up/master..HEAD` = 543、`HEAD..up/master` = 0（ローカル `up/master` f6c162dd、2026-06-23）。
-
 
 ## 2026-10-23 — Q3 test-inventory evidence audit
 
@@ -61,7 +66,6 @@ Task: `tas-task-508bebb6a4041f01ead1897a53705607288280ee17b06e7176056628f0451d5e
 | ローカル生成ワークフロー利用者 | 「詳細節を直しても、冒頭と改善候補に全 GPU 一括切替・テスト不在と残っていると、まだ修正が必要なのか迷う。」 | 要約表、H5・M6、戦略的注記、検証表、末尾の未検証事項を同じ実装証拠で訂正した。 |
 | デバイス・回帰テスト保守者 | 「6件のテストだけで実機の複数 GPU も安全とは言えない。旧記述のオーバーヘッドゼロ・数値健全も測定根拠がない。」 | CPU・モックでの保証範囲と実機・性能の未検証を明記し、根拠のない性能・数値評価を削除。行番号に依存した参照をファイルリンクとシンボル名へ変更した。 |
 
-
 ## 2026-10-23 — API ログの認証・Cookie ヘッダを両方向でマスク
 
 Task: `tas-task-508bebb6a4041f01ead1897a53705607288280ee17b06e7176056628f0451d5e`（AC1–AC4）。LOOP.md の候補と既存計画・ソース・テスト・docs・CI を比較し、解析文書 H1 に残るログ漏えいを1件の改善として選択した。既定の `make test` は worktree の `.venv` 不在で起動できたテストがなく、既存環境の指定で検証を継続した。
@@ -91,6 +95,7 @@ Run: `20261023-160240-999153`。Task: `tas-task-508bebb6a4041f01ead1897a53705607
 - AC1・AC2: `/home/jinno/ComfyUI/.venv/bin/python -m pytest tests-unit/scripts_test/generate_one_test.py -q` → `10 passed in 0.04s`、exit 0。エラー時の出力有無×`completed=False/True`、正常終了の出力有無、`status=None`、履歴未登録・404 後の成功、500 の伝播、未完了時のタイムアウトを検査。エラーでは HTTP 呼び出し1回・sleep 0回を確認した。ログ: `/tmp/comfyui-20261023-160240-polling-final.log`。
 - AC3: 既定の `make test` は worktree の `.venv/bin/python` 不在で exit 2（recipe error 127）。既存環境を指定した変更前の `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` は exit 0。最終集計行は出なかったため、ANSI 色を除去した行末マーカーを集計し、収集2007件＝`PASSED` 1933件＋`SKIPPED` 74件、`FAILED`・`ERROR`・`XPASS`・`XFAIL` 0件を確認した。ログ: `/tmp/comfyui-20261023-160240-baseline.log`。
 - AC3: `/home/jinno/.local/bin/ruff check scripts/generate_one.py tests-unit/scripts_test/generate_one_test.py` → `All checks passed!`、exit 0。
+
 - 証拠 SHA-256: `scripts/generate_one.py` = `da105f2677a1de3e4253a23dc9ab44a6be7659ecd8299c6e3f861080e897f0f7`、`tests-unit/scripts_test/generate_one_test.py` = `20880f202acbbc1793fd9b5375d46adc3a8d4f3d706528442fa474fef36e1584`。
 
 検証環境の試行: `OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` は既存の `video_types_test.py::test_save_to_transcode_keeps_audio_of_sparse_video` で数分進捗が出なかったため中断を判断し、自分が起動した pytest に SIGTERM を送った（make は exit 2）。終了ログでは当該ケースは PASSED に進み、次の `test_save_to_transcode_vfr_audio_covers_video_span` の実行中に停止していた。遅延の原因は未特定で、この試行を成功として数えない。ログ: `/tmp/comfyui-20261023-160240-final-tests.log`。コードを変更せず、変更前に成功したスレッド制限なしの条件で最終 gate を再実行した。
@@ -105,7 +110,6 @@ AC4 ペルソナレビュー: `.claude/skills/persona-review/SKILL.md` を使用
 | デバイス・回帰テスト保守者 | 「`task_done` は status を省略でき、履歴は `None` になり得る。新しい `.get` の連鎖で既存の履歴を壊していないか。」 | `status=None` を空辞書として扱い、既存の出力による終了を維持するテストを追加。HTTP と time はスクリプトの参照先をモックし、実通信・実 sleep を行わない。 |
 
 リポ間の責務・依存関係・既存の概念は変更しておらず、relations と concept の更新は不要。実モデルによる画像生成、外部サービス、GPU・各デバイスでの推論は未検証。今回は履歴判定の改善1件であり、実生成の成功や性能改善を主張しない。
-
 
 ## 2026-10-23 — モデルプレビュー検索でglob特殊文字をリテラルに扱う
 
@@ -171,3 +175,25 @@ Run: `20261023-193422-189800`。Task: `tas-task-508bebb6a4041f01ead1897a53705607
 検証: focused `pytest tests-unit/comfy_test/test_sampler_masks.py -q` → `8 passed`（CPU/CUDA）。`ruff check comfy/samplers.py tests-unit/comfy_test/test_sampler_masks.py` と `git diff --check` は成功。最終 gate `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` → exit 0、2039 collected: 1965 PASSED + 74 SKIPPED、FAILED / ERROR / XFAIL / XPASS は0件。ログ: `/home/jinno/.local/share/rtk/tee/1792785452_make_test_PYTHON__home_jinno_ComfyUI__ve.log`。既定の `make test` は worktree-local `.venv/bin/python` が無く exit 2、ai-hub 共通 venv は `torch` 不在で利用できなかった。
 
 証拠 SHA-256: `comfy/samplers.py` `62a5b7661039af57a91a3ac03ef7cbf324b8d6978265fa270d2359d60a249875`; `tests-unit/comfy_test/test_sampler_masks.py` `62e7069cc702acdb6fc3c5112ea15ea57b32ae39f5eb5f242aca54a6150d1d96`; `docs/llm-wiki/index.md` `5921d49413303d4939788aadfa8aa694f2026d819fd918f337e53415106d1e66`。relationships memo は repository 間の責務・依存に変更がないため更新なし。フル denoising workflow と CUDA 以外の device backend は未検証。
+
+## 2026-11-03 — 長期計画・マイルストーン整備（所有者指示 OI-20261103-32）
+
+所有者の長期計画整備指示に従い、既存の正本（`.concept/charter.yml`）を基準に実行用の分解を整備した。`docs/MILESTONES.md` を新設し、charter の MS-001..MS-003 を `## MS-00X:` 形式（Outcome / Acceptance / Evidence / Status・依存・次の一手）で実行可能な単位として索引化し、直近の約30分枠（WP-A1: alembic upgrade head の実走）を明記した。charter には planning 入口（long-term-direction / milestones / MILESTONES）、各 milestone の depends_on・exit_criteria・next_action・evidence を追加し、旧記載だった MS-003 deliverables「固定 14 ファイル構成」を現構成（追跡3ファイル + runtime 非追跡ガード）へ修正した。`REPO_METADATA.json` は charter と `docs/plan/milestones.md` の投影として source_hash（git blob ID）・updated_at・verified_at を再計算した。
+
+- **Verification**: 指定構造検証スクリプト（`VERIFY_PLANNING`）が `planning structure verified; semantic acceptance remains separate` で exit 0。charter は yaml parse 成功。追跡構成は `git ls-files .concept` で charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイルを確認。
+- 未了: MS-002 の alembic 実走証拠（WP-A1）と README 実態一致判定（WP-A2）、MET-001 の再観測（WP-C2）は未実行・未取得。MS-002 / MS-003 は in_progress、MS-001 は achieved（charter status=done と MET-001 記録 2026-10-10 が根拠）。
+
+## 2026-11-07 — WP-A1 alembic 受入証拠の永続化（recovery run 20261107-235007-331852）
+
+TAS run-853297c93e02（child 20261107-233514-229391）は WP-A1 を実行したが、定義が
+`authorized_observation`（評価器構造上 supported にできず）＋ run レポートが worker
+stdout のみで全 criteria unverified・評価 40 となった。本 recovery run で隔離一時 DB
+（/tmp、ini 上書き、`user/comfyui.db` は実行前後とも不在）に対する実行を実施し直し、
+コマンド・exit code・heads/current 出力・stepwise 8-revision トレース・DB 終状態を
+`docs/plan/evidence/wp-a1-alembic-chain.md` として永続化した。MS-002 の charter 反映
+（WP-A2）は別枠のまま。
+
+- **Verification**: `upgrade head` exit 0（DB ファイル不在確認後の空 DB から）、
+  `heads`/`current` = `0008_missing_content_age (head)`、stepwise 8×`upgrade +1`
+  exit 0、`alembic_version` 行 = 0008、テーブル 6+alembic_version。元 run の失敗分類は
+  評価証拠窓であって連鎖自体の失敗ではない。

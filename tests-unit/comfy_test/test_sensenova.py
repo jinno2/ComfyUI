@@ -98,7 +98,7 @@ def test_sensenova_model_config_builds_pixel_space_outputs():
     model_config = model_detection.model_config_from_unet(_minimal_state_dict(), "")
     state_dict = {
         "language_model.lm_head.weight": torch.empty(1),
-        "kept": torch.empty(1),
+        "kept": torch.tensor([1.0]),
     }
 
     processed = model_config.process_unet_state_dict(state_dict)
