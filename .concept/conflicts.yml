@@ -1,0 +1,17 @@
+conflicts:
+  - id: "CFLT-FORK-001"
+    term: "ForkUpstreamSync"
+    about: "definition"
+    severity: "low"
+    nli: "contradiction"
+    items:
+      - claim: "Dated fork-specific measurements differ as local commits accumulate; the measurement method is stable."
+        source: ".concept/claims.ndjson (ForkUpstreamSync measurement series)"
+      - claim: "Older fork-specific counts in documentation are dated historical observations, not current values."
+        source: "docs/llm-wiki/index.md"
+      - claim: "Ahead counts against the stale local up/master include merged upstream commits and are not fork-specific counts."
+        source: "docs/llm-wiki/index.md#L11"
+    status: "resolved"
+    active_workaround:
+      decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
+      summary: "Resolved under AUTO:ForkUpstreamSync.count:git_recency: measure a402fd40^2..HEAD when the current count is needed, keep dated measurements in claims.ndjson and the latest measurement in the decisions.md cache, and treat older documentation figures as historical observations. Re-measure whenever the fork-state question recurs. Linked AMB-FORK-001 carries the same resolution (status: resolved)."
