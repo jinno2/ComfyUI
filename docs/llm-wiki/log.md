@@ -104,7 +104,7 @@ Run: `20261023-160240-999153`。Task: `tas-task-508bebb6a4041f01ead1897a53705607
 
 AC4 ペルソナレビュー: `.claude/skills/persona-review/SKILL.md` を使用し、Codex が元の終了判定、実際の履歴生成側、差分、回帰テストを照合した視点別自己レビュー。独立した人物・モデルによるレビューではない。
 
-| 視点 | 反応・粗指摘 | 適用した処置 |
+| 視点 | 素の反応・粗指摘 | 適用した処置 |
 | --- | --- | --- |
 | ローカル生成ワークフロー利用者 | 「画像が途中まで出ていても、最後に失敗した生成を成功として保存してほしくない。完了フラグだけでも判断できない。」 | エラーを最優先にし、途中画像の有無と `completed=False/True` の4ケースで即時失敗を確認。エラー文には prompt ID とサーバログの確認先を入れた。 |
 | デバイス・回帰テスト保守者 | 「`task_done` は status を省略でき、履歴は `None` になり得る。新しい `.get` の連鎖で既存の履歴を壊していないか。」 | `status=None` を空辞書として扱い、既存の出力による終了を維持するテストを追加。HTTP と time はスクリプトの参照先をモックし、実通信・実 sleep を行わない。 |
@@ -175,6 +175,42 @@ Run: `20261023-193422-189800`。Task: `tas-task-508bebb6a4041f01ead1897a53705607
 検証: focused `pytest tests-unit/comfy_test/test_sampler_masks.py -q` → `8 passed`（CPU/CUDA）。`ruff check comfy/samplers.py tests-unit/comfy_test/test_sampler_masks.py` と `git diff --check` は成功。最終 gate `make test PYTHON=/home/jinno/ComfyUI/.venv/bin/python` → exit 0、2039 collected: 1965 PASSED + 74 SKIPPED、FAILED / ERROR / XFAIL / XPASS は0件。ログ: `/home/jinno/.local/share/rtk/tee/1792785452_make_test_PYTHON__home_jinno_ComfyUI__ve.log`。既定の `make test` は worktree-local `.venv/bin/python` が無く exit 2、ai-hub 共通 venv は `torch` 不在で利用できなかった。
 
 証拠 SHA-256: `comfy/samplers.py` `62a5b7661039af57a91a3ac03ef7cbf324b8d6978265fa270d2359d60a249875`; `tests-unit/comfy_test/test_sampler_masks.py` `62e7069cc702acdb6fc3c5112ea15ea57b32ae39f5eb5f242aca54a6150d1d96`; `docs/llm-wiki/index.md` `5921d49413303d4939788aadfa8aa694f2026d819fd918f337e53415106d1e66`。relationships memo は repository 間の責務・依存に変更がないため更新なし。フル denoising workflow と CUDA 以外の device backend は未検証。
+
+## 2026-10-30 — charter MS-003 を現 .concept 追跡構成へ整合（WP-C1）
+
+milestones.md 実行波 WP-C1。820d2ae4 (#43) 後の実態に合わせ、charter MS-003 の deliverables を「固定 14 ファイル構成」から手管理シード 3 ファイル（charter.yml / autopilot.yml / ontology_budget.yml）+ 生成ランタイム非追跡ガード（tests-unit/concept_metadata_tracking_test.py）へ更新した。intent の不存在参照（autopilot 品質基準 Q1-Q8 — 現行 autopilot.yml には存在しない）も除去。status は継続活動のため active のまま。
+
+- **Verification**: `git ls-files .concept`（3 seeds）と deliverables 記載の一致、`.venv/bin/python -c "import yaml; yaml.safe_load(open('.concept/charter.yml'))"` 成功、`pytest tests-unit/concept_metadata_tracking_test.py` 15 passed。
+
+## 2026-10-30 — S2 実行波（LOOP 接続の評価）を milestones.md に再計画
+
+S1 波（M-A/M-C）の完了条件「完了後に S2（LOOP 接続の評価）を次の波候補として再計画する」に従い、docs/plan/milestones.md に S2 波を WP-S2-1（LOOP run の plan 由来候補接続の評価）/ WP-S2-2（評価結果に応じた維持・是正方針の確定）として定義した。long-term-direction.md の現在地・段階表を「S2 再計画待ち」から「S2 計画済み・実行待ち」へ更新。本再計画自体が、plan 完了条件由来の候補を LOOP run が拾った最初の証拠となり、WP-S2-1 の判定入力になる。
+
+- **Verification**: `.concept/charter.yml` の yaml parse 成功（docs-only 変更で charter 無影響）、milestones.md の S2 依存（WP-S2-1 → WP-S2-2）と long-term-direction.md 段階表 S2 行の突合、S1 全 WP 着地 commit の確認（d633a060 / 1d188bb9 / c102509a / 07ab2fba を git log で実在照合）。
+
+## 2026-10-30 — LOOP run の plan 由来候補接続を判定（WP-S2-1）
+
+milestones.md 実行波 WP-S2-1。TAS dispatch の LOOP run が docs/plan/ を候補源として参照し plan 由来の残課題を実際に比較・選択・実行しているかを、2026-10-23 以降の `bounded_improvement` stage 14 run の出力（`~/ai-hub/runs/<run_id>/claude_stdout.txt`・`accepted_work.json`）と着地済み commit から判定した。判定は「接続は機能している（維持で足りる）」。plan ソース参照 13/14 run、plan 由来候補の比較 12/14 run、選択・実行 10/14 run、waiting 2 run。着地 5 commit（d633a060 / 1d188bb9 / c102509a / 07ab2fba / 858c337b）はいずれも plan 由来作業の成果物で accepted_work.json の candidate_sha と一致する。接続経路は LOOP.md の候補順ではなく dispatch mission の候補源比較であり、LOOP.md への docs/plan/ 追加（管理印削除＝owner 判断）は判定上不要。判定記録・判定表・観測 gap（同一 WP への重複並列 / venv 不在による waiting / 未着地候補の残置）と解除条件は docs/plan/milestones.md に記載。charter の MS status は変更していない（判定は MS の done に読み替えない）。
+
+- **Verification**: `git log --no-walk d633a060 1d188bb9 c102509a 07ab2fba 858c337b` で 5 commit の実在照合、`git merge-base --is-ancestor` で未着地 7 commit（ca8d3d82 / ab1abc55 / 7004c49e / 762c79b3 / 86cc64fe / 0b46de87 / ce66a68d）が HEAD に含まれないことを確認、各 run の `accepted_work.json` の candidate_sha と判定表の run_id 対応を突合。
+
+## 2026-10-30 — LOOP 候補接続の維持方針を現状維持に確定（WP-S2-2）
+
+milestones.md 実行波 WP-S2-2。WP-S2-1 の判定（接続は機能している・維持で足りる、commit 8bb2cfcc）に基づき、plan 残課題を LOOP 候補集合へ継続的に取り込む経路の方針を (a) 現状維持 に確定した。LOOP.md の候補源への docs/plan/ 追加（b）は管理印（loop-md:spec v3）削除＝owner 判断を伴うが判定上不要のため起こさず、接続不全時の是正案（c）は対象事象が観測されていないため成立しない。owner 判断事項は発生していない。観測 gap G1（重複並列 claiming・dispatch 側）/ G2（worktree venv・runner 側）/ G3（未着地候補・harness/TAS 側）は解除条件つきで milestones.md に記録し、本波では着手しない。S2 波は両 WP の記録完了で着地待ち。着地後は plan 由来残課題の有無を確認して LOOP の通常候補順へ戻り、S3 は所有者の明示指示が前提。charter の MS status は変更していない。
+
+- **Verification**: LOOP.md・.concept/charter.yml の無変更を git diff で確認（loop-md:spec v3 印は残存）、方針記録と AUTOMATION.md の driver 構成（TAS が dispatch と着地、Woodpecker が CI gate）の突合で矛盾なし、milestones.md の「WP-S2-2 方針記録」と long-term-direction.md の現在地・段階表 S2 行の突合。
+
+## 2026-10-30 — CODEBASE_ANALYSIS.md を現行コードと同期（解決済み欠陥の台帳反映）
+
+fork の欠陥台帳 `docs/CODEBASE_ANALYSIS.md` について、オープンと記載されていた指摘のうち 6 件（H1 認証ヘッダ平文ログ、H2 prompt_worker 例外ガード、H3 /interrupt TOCTOU、H6 マイグレーション前ロック、H7 LoadImage 無音フレーム破棄、M4 progress_state 再送レート制限）が現行コードで解決済みであることを実コード再読と `git log -S` で裏取りし、根拠 commit（`fd7bfcd3` フォーク対応 / `985fb9d6` 上流 #14774 / `c8b61a95` / `19e1058f` #16295）付きで解決記載に更新した。現存は unblockedEvent 無タイムアウト待ち（`graph.py:290`）と audio 系 F821 2件（`audio/dit.py:190` / `audio/autoencoder.py:94`）のみ。H8 は `sub_quadratic_attention.py` 削除済みのため対象縮小、`flux/model.py` の旧指摘行は上流書き換えで要再確認と記録。フォーク固有コミット数は 63（`a402fd40^2..HEAD`、2026-10-30 実測）、unit スイート実測は 1923 passed / 0 failed / 72 skipped（`make test` 約6分）。コード・charter・LOOP.md は変更していない。
+
+- **Verification**: `make test` で 1923 passed / 0 failed / 72 skipped（1995 collected）、`git log -S "keeping the worker alive" -- main.py` 等で解決 commit の実在照合、`sed` による `server.py` / `comfy_api_nodes/util/request_logger.py` / `app/database/db.py` / `comfy_execution/graph.py` / `comfy/ldm/audio/*.py` の現行コード再読、`git diff` で変更が `docs/CODEBASE_ANALYSIS.md` と本ログのみであることを確認。
+
+## 2026-10-30 — CODEBASE_ANALYSIS.md の flux/model.py 旧指摘を現行コードで再確認
+
+前エントリで「要再確認」と記録した flux/model.py の旧指摘（死に lambda + zeros 初期化依存の脆弱な順序）を、現行コード再読と git 履歴で判定した。(1) 死に lambda（`lambda a: 0 if a == 0 else a + txt.shape[1]` の式文、結果を捨てる）は上流 44f1246c（#12905 flux 2 klein kv cache）が導入し、fork 5bceba74（PR #7、2026-09-27）が除去済み。現行ファイルの唯一の lambda は `:268` で map 結果を `modulation_dims_combined` に格納して使用しており指摘対象外 → **解決済み**。(2) zeros 初期化依存の脆弱な順序は `process_img` の現行 `:337-341` に**現存** — `img_ids[:,:,0]` を ch1 がゼロの状態で読むため、行順序の入れ替えで ch0 が暗黙に h 位置 + index に変わる（現行動作は正しい、潜在リスク）。upstream 継承のため台帳方針通り upstream PR 経路で追跡し、本リポではコード変更しない。台帳 §2.3 row 4 / H8 行 / §3 Low 死にコード除去行 / ヘッダ更新行に反映。
+
+- **Verification**: `git log -S "lambda a: 0 if a == 0 else a + txt.shape[1]" -- comfy/ldm/flux/model.py` で 44f1246c（追加）/ 5bceba74（除去）を実在照合、`git show 5bceba74 -- comfy/ldm/flux/model.py` で除去 diff を確認、現行 `sed` による `comfy/ldm/flux/model.py:268-269` / `:337-341` の再読、`make test`（docs-only のため回帰なし裏取り）。
 
 ## 2026-11-03 — 長期計画・マイルストーン整備（所有者指示 OI-20261103-32）
 
