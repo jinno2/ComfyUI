@@ -1,0 +1,225 @@
+version: "0.3"
+
+canonical_terms:
+  ComfyUI:
+    id: "TERM-COMFYUI"
+    layer: "core"
+    status: "stable"
+    definition: "Modular node-graph based AI content generation engine; this repository is a local fork of it used for image-generation research."
+    synonyms: ["comfy", "ComfyUI fork"]
+    boundaries:
+      includes: ["node-graph execution engine", "model loading and management", "local server and API"]
+      excludes: ["upstream ComfyOrg hosted services", "third-party custom_nodes ecosystem"]
+    related_terms: ["Node", "ForkUpstreamSync"]
+    evidence:
+      - source: "README.md#L1-L4"
+        quote: "The most powerful and modular AI engine for content creation."
+      - source: "docs/llm-wiki/index.md"
+        quote: "上流 comfyanonymous/ComfyUI（モジュラー型 AI コンテンツ生成エンジン）のローカル fork/ワーキングコピー"
+
+  ImprovementLoop:
+    id: "TERM-LOOP"
+    layer: "core"
+    status: "stable"
+    definition: "Bounded autonomous mission from LOOP.md: one run executes one improvement; candidates are prioritized test-failure -> TODO/FIXME -> docs mismatch; a run with no safe candidate ends with an interrupt report and no changes."
+    synonyms: ["自律改善ループ", "loop run"]
+    boundaries:
+      includes: ["candidate selection", "minimal implementation", "verification via make test", "single commit", "interrupt report"]
+      excludes: ["push/deploy/release (harness-owned landing)", "second improvement per run", "dependency major updates"]
+    lifecycle: ["candidate_selected", "implemented", "verified", "committed", "reported"]
+    related_terms: ["UnitTestGate", "MinimalChange"]
+    evidence:
+      - source: "LOOP.md#L6-L25"
+        quote: "1 run = 1 改善。実行しない判断は「中断レポート」に書いて終わる。"
+
+  UnitTestGate:
+    id: "TERM-GATE"
+    layer: "core"
+    status: "stable"
+    definition: "Commit gate defined by `make test` (Makefile: pytest tests-unit -v); a run must not commit while existing tests are broken."
+    synonyms: ["テストゲート", "make test"]
+    boundaries:
+      includes: ["tests-unit pytest run", "commit blocking on red tests"]
+      excludes: ["integration tests/ (real-server, optional per run)", "CI-only gates"]
+    related_terms: ["ImprovementLoop"]
+    assumptions:
+      - id: "ASM-UNIT-001"
+        text: "AUTO: gate scope is unit tests only (`make test`); integration tests are optional per run"
+        decision_key: "AUTO:UnitTestGate.scope:unit_only"
+        expires_after_runs: 20
+    evidence:
+      - source: "LOOP.md#L23"
+        quote: "**検証** — `make test`。**既存テストを壊したまま commit しない**"
+      - source: "Makefile#L451-L452"
+        quote: "$(PYTHON) -m pytest tests-unit -v"
+
+  MinimalChange:
+    id: "TERM-MINCHANGE"
+    layer: "domain"
+    status: "stable"
+    definition: "Every change touches the narrowest code path and the fewest files; no broad refactors, no new dependencies unless absolutely necessary; obsolete code is deleted aggressively."
+    synonyms: ["最小変更", "最小差分"]
+    boundaries:
+      includes: ["narrowest code path", "fewest files", "dead code removal"]
+      excludes: ["broad architecture rewrites", "new dependencies without necessity"]
+    related_terms: ["ImprovementLoop"]
+    evidence:
+      - source: "AGENTS.md#Engineering Style"
+        quote: "Change the least amount of files possible."
+      - source: "LOOP.md#L22"
+        quote: "触るファイルを必要最小限に。"
+
+  ForkUpstreamSync:
+    id: "TERM-FORK"
+    layer: "domain"
+    status: "stable"
+    definition: "Fork relationship to upstream ComfyUI: fork-specific work lives after the single upstream merge (a402fd40, 2026-09-21) and is measured fresh on demand as a402fd40^2..HEAD; the count grows with autonomous loop work. The measured count is a time-series value, not part of this definition: dated values live only in claims.ndjson (append-only series) and the decisions.md verification-log cache. The local up/master ref (f6c162dd, 2026-06-23) is stale and fully contained in HEAD; its ahead count includes merged upstream commits."
+    synonyms: ["フォーク乖離", "upstream sync"]
+    boundaries:
+      includes: ["fork-specific commits", "a402fd40^2..HEAD measurement method", "upstream merge compatibility"]
+      excludes: ["direct pushes to upstream", "PR/issue operations against upstream", "ahead-counts against the stale up/master ref", "per-run count snapshots embedded in SOT (dated values belong to claims.ndjson and the decisions.md cache)"]
+    related_terms: ["ComfyUI"]
+    assumptions:
+      - id: "ASM-FORK-001"
+        text: "AUTO: fork-specific count is measured fresh per question as a402fd40^2..HEAD; the latest value is cached only in decisions.md (verification log) and the full series in claims.ndjson — dated counts are never re-embedded into ontology/invariants/ambiguities"
+        decision_key: "AUTO:ForkUpstreamSync.count:git_recency"
+        expires_after_runs: 20
+    evidence:
+      - source: "docs/llm-wiki/index.md"
+        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する"
+      - source: "docs/CODEBASE_ANALYSIS.md#L6"
+        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測"
+
+  Node:
+    id: "TERM-NODE"
+    layer: "domain"
+    status: "stable"
+    definition: "Extensibility unit registered through NODE_CLASS_MAPPINGS following INPUT_TYPES/RETURN_TYPES/FUNCTION/CATEGORY conventions; node-level code delegates model behavior changes to the model patcher class."
+    synonyms: ["カスタムノード", "graph node"]
+    boundaries:
+      includes: ["node definition conventions", "NODE_CLASS_MAPPINGS registration"]
+      excludes: ["direct model code patching from node level", "pass-through placeholder inputs"]
+    related_terms: ["ComfyUI"]
+    evidence:
+      - source: "AGENTS.md#Nodes and User-Facing Behavior"
+        quote: "Node-level code must not patch model code directly."
+      - source: "docs/CODEBASE_ANALYSIS.md#L42"
+        quote: "`nodes`(NODE_CLASS_MAPPINGS が全層から参照されるレジストリ)"
+
+  Server:
+    id: "TERM-SERVER"
+    layer: "domain"
+    status: "stable"
+    definition: "HTTP/WebSocket API layer (server.py, aiohttp): exposes the client-facing API surface and bridges HTTP/WS requests into the execution pipeline."
+    synonyms: ["PromptServer", "API server"]
+    boundaries:
+      includes: ["HTTP and WebSocket endpoints", "client-facing API surface"]
+      excludes: ["prompt execution logic (ExecutionEngine)", "model VRAM/offload policy (ModelManagement)"]
+    related_terms: ["ComfyUI", "ExecutionEngine"]
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L50"
+        quote: "HTTP(`server.py`: aiohttp + /ws)"
+      - source: "AGENTS.md#L49-L52"
+        quote: "A PR that spreads one feature across unrelated loaders, nodes, execution, server, and frontend code needs a clear architectural reason, not just convenience."
+      - source: "server.py#L215"
+        quote: "class PromptServer():"
+      - source: "tests-unit/prompt_server_test/system_user_endpoint_test.py#L49-L57"
+        quote: "E2E tests for System User blocking on all HTTP endpoints."
+
+  ExecutionEngine:
+    id: "TERM-EXEC"
+    layer: "domain"
+    status: "stable"
+    definition: "Prompt graph validation and execution loop (execution.py + comfy_execution/): consumes the prompt graph and execution-relevant state, produces execution results and errors, without knowledge of workflow/frontend/persistence ids."
+    synonyms: ["execution", "PromptExecutor", "comfy_execution"]
+    boundaries:
+      includes: ["prompt graph validation", "node execution loop", "execution caching"]
+      excludes: ["HTTP/WS transport (Server)", "model VRAM/offload policy (ModelManagement)", "workflow ids and frontend ids"]
+    related_terms: ["Server", "Node"]
+    evidence:
+      - source: "AGENTS.md#L45-L48"
+        quote: "Treat `execution.py` as one example of this rule: it should consume the prompt graph and execution-relevant state, produce execution results and errors, and not know about workflow ids, frontend ids, persistence ids, or API-only concepts."
+      - source: "docs/CODEBASE_ANALYSIS.md#L50"
+        quote: "`prompt_worker`(main.py:312-407)が PromptQueue から取り出し `PromptExecutor.execute` で実行"
+      - source: "execution.py#L663"
+        quote: "class PromptExecutor:"
+      - source: "tests-unit/execution_test/test_nested_loop_execution.py#L342"
+        quote: "def test_nested_loops_execute_each_body_once_without_final_requeue():"
+
+  ModelManagement:
+    id: "TERM-MODELMGMT"
+    layer: "domain"
+    status: "stable"
+    definition: "Model loading, VRAM/offload policy and patch-state layer (comfy/model_management.py, comfy/model_patcher.py): the device and memory authority for inference models."
+    synonyms: ["model management", "ModelPatcher", "VRAM policy"]
+    boundaries:
+      includes: ["device and memory policy", "model patch state (ModelPatcher)", "loading/offload lifecycle"]
+      excludes: ["model math inside model implementations", "node-level behavior", "sampling logic"]
+    related_terms: ["ComfyUI", "Node"]
+    evidence:
+      - source: "AGENTS.md#L266-L269"
+        quote: "Loading, unloading, offloading, device movement, VRAM policy, cache lifetime, and cleanup belong in the relevant model-management and execution layers, not inside model implementations."
+      - source: "docs/CODEBASE_ANALYSIS.md#L65"
+        quote: "`model_management.py`(デバイス/メモリ権威、VRAMState、pin バジェット)、`model_patcher.py`(共有 nn.Module を clone-fork するパッチ状態管理、LowVramPatch、DynamicVRAM 版 `ModelPatcherDynamic`)"
+      - source: "comfy/model_management.py#L1790"
+        quote: "def get_free_memory(dev=None, torch_free_too=False):"
+      - source: "comfy/model_patcher.py#L340"
+        quote: "class ModelPatcher:"
+      - source: "tests-unit/comfy_test/test_safe_linear.py#L51-L67"
+        quote: "def test_safe_linear_retries_then_escalates_on_persistent_cublas_error(monkeypatch):"
+
+  SamplingLayer:
+    id: "TERM-SAMPLING"
+    layer: "domain"
+    status: "stable"
+    definition: "Diffusion sampling layer (comfy/samplers.py): cond batching, scheduler dispatch and CFG guidance (KSAMPLER, CFGGuider) that turn model predictions into denoised latents."
+    synonyms: ["samplers", "CFGGuider", "KSampler"]
+    boundaries:
+      includes: ["cond batching and grouping", "scheduler dispatch", "CFG guidance"]
+      excludes: ["device/VRAM policy (ModelManagement)", "model architecture math (comfy/ldm)", "node wrappers and registration (Node)"]
+    related_terms: ["ModelManagement", "ComfyUI"]
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L65"
+        quote: "`samplers.py`(cond バッチング、スケジューラ、マルチGPU スレッドプール)"
+      - source: "comfy/samplers.py#L937"
+        quote: "class KSAMPLER(Sampler):"
+      - source: "comfy/samplers.py#L1148"
+        quote: "class CFGGuider:"
+      - source: "tests-unit/comfy_test/test_calc_cond_grouping.py#L21"
+        quote: "def test_groups_plain_conds_under_none_key():"
+
+  AssetService:
+    id: "TERM-ASSETS"
+    layer: "domain"
+    status: "stable"
+    definition: "User asset management subsystem (app/assets/): REST routes, SQLAlchemy database with Alembic migrations, scanner/seeder services and admission gates behind the assets feature flag."
+    synonyms: ["assets subsystem", "アセット管理"]
+    boundaries:
+      includes: ["asset REST API (routes.py)", "asset database and migrations", "scanner/seeder services"]
+      excludes: ["model file folder management (folder_paths/ModelManagement)", "node-side output image saving"]
+    related_terms: ["Server", "ComfyUI"]
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L35"
+        quote: "app/ 0.31MB ユーザ管理・アセット(SQLAlchemy+Alembic)・サブグラフ管理"
+      - source: "app/assets/api/routes.py#L125"
+        quote: "def register_assets_routes("
+      - source: "tests-unit/assets_test/test_api_surface.py#L251"
+        quote: "def test_route_coverage_matches_routes_py() -> None:"
+
+  ExternalAPINodes:
+    id: "TERM-APINODES"
+    layer: "domain"
+    status: "stable"
+    definition: "External provider API node family (comfy_api_nodes/): provider-specific nodes (nodes_bfl.py, nodes_anthropic.py, ...) built on the shared request client util/client.py (ApiEndpoint)."
+    synonyms: ["API nodes", "comfy_api_nodes"]
+    boundaries:
+      includes: ["provider API node definitions", "shared request client util/client.py"]
+      excludes: ["local node graph execution (ExecutionEngine)", "comfy_api versioned SDK package"]
+    related_terms: ["Node", "ComfyUI"]
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L33"
+        quote: "comfy_api_nodes/ 1.68MB 外部APIノード36ファイル + リクエスト基盤 util/client.py(990行)"
+      - source: "comfy_api_nodes/util/client.py#L46"
+        quote: "class ApiEndpoint:"
+      - source: "tests-unit/comfy_api_nodes_test/comfy_cloud_test.py#L59"
+        quote: "def test_workflow_submission_polling_and_download("

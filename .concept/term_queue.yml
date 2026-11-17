@@ -1,0 +1,142 @@
+queue:
+  - id: "TP-000001"
+    proposed_canonical: "NoInternetRequests"
+    proposed_layer: "aux"
+    term_raw_examples: ["ネットワーク遮断", "ラベル無効", "No Internet Requests"]
+    reason: "Hard AGENTS.md rule but only one primary source (no CI/test enforcement). Run 2026-10-16T23:56Z disposition: rejected as a term — the constraint is durably recorded as hard invariant INV-NO-NET-001 (invariants.yml); a dedicated term adds no code-symbol mapping beyond ComfyUI and would duplicate the invariant's role (merge-first / no-concept-growth policy)."
+    evidence:
+      - source: "AGENTS.md#No Internet Requests"
+        quote: "Do not add code to core ComfyUI that makes requests to the internet."
+      - source: ".concept/invariants.yml#INV-NO-NET-001"
+        quote: "Core ComfyUI code makes no internet requests"
+    auto_merge_candidates:
+      - term: "ComfyUI"
+        similarity: 0.31
+    decision: "rejected"
+    expires_after_runs: 10
+    created_run: "2026-10-16T19:05:28Z"
+
+  - id: "TP-000002"
+    proposed_canonical: "Server"
+    proposed_layer: "aux"
+    term_raw_examples: ["server", "HTTP/WS API layer", "PromptServer"]
+    reason: "Major architectural module not yet in ontology (Q1 gap). Acceptance needs: second source for boundaries plus mapping to server.py::PromptServer and route registration."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L22-L40"
+        quote: "server.py 1445行 / 依存の流向: main → server → execution"
+    auto_merge_candidates:
+      - term: "ComfyUI"
+        similarity: 0.4
+    decision: "accepted"
+    accepted_run: "2026-10-17T06:35:14Z"
+    acceptance_note: "Second sources verified: AGENTS.md#L49-L52 (server layer named in Architecture Boundaries) + code symbol server.py:215 class PromptServer; boundaries and mapping written (TERM-SERVER)."
+    expires_after_runs: 10
+    created_run: "2026-10-16T23:56:43Z"
+
+  - id: "TP-000003"
+    proposed_canonical: "ExecutionEngine"
+    proposed_layer: "aux"
+    term_raw_examples: ["execution", "prompt worker", "comfy_execution"]
+    reason: "Major architectural module not yet in ontology (Q1 gap): prompt graph validation and execution loop. Acceptance needs: second source plus mapping to execution.py and comfy_execution/."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L22-L40"
+        quote: "execution.py 1399行 / 依存の流向: server → execution → comfy_execution.{graph,caching,progress}"
+    auto_merge_candidates:
+      - term: "ComfyUI"
+        similarity: 0.4
+    decision: "accepted"
+    accepted_run: "2026-10-17T06:35:14Z"
+    acceptance_note: "Second sources verified: AGENTS.md#L45-L48 (execution.py responsibility contract) + code symbols execution.py:663 class PromptExecutor, comfy_execution/; boundaries and mapping written (TERM-EXEC)."
+    expires_after_runs: 10
+    created_run: "2026-10-16T23:56:43Z"
+
+  - id: "TP-000004"
+    proposed_canonical: "ModelManagement"
+    proposed_layer: "aux"
+    term_raw_examples: ["model management", "VRAM policy", "model_patcher"]
+    reason: "Major architectural module not yet in ontology (Q1 gap): model loading, VRAM/offload policy, patching. Acceptance needs: second source plus mapping to comfy/model_management.py and comfy/model_patcher.py."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L22-L27"
+        quote: "model_management 2027行 / model_patcher 2052行 / comfy/ 4.04MB コア(モデル管理・パッチ・サンプリング・ldm・text_encoders)"
+    auto_merge_candidates:
+      - term: "ComfyUI"
+        similarity: 0.45
+    decision: "accepted"
+    accepted_run: "2026-10-17T06:35:14Z"
+    acceptance_note: "Second sources verified: AGENTS.md#L266-L269 (model-management layer owns loading/VRAM policy) + code symbols comfy/model_management.py, comfy/model_patcher.py:340 class ModelPatcher; boundaries and mapping written (TERM-MODELMGMT)."
+    expires_after_runs: 10
+    created_run: "2026-10-16T23:56:43Z"
+
+  - id: "TP-000005"
+    proposed_canonical: "SamplingLayer"
+    proposed_layer: "aux"
+    term_raw_examples: ["samplers", "CFGGuider", "KSampler"]
+    reason: "Major architectural layer not yet in ontology (Q1 gap): cond batching, scheduler dispatch and CFG guidance in comfy/samplers.py."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L55-L58"
+        quote: "`samplers.py`(cond バッチング、スケジューラ、マルチGPU スレッドプール)"
+      - source: "comfy/samplers.py#L922-L1148"
+        quote: "class Sampler: ... class KSAMPLER(Sampler): ... class CFGGuider:"
+    auto_merge_candidates:
+      - term: "ModelManagement"
+        similarity: 0.2
+    decision: "accepted"
+    accepted_run: "2026-10-17T07:12:00Z"
+    acceptance_note: "Second sources verified: tests-unit/comfy_test/test_calc_cond_grouping.py (exercises samplers cond grouping) + code symbols comfy/samplers.py class Sampler:922 / KSAMPLER:937 / CFGGuider:1148; boundaries and mapping written (TERM-SAMPLING). No merge: distinct layer between model and node graph."
+    expires_after_runs: 10
+    created_run: "2026-10-17T07:12:00Z"
+
+  - id: "TP-000006"
+    proposed_canonical: "AssetService"
+    proposed_layer: "aux"
+    term_raw_examples: ["assets", "アセット管理", "app/assets"]
+    reason: "Major subsystem not yet in ontology (Q1 gap): user asset REST API, SQLAlchemy database, scanner/seeder under app/assets/."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L27"
+        quote: "app/ 0.31MB ユーザ管理・アセット(SQLAlchemy+Alembic)・サブグラフ管理"
+      - source: "app/assets/api/routes.py#L125"
+        quote: "def register_assets_routes("
+    auto_merge_candidates:
+      - term: "Server"
+        similarity: 0.3
+    decision: "accepted"
+    accepted_run: "2026-10-17T07:12:00Z"
+    acceptance_note: "Second sources verified: tests-unit/assets_test/services/ (service-level tests) + tests-unit/app_test/test_migrations.py (asset DB migrations) + code symbol app/assets/api/routes.py:125 register_assets_routes; boundaries and mapping written (TERM-ASSETS). No merge: Server is transport-only, AssetService owns asset domain logic."
+    expires_after_runs: 10
+    created_run: "2026-10-17T07:12:00Z"
+
+  - id: "TP-000007"
+    proposed_canonical: "ExternalAPINodes"
+    proposed_layer: "aux"
+    term_raw_examples: ["API nodes", "comfy_api_nodes"]
+    reason: "Major subsystem not yet in ontology (Q1 gap): external provider API node family on the shared request client."
+    evidence:
+      - source: "docs/CODEBASE_ANALYSIS.md#L28"
+        quote: "comfy_api_nodes/ 1.68MB 外部APIノード36ファイル + リクエスト基盤 util/client.py(990行)"
+      - source: "comfy_api_nodes/util/client.py#L46"
+        quote: "class ApiEndpoint:"
+    auto_merge_candidates:
+      - term: "Node"
+        similarity: 0.35
+    decision: "accepted"
+    accepted_run: "2026-10-17T07:12:00Z"
+    acceptance_note: "Second sources verified: tests-unit/comfy_api_nodes_test/ (conversion/node tests) + code symbol comfy_api_nodes/util/client.py:46 class ApiEndpoint; boundaries and mapping written (TERM-APINODES). No merge: Node covers the local registration convention, ExternalAPINodes covers the provider-node family and its client."
+    expires_after_runs: 10
+    created_run: "2026-10-17T07:12:00Z"
+
+  - id: "TP-000008"
+    proposed_canonical: "DotMilestoneLoop"
+    proposed_layer: "aux"
+    term_raw_examples: ["Dot", "dot milestone-loop", "MS-D1"]
+    reason: "Run 2026-10-22T05:02Z disposition: rejected as a term - docs/dot/* is an ephemeral single-wave planning artifact (D1-1/D1-2/D1-3 work packages), not a durable domain concept; fails acceptance criterion 1 (single source family) and criterion 4 (no code mapping). The bounded-work semantics it defines are already carried by ImprovementLoop claims/invariants."
+    evidence:
+      - source: "docs/dot/milestones.md"
+        quote: "MS-D1 / D1-1, D1-2, D1-3"
+      - source: "docs/dot/worker-instructions.md"
+        quote: "あなたの名前は Dot。対象repoは ComfyUI"
+    auto_merge_candidates:
+      - term: "ImprovementLoop"
+        similarity: 0.55
+    decision: "rejected"
+    expires_after_runs: 10
+    created_run: "2026-10-22T05:02:04Z"

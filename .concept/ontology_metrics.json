@@ -1,0 +1,68 @@
+{
+  "run_id": "2026-10-23T07:01:01Z",
+  "total_terms": 12,
+  "by_layer": {
+    "core": 3,
+    "domain": 9,
+    "aux": 0
+  },
+  "draft_ratio": 0.0,
+  "queue_pending": 0,
+  "claims_retained_lines": 82,
+  "decisions_md_lines": 37,
+  "gc_actions": {
+    "merged": 0,
+    "deleted": 0,
+    "deprecated": 0
+  },
+  "quality_metrics": {
+    "Q1": {
+      "value": "5/6 (83.3%)",
+      "threshold": "80%",
+      "status": "PASS",
+      "basis": "Six top-level implementation groups listed in docs/CODEBASE_ANALYSIS.md §1: comfy, comfy_extras, comfy_api_nodes, comfy_api, app, and root Python modules. Existing mappings cover all except comfy_api."
+    },
+    "Q2": {
+      "value": "12/12 (100%)",
+      "threshold": "90%",
+      "status": "PASS",
+      "basis": "Every canonical term has a nonempty code_symbols mapping."
+    },
+    "Q3": {
+      "value": "1/188 (0.53% unique-file coverage)",
+      "threshold": "50%",
+      "status": "FAIL",
+      "basis": "AST-audited docs/llm-wiki/test-constraint-inventory.ndjson against the exact current tests/tests-unit Python test-file set: 188/188 rows record a source SHA-256, a test_* symbol, and explicit assertion/unittest-assert/pytest.raises/pytest.fail line(s). The audit measures extraction eligibility, not captured invariant coverage. Only tests-unit/assets_test/test_upload_hashing_modes.py is referenced by current invariant checks (INV-ASSET-001/002); 50% of 188 requires 94 anchored files. Keep Q3 FAIL; do not infer coverage or relax the threshold. See AMB-Q3-001/002."
+    },
+    "Q4": {
+      "value": "0/12 (0%)",
+      "threshold": "30% maximum",
+      "status": "PASS",
+      "basis": "Zero canonical terms have status draft."
+    },
+    "Q5": {
+      "value": "4/82 (4.9% physical; 1/82 (1.2%) effective)",
+      "threshold": "20% maximum",
+      "status": "PASS",
+      "basis": "Four physical __UNMAPPED__ lines remain in 82 retained claims. Three (no-internet rule) are superseded by re-canonicalization claims under ComfyUI (boundary/INV-NO-NET-001); one is intentionally unmapped because ledger-maintenance facts belong to no domain concept. Effective __UNMAPPED__ ratio: 1/82 = 1.22%."
+    },
+    "Q6": {
+      "value": 12,
+      "threshold": 80,
+      "status": "PASS",
+      "basis": "Canonical term count."
+    },
+    "Q7": {
+      "value": "north_star plus 3 milestones",
+      "threshold": "north_star plus at least 1 milestone",
+      "status": "PASS",
+      "basis": "charter.yml."
+    },
+    "Q8": {
+      "value": "12/12 (100%)",
+      "threshold": "100%",
+      "status": "PASS",
+      "basis": "Every canonical term has at least one evidence entry (TERM-FORK now carries only stable, non-rewriting pointers after the 2026-10-23 de-snapshot restructure)."
+    }
+  }
+}
