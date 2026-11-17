@@ -197,3 +197,10 @@ stdout のみで全 criteria unverified・評価 40 となった。本 recovery 
   `heads`/`current` = `0008_missing_content_age (head)`、stepwise 8×`upgrade +1`
   exit 0、`alembic_version` 行 = 0008、テーブル 6+alembic_version。元 run の失敗分類は
   評価証拠窓であって連鎖自体の失敗ではない。
+
+## 2026-11-11 — 長期計画・マイルストーン整備（所有者指示 OI-20261111-12）
+
+計画スパインを main で再観測した事実に合わせて更新した。長期方針（`docs/plan/long-term-direction.md`）に「優先順・依存・出口条件・次の一手」の節を追加し、`.concept` 同期行の旧乖離記載（旧「固定 14 ファイル構成」）は WP-C1（2026-11-03 の eadbeeeb で着地済み）で解消済みと記載を改めた。アセット永続化行と `docs/MILESTONES.md` の MS-002 は、WP-A1/WP-A2 の成果（6d8fbffd / 886ec49a / ae41a228）が未着地ブランチにのみ存在し main には無いことを明記し、status は据え置いた（MS-002 は charter どおり active）。直近の約30分枠は WP-A1 から WP-C2（`make test` の1回実測と MET-001 記載更新）へ更新。`REPO_METADATA.json` は `repository_metadata_format.py` の refresh / check で source_hash と verified_at を再生成した。
+
+- **Verification**: `VERIFY_PLANNING` が `planning structure verified; semantic acceptance remains separate` で exit 0、`repository_metadata_format.py check` / `check-index` が success。観測事実: `git ls-files .concept` = 3 ファイル、`.concept/*.yml` の yaml parse 3/3 OK、runtime 12 ファイルの check-ignore 12/12、`alembic_db/versions` に 0001..0008、main の `alembic_db/README.md` は 4 行。
+- 未了: MET-001 の再観測（WP-C2）は未実行。MS-002 の受入証拠は未着地のままで、default 着地までは active。charter の status は変更していない。
