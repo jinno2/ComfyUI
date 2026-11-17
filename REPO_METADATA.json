@@ -1,17 +1,42 @@
 {
   "schema_version": 1,
-  "verified_at": "2026-11-11T01:35:12Z",
+{
+  "schema_version": 1,
+  "verified_at": "2026-11-15T20:49:15Z",
   "long_term": {
     "summary": "モジュラーなノードグラフ型 AI コンテンツ生成エンジンとして、画像・動画・3D・音声生成を上流に自動追従しない恒久自律開発で安定提供する ComfyUI fork であり続ける（推定）。成功指標: make test 0 failed 維持と Woodpecker CI gate green、非目標は上流自動追従・外部通信path追加・互換シム保持",
     "source": ".concept/charter.yml#product_goal",
-    "source_hash": "git-blob:757640199b2b91b7f1fe05049fe992031359024e",
-    "updated_at": "2026-10-15"
+    "source_hash": "git-blob:99e29c4c98b47c1f03a05b29417d2ab36e5a8b5d",
+    "updated_at": "2026-11-03"
   },
   "short_term": {
-    "summary": "現行波: charter MS-002 は受入証拠（WP-A1/WP-A2）が未着地ブランチにのみ存在するため active を据え置き。MS-003 は WP-C1 着地済で exit_criteria 2 項の充足を確認、残りは WP-C2（make test 再観測と MET-001 更新）。WP カードの正本は docs/plan/milestones.md、MS-### 分解は docs/MILESTONES.md。直近の一枠は WP-C2（約30分）",
+    "summary": "現行実行波: charter MS-002（WP-A2 のみ残）と MS-003（WP-C2）の受入証拠確定。WP-A1 は取得済み（evidence/wp-a1-alembic-chain.md、着地 0075fd4f）。直近の一枠は WP-A2（README 実態一致判定と make test 証拠で MS-002 を確定、約30分）",
     "source": "docs/plan/milestones.md",
-    "source_hash": "git-blob:58019eea465289882ccd7ffdf1d38be5e2f8e029",
-    "updated_at": "2026-11-11",
+    "source_hash": "git-blob:97afdd0350b0d1671fdfadf4e8cecc2683ab1866",
+    "updated_at": "2026-11-16",
+    "status": "in_progress"
+  }
+}
+  "long_term": {
+    "summary": "モジュラーなノードグラフ型 AI コンテンツ生成エンジンとして、画像・動画・3D・音声生成を上流に自動追従しない恒久自律開発で安定提供する ComfyUI fork であり続ける（推定）。成功指標: make test 0 failed 維持と Woodpecker CI gate green、非目標は上流自動追従・外部通信path追加・互換シム保持",
+    "source": ".concept/charter.yml#product_goal",
+{
+  "schema_version": 1,
+  "verified_at": "2026-11-15T20:49:15Z",
+  "long_term": {
+    "summary": "モジュラーなノードグラフ型 AI コンテンツ生成エンジンとして、画像・動画・3D・音声生成を上流に自動追従しない恒久自律開発で安定提供する ComfyUI fork であり続ける（推定）。成功指標: make test 0 failed 維持と Woodpecker CI gate green、非目標は上流自動追従・外部通信path追加・互換シム保持",
+    "source": ".concept/charter.yml#product_goal",
+    "source_hash": "git-blob:99e29c4c98b47c1f03a05b29417d2ab36e5a8b5d",
+    "updated_at": "2026-11-03"
+  },
+  "short_term": {
+    "summary": "現行実行波: charter MS-002（WP-A2 のみ残）と MS-003（WP-C2）の受入証拠確定。WP-A1 は取得済み（evidence/wp-a1-alembic-chain.md、着地 0075fd4f）。直近の一枠は WP-A2（README 実態一致判定と make test 証拠で MS-002 を確定、約30分）",
+    "source": "docs/plan/milestones.md",
+    "source_hash": "git-blob:97afdd0350b0d1671fdfadf4e8cecc2683ab1866",
+    "updated_at": "2026-11-16",
+    "status": "in_progress"
+  }
+}
     "status": "in_progress"
   }
 }
