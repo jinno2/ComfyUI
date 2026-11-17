@@ -26,5 +26,3 @@ def to_dict(obj: Any, include_none: bool = False) -> dict[str, Any]:
         else:
             out[field] = val
     return out
-
-# TODO: Define models here

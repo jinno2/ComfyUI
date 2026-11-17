@@ -22,7 +22,7 @@ on:
         default: "5"
 #  push:
 #    branches:
-#      - master
+#      - main
 
 jobs:
   build:

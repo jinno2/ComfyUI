@@ -5,12 +5,18 @@ from enum import Enum
 from abc import ABC
 from tqdm import tqdm
 from typing import TYPE_CHECKING
+import time
 if TYPE_CHECKING:
     from comfy_execution.graph import DynamicPrompt
+    from comfy_execution.server_protocol import ExecutionServer
 from protocol import BinaryEventTypes
 from comfy_api import feature_flags
 
 PreviewImageTuple = Tuple[str, Image.Image, Optional[int]]
+
+# progress_state snapshots carry every active node; per-step update calls can
+# arrive far faster than any UI can render, so coalesce them by time
+PROGRESS_STATE_MIN_INTERVAL = 0.1
 
 class NodeState(Enum):
     Pending = "pending"
@@ -150,17 +156,23 @@ class WebUIProgressHandler(ProgressHandler):
     Handler that sends progress updates to the WebUI via WebSockets.
     """
 
-    def __init__(self, server_instance):
+    def __init__(self, server_instance: "ExecutionServer"):
         super().__init__("webui")
         self.server_instance = server_instance
+        self._last_state_send = 0.0
 
     def set_registry(self, registry: "ProgressRegistry"):
         self.registry = registry
 
-    def _send_progress_state(self, prompt_id: str, nodes: Dict[str, NodeProgressState]):
+    def _send_progress_state(self, prompt_id: str, nodes: Dict[str, NodeProgressState], force: bool = False):
         """Send the current progress state to the client"""
         if self.server_instance is None:
             return
+
+        now = time.monotonic()
+        if not force and now - self._last_state_send < PROGRESS_STATE_MIN_INTERVAL:
+            return
+        self._last_state_send = now
 
         # Only send info for non-pending nodes
         active_nodes = {
@@ -186,9 +198,9 @@ class WebUIProgressHandler(ProgressHandler):
 
     @override
     def start_handler(self, node_id: str, state: NodeProgressState, prompt_id: str):
-        # Send progress state of all nodes
+        # Node transitions are state changes the UI must not miss, send immediately
         if self.registry:
-            self._send_progress_state(prompt_id, self.registry.nodes)
+            self._send_progress_state(prompt_id, self.registry.nodes, force=True)
 
     @override
     def update_handler(
@@ -229,9 +241,8 @@ class WebUIProgressHandler(ProgressHandler):
 
     @override
     def finish_handler(self, node_id: str, state: NodeProgressState, prompt_id: str):
-        # Send progress state of all nodes
         if self.registry:
-            self._send_progress_state(prompt_id, self.registry.nodes)
+            self._send_progress_state(prompt_id, self.registry.nodes, force=True)
 
 class ProgressRegistry:
     """

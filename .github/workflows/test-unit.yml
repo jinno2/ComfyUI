@@ -2,17 +2,17 @@ name: Unit Tests
 
 on:
   push:
-    branches: [ main, master, release/** ]
+    branches: [ main, release/** ]
   pull_request:
-    branches: [ main, master, release/** ]
+    branches: [ main, release/** ]
 
 jobs:
   test:
+    if: github.repository == 'Comfy-Org/ComfyUI'
     strategy:
       matrix:
         os: [ubuntu-latest, windows-2022, macos-latest]
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python      

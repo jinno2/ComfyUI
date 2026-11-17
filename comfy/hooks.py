@@ -174,10 +174,12 @@ class WeightHook(Hook):
                 weights = self.weights_clip
             else:
                 weights = self.weights
-        model.add_hook_patches(hook=self, patches=weights, strength_patch=strength)
+        applied = set(model.add_hook_patches(hook=self, patches=weights, strength_patch=strength))
+        for key in weights:
+            if key not in applied:
+                logging.warning(f"hook key not applied: {key}")
         registered.add(self)
         return True
-        # TODO: add logs about any keys that were not applied
 
     def clone(self):
         c: WeightHook = super().clone()

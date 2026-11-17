@@ -1,0 +1,108 @@
+invariants:
+  - id: "INV-LOOP-001"
+    related_terms: ["ImprovementLoop"]
+    status: "stable"
+    strength: "hard"
+    statement: "One run executes exactly one improvement; a run never starts a second improvement."
+    rationale: "Fleet time-boxing: long runs block the parallel execution slots of other repositories."
+    evidence:
+      - source: "LOOP.md#L6-L8"
+        quote: "1 run = 1 改善"
+    checks:
+      - type: "manual_review"
+        target: "LOOP.md"
+
+  - id: "INV-LOOP-002"
+    related_terms: ["ImprovementLoop"]
+    status: "stable"
+    strength: "hard"
+    statement: "A run never pushes, force-pushes, rewrites history, creates tags/releases, deploys, or reads/commits secrets; landing is harness-owned."
+    rationale: "Destructive and external-facing operations are outside the run's authority."
+    evidence:
+      - source: "LOOP.md#L36-L42"
+        quote: "push / force-push / 履歴改変 / タグ・リリース操作 / deploy"
+    checks:
+      - type: "manual_review"
+        target: "git log"
+
+  - id: "INV-GATE-001"
+    related_terms: ["UnitTestGate", "ImprovementLoop"]
+    status: "stable"
+    strength: "hard"
+    statement: "No commit while existing tests are broken; the gate command is `make test`."
+    rationale: "Broken commits poison subsequent autonomous runs whose first candidate is a test failure."
+    evidence:
+      - source: "LOOP.md#L24-L25"
+        quote: "既存テストを壊したまま commit しない"
+    checks:
+      - type: "test"
+        target: "Makefile#test"
+
+  - id: "INV-STYLE-001"
+    related_terms: ["MinimalChange"]
+    status: "stable"
+    strength: "soft"
+    statement: "Changes stay minimal: narrowest code path, fewest files, no new dependencies unless absolutely necessary."
+    rationale: "Blast-radius minimization keeps autonomous changes reviewable and revertible."
+    evidence:
+      - source: "AGENTS.md#Engineering Style"
+        quote: "Change the least amount of files possible."
+    checks:
+      - type: "manual_review"
+        target: "git diff --stat"
+
+  - id: "INV-FORK-002"
+    related_terms: ["ForkUpstreamSync"]
+    status: "stable"
+    strength: "soft"
+    statement: "Fork-specific commit counts are measured fresh as a402fd40^2..HEAD (commits after the single upstream merge); ahead-counts against the local up/master ref include merged upstream content and are not fork-specific counts."
+    rationale: "The local up/master ref is stale (f6c162dd, 2026-06-23); its ahead count includes merged upstream commits and is not the fork-specific count."
+    evidence:
+      - source: "docs/llm-wiki/index.md"
+        quote: "現行値は `git rev-list --count a402fd40^2..HEAD` で都度計測する"
+      - source: "docs/llm-wiki/index.md"
+        quote: "この ref は stale で upstream の最新状態を示さない。"
+    checks:
+      - type: "manual_review"
+        target: "git log --oneline a402fd40^2..HEAD"
+
+  - id: "INV-NO-NET-001"
+    related_terms: ["ComfyUI"]
+    status: "stable"
+    strength: "hard"
+    statement: "Core ComfyUI code makes no internet requests: no uploads, telemetry, analytics, tracking, usage reporting, crash reporting, update checks, remote config, feature flags, or other outbound request paths; model downloading only when explicitly user-initiated and limited to the requested artifact."
+    rationale: "AGENTS.md hard governance rule protecting local-only behavior; recorded as follow-on artifact of P1 finding from run 2026-10-16T23:48:02Z (no CI/test enforcement exists yet, so the rule is review-enforced only)."
+    evidence:
+      - source: "AGENTS.md#No Internet Requests"
+        quote: "Do not add code to core ComfyUI that makes requests to the internet."
+    checks:
+      - type: "manual_review"
+        target: "AGENTS.md#No Internet Requests"
+
+  - id: "INV-ASSET-001"
+    related_terms: ["AssetService"]
+    status: "draft"
+    strength: "soft"
+    statement: "Identical uploaded bytes map to exactly one content row, while every upload delivery mints its own asset record (created_new=true) with a distinct id."
+    rationale: "Content dedup must not collapse delivery history; hashes alone can collide across rows (documented in-test). Draft: the verifying test is currently skipped by the assets-test disablement (conftest.py:105)."
+    evidence:
+      - source: "tests-unit/assets_test/test_upload_hashing_modes.py#L179"
+        quote: "assert second[\"id\"] != first[\"id\"], \"every upload is its own delivery record\""
+      - source: "tests-unit/assets_test/test_upload_hashing_modes.py#L182"
+        quote: "\"same bytes stay one content row (hashes alone can collide across rows)\""
+    checks:
+      - type: "test"
+        target: "tests-unit/assets_test/test_upload_hashing_modes.py::test_repeat_upload_mints_a_new_record_in_on_mode"
+
+  - id: "INV-ASSET-002"
+    related_terms: ["AssetService"]
+    status: "draft"
+    strength: "soft"
+    statement: "While asset hashing is disabled (flag off), the scanner must not hash seeded model files; their content rows carry no stored hash."
+    rationale: "Hashing is opt-in behavior; seeding must not silently upgrade to hashed content while the feature flag is off. Draft: the verifying test is currently skipped by the assets-test disablement (conftest.py:105)."
+    evidence:
+      - source: "tests-unit/assets_test/test_upload_hashing_modes.py#L184-L212"
+        quote: "assert row_hash is None, \"scanner must not hash seeded files while the flag is off\""
+    checks:
+      - type: "test"
+        target: "tests-unit/assets_test/test_upload_hashing_modes.py::test_seeded_file_not_hashed_in_on_mode"

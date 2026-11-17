@@ -5,7 +5,7 @@ name: Detect Unreviewed Merge
 
 on:
   push:
-    branches: [master]
+    branches: [main]
 
 concurrency:
   group: detect-unreviewed-merge-${{ github.sha }}

@@ -1,0 +1,30 @@
+# Example systemd unit for ComfyUI (Linux).
+# Copy to /etc/systemd/system/comfyui.service, adjust the paths, then:
+#
+#     sudo systemctl daemon-reload
+#     sudo systemctl enable --now comfyui
+#     sudo systemctl restart comfyui   # to restart
+#     journalctl -u comfyui -f         # to tail logs
+#
+# These are the targets 'make start' / 'make stop' / 'make logs' call
+# with the default SERVICE_NAME=comfyui.
+
+[Unit]
+Description=ComfyUI
+After=network-online.target
+
+[Service]
+Type=simple
+User=you
+Group=you
+WorkingDirectory=/home/you/path/to/ComfyUI
+ExecStart=/home/you/path/to/ComfyUI/.venv/bin/python main.py --listen 0.0.0.0 --port 8188
+Restart=on-failure
+RestartSec=5
+
+# Cgroups limits are conservative; raise them for large video models.
+MemoryMax=32G
+TasksMax=8192
+
+[Install]
+WantedBy=multi-user.target

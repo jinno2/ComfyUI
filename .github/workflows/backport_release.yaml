@@ -184,7 +184,7 @@ jobs:
 
           # Additionally, every commit added on top of the tag (the set we are
           # about to publish) must itself be a descendant of the tag along
-          # first-parent — i.e. no sibling commits from master sneak in via a
+          # first-parent — i.e. no sibling commits from main sneak in via a
           # non-first-parent path. Enforce by requiring that the symmetric
           # difference is empty in one direction: commits in source that are
           # NOT first-parent-reachable from source starting at the tag.
@@ -199,7 +199,7 @@ jobs:
 
           if [[ "${all_added}" != "${first_parent_added}" ]]; then
             echo "::error::Source branch '${SOURCE_BRANCH}' contains commits not on its first-parent chain from '${LATEST_TAG}'."
-            echo "::error::This usually means the branch was cut from master (not from the tag) or contains a merge from master."
+            echo "::error::This usually means the branch was cut from main (not from the tag) or contains a merge from main."
             echo "Commits reachable but not on first-parent chain:"
             comm -23 <(printf '%s\n' "${all_added}") <(printf '%s\n' "${first_parent_added}") \
               | while read -r sha; do
@@ -223,7 +223,7 @@ jobs:
 
           expected_title="ComfyUI backport release ${NEW_VERSION}"
 
-          # Find open PRs from this branch into master. The --state open filter
+          # Find open PRs from this branch into main. The --state open filter
           # is load-bearing: a closed/merged PR with passing checks must not be
           # accepted as authorization for a new release.
           pr_json="$(
@@ -231,14 +231,14 @@ jobs:
               --repo "${REPO}" \
               --state open \
               --head "${SOURCE_BRANCH}" \
-              --base master \
+              --base main \
               --json number,title,headRefOid,state \
               --limit 10
           )"
 
           pr_count="$(echo "${pr_json}" | jq 'length')"
           if [[ "${pr_count}" -eq 0 ]]; then
-            echo "::error::No open PR found from '${SOURCE_BRANCH}' into 'master'. The PR must exist and be open."
+            echo "::error::No open PR found from '${SOURCE_BRANCH}' into 'main'. The PR must exist and be open."
             exit 1
           fi
 
@@ -251,7 +251,7 @@ jobs:
           ')"
 
           if [[ -z "${pr_number}" ]]; then
-            echo "::error::No open PR from '${SOURCE_BRANCH}' into 'master' is titled '${expected_title}'."
+            echo "::error::No open PR from '${SOURCE_BRANCH}' into 'main' is titled '${expected_title}'."
             echo "Found PRs:"
             echo "${pr_json}" | jq -r '.[] | "  #\(.number): \(.title)"'
             exit 1

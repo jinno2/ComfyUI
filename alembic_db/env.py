@@ -9,6 +9,11 @@ config = context.config
 
 
 from app.database.models import Base, NAMING_CONVENTION
+
+# The mapped tables live in app.assets.database.models; import them so they
+# register on Base.metadata and autogenerate can see them.
+import app.assets.database.models  # noqa: F401
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

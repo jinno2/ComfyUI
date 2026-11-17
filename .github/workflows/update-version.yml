@@ -5,7 +5,7 @@ on:
     paths:
       - "pyproject.toml"
     branches:
-      - master
+      - main
       - release/**
 
 jobs:

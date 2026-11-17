@@ -1,5 +1,5 @@
 import json
-from urllib import request, parse
+from urllib import request
 import random
 
 #This is the ComfyUI api prompt format.
@@ -121,5 +121,4 @@ def make_all(prompt, count=10):
 
 prompt = json.loads(prompt_text)
 make_all(prompt)
-
 

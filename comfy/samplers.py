@@ -20,6 +20,7 @@ import comfy.hooks
 import comfy.context_windows
 import comfy.multigpu
 import comfy.utils
+from comfy.internal_logging import detail
 import scipy.stats
 import numpy
 
@@ -217,12 +218,7 @@ def _calc_cond_batch_outer(model: BaseModel, conds: list[list[dict]], x_in: torc
     )
     return executor.execute(model, conds, x_in, timestep, model_options)
 
-def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tensor, timestep: torch.Tensor, model_options: dict[str]):
-    # NOTE: keep in sync with _calc_cond_batch_multigpu below. Shared logic
-    # (hooked_to_run accumulation, memory-fit batching, per-chunk output
-    # aggregation) is duplicated there with per-device scheduling layered on top.
-    if 'multigpu_clones' in model_options:
-        return _calc_cond_batch_multigpu(model, conds, x_in, timestep, model_options)
+def _group_conds_by_hooks(model: BaseModel, conds: list[list[dict]], x_in: torch.Tensor, timestep: torch.Tensor, model_options: dict[str]):
     out_conds = []
     out_counts = []
     # separate conds by matching hooks
@@ -251,6 +247,44 @@ def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tens
                 hooked_to_run[p.hooks] += [(p, i)]
         default_conds.append(default_c)
 
+    return out_conds, out_counts, hooked_to_run, default_conds, has_default_conds
+
+def _plan_memory_fit_batch(to_run, to_batch_temp, first_shape, free_memory, model):
+    to_batch = to_batch_temp[:1]
+    for i in range(1, len(to_batch_temp) + 1):
+        batch_amount = to_batch_temp[:len(to_batch_temp)//i]
+        input_shape = [len(batch_amount) * first_shape[0]] + list(first_shape)[1:]
+        cond_shapes = collections.defaultdict(list)
+        for tt in batch_amount:
+            for k, v in to_run[tt][0].conditioning.items():
+                cond_shapes[k].append(v.size())
+        if model.memory_required(input_shape, cond_shapes=cond_shapes) * 1.5 < free_memory:
+            to_batch = batch_amount
+            break
+    return to_batch
+
+def _accumulate_cond_output(out_conds, out_counts, cond_index, output, mult, area):
+    if area is None:
+        out_conds[cond_index] += output * mult
+        out_counts[cond_index] += mult
+    else:
+        out_c = out_conds[cond_index]
+        out_cts = out_counts[cond_index]
+        dims = len(area) // 2
+        for i in range(dims):
+            out_c = out_c.narrow(i + 2, area[i + dims], area[i])
+            out_cts = out_cts.narrow(i + 2, area[i + dims], area[i])
+        out_c += output * mult
+        out_cts += mult
+
+def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tensor, timestep: torch.Tensor, model_options: dict[str]):
+    # NOTE: keep in sync with _calc_cond_batch_multigpu below. Cond grouping,
+    # memory-fit batching, and output aggregation are shared helpers; this path
+    # runs batches inline while the multigpu path schedules them per device.
+    if 'multigpu_clones' in model_options:
+        return _calc_cond_batch_multigpu(model, conds, x_in, timestep, model_options)
+    out_conds, out_counts, hooked_to_run, default_conds, has_default_conds = _group_conds_by_hooks(model, conds, x_in, timestep, model_options)
+
     if has_default_conds:
         finalize_default_conds(model, hooked_to_run, default_conds, x_in, timestep, model_options)
 
@@ -267,20 +301,9 @@ def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tens
                     to_batch_temp += [x]
 
             to_batch_temp.reverse()
-            to_batch = to_batch_temp[:1]
 
             free_memory = model.current_patcher.get_free_memory(x_in.device)
-            for i in range(1, len(to_batch_temp) + 1):
-                batch_amount = to_batch_temp[:len(to_batch_temp)//i]
-                input_shape = [len(batch_amount) * first_shape[0]] + list(first_shape)[1:]
-                cond_shapes = collections.defaultdict(list)
-                for tt in batch_amount:
-                    for k, v in to_run[tt][0].conditioning.items():
-                        cond_shapes[k].append(v.size())
-
-                if model.memory_required(input_shape, cond_shapes=cond_shapes) * 1.5 < free_memory:
-                    to_batch = batch_amount
-                    break
+            to_batch = _plan_memory_fit_batch(to_run, to_batch_temp, first_shape, free_memory, model)
 
             input_x = []
             mult = []
@@ -334,20 +357,7 @@ def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tens
                 output = model.apply_model(input_x, timestep_, **c).chunk(batch_chunks)
 
             for o in range(batch_chunks):
-                cond_index = cond_or_uncond[o]
-                a = area[o]
-                if a is None:
-                    out_conds[cond_index] += output[o] * mult[o]
-                    out_counts[cond_index] += mult[o]
-                else:
-                    out_c = out_conds[cond_index]
-                    out_cts = out_counts[cond_index]
-                    dims = len(a) // 2
-                    for i in range(dims):
-                        out_c = out_c.narrow(i + 2, a[i + dims], a[i])
-                        out_cts = out_cts.narrow(i + 2, a[i + dims], a[i])
-                    out_c += output[o] * mult[o]
-                    out_cts += mult[o]
+                _accumulate_cond_output(out_conds, out_counts, cond_or_uncond[o], output[o], mult[o], area[o])
 
     for i in range(len(out_conds)):
         out_conds[i] /= out_counts[i]
@@ -355,39 +365,13 @@ def _calc_cond_batch(model: BaseModel, conds: list[list[dict]], x_in: torch.Tens
     return out_conds
 
 def _calc_cond_batch_multigpu(model: BaseModel, conds: list[list[dict]], x_in: torch.Tensor, timestep: torch.Tensor, model_options: dict[str]):
-    # NOTE: keep in sync with _calc_cond_batch above. Same conds-by-hooks
-    # accumulation, memory-fit batching, and output aggregation, but adds a
-    # per-device scheduler, per-device patcher/control lookup, tensor .to(device)
-    # placement, and MultiGPUThreadPool dispatch around the inner loop.
-    out_conds = []
-    out_counts = []
-    # separate conds by matching hooks
-    hooked_to_run: dict[comfy.hooks.HookGroup,list[tuple[tuple,int]]] = {}
-    default_conds = []
-    has_default_conds = False
+    # NOTE: keep in sync with _calc_cond_batch above. Cond grouping is shared
+    # via _group_conds_by_hooks; this path adds a per-device scheduler,
+    # per-device patcher/control lookup, tensor .to(device) placement, and
+    # MultiGPUThreadPool dispatch around the inner loop.
+    out_conds, out_counts, hooked_to_run, default_conds, has_default_conds = _group_conds_by_hooks(model, conds, x_in, timestep, model_options)
 
     output_device = x_in.device
-
-    for i in range(len(conds)):
-        out_conds.append(torch.zeros_like(x_in))
-        out_counts.append(torch.ones_like(x_in) * 1e-37)
-
-        cond = conds[i]
-        default_c = []
-        if cond is not None:
-            for x in cond:
-                if 'default' in x:
-                    default_c.append(x)
-                    has_default_conds = True
-                    continue
-                p = get_area_and_mult(x, x_in, timestep)
-                if p is None:
-                    continue
-                if p.hooks is not None:
-                    model.current_patcher.prepare_hook_patches_current_keyframe(timestep, p.hooks, model_options)
-                hooked_to_run.setdefault(p.hooks, list())
-                hooked_to_run[p.hooks] += [(p, i)]
-        default_conds.append(default_c)
 
     if has_default_conds:
         finalize_default_conds(model, hooked_to_run, default_conds, x_in, timestep, model_options)
@@ -433,19 +417,9 @@ def _calc_cond_batch_multigpu(model: BaseModel, conds: list[list[dict]], x_in: t
                     to_batch_temp += [x]
 
             to_batch_temp.reverse()
-            to_batch = to_batch_temp[:1]
 
             free_memory = comfy.model_management.get_free_memory(current_device)
-            for i in range(1, len(to_batch_temp) + 1):
-                batch_amount = to_batch_temp[:len(to_batch_temp)//i]
-                input_shape = [len(batch_amount) * first_shape[0]] + list(first_shape)[1:]
-                cond_shapes = collections.defaultdict(list)
-                for tt in batch_amount:
-                    for k, v in to_run[tt][0].conditioning.items():
-                        cond_shapes[k].append(v.size())
-                if model.memory_required(input_shape, cond_shapes=cond_shapes) * 1.5 < free_memory:
-                    to_batch = batch_amount
-                    break
+            to_batch = _plan_memory_fit_batch(to_run, to_batch_temp, first_shape, free_memory, model)
 
             conds_to_batch = [to_run.pop(x) for x in to_batch]
             device_load[current_device] += len(conds_to_batch)
@@ -564,29 +538,12 @@ def _calc_cond_batch_multigpu(model: BaseModel, conds: list[list[dict]], x_in: t
         if error is not None:
             raise error
         for o in range(batch_chunks):
-            cond_index = cond_or_uncond[o]
-            a = area[o]
-            if a is None:
-                out_conds[cond_index] += output[o] * mult[o]
-                out_counts[cond_index] += mult[o]
-            else:
-                out_c = out_conds[cond_index]
-                out_cts = out_counts[cond_index]
-                dims = len(a) // 2
-                for i in range(dims):
-                    out_c = out_c.narrow(i + 2, a[i + dims], a[i])
-                    out_cts = out_cts.narrow(i + 2, a[i + dims], a[i])
-                out_c += output[o] * mult[o]
-                out_cts += mult[o]
+            _accumulate_cond_output(out_conds, out_counts, cond_or_uncond[o], output[o], mult[o], area[o])
 
     for i in range(len(out_conds)):
         out_conds[i] /= out_counts[i]
 
     return out_conds
-
-def calc_cond_uncond_batch(model, cond, uncond, x_in, timestep, model_options): #TODO: remove
-    logging.warning("WARNING: The comfy.samplers.calc_cond_uncond_batch function is deprecated please use the calc_cond_batch one instead.")
-    return tuple(calc_cond_batch(model, [cond, uncond], x_in, timestep, model_options))
 
 def cfg_function(model, cond_pred, uncond_pred, cond_scale, x, timestep, model_options={}, cond=None, uncond=None):
     if "sampler_cfg_function" in model_options:
@@ -635,7 +592,7 @@ class KSamplerX0Inpaint:
             if "denoise_mask_function" in model_options:
                 denoise_mask = model_options["denoise_mask_function"](sigma, denoise_mask, extra_options={"model": self.inner_model, "sigmas": self.sigmas})
             latent_mask = 1. - denoise_mask
-            x = x * denoise_mask + self.inner_model.inner_model.scale_latent_inpaint(x=x, sigma=sigma, noise=self.noise, latent_image=self.latent_image) * latent_mask
+            x = x * denoise_mask + self.inner_model.inner_model.scale_latent_inpaint(x=x, sigma=sigma, noise=self.noise, latent_image=self.latent_image, denoise_mask=denoise_mask) * latent_mask
         out = self.inner_model(x, sigma, model_options=model_options, seed=seed)
         if denoise_mask is not None:
             out = out * denoise_mask + self.latent_image * latent_mask
@@ -735,12 +692,13 @@ def kl_optimal_scheduler(n: int, sigma_min: float, sigma_max: float) -> torch.Te
     return sigmas
 
 def get_mask_aabb(masks):
+    dims = masks.ndim - 1
     if masks.numel() == 0:
-        return torch.zeros((0, 4), device=masks.device, dtype=torch.int)
+        return torch.zeros((0, dims * 2), device=masks.device, dtype=torch.int)
 
     b = masks.shape[0]
 
-    bounding_boxes = torch.zeros((b, 4), device=masks.device, dtype=torch.int)
+    bounding_boxes = torch.zeros((b, dims * 2), device=masks.device, dtype=torch.int)
     is_empty = torch.zeros((b), device=masks.device, dtype=torch.bool)
     for i in range(b):
         mask = masks[i]
@@ -749,11 +707,10 @@ def get_mask_aabb(masks):
         if torch.max(mask != 0) == False:
             is_empty[i] = True
             continue
-        y, x = torch.where(mask)
-        bounding_boxes[i, 0] = torch.min(x)
-        bounding_boxes[i, 1] = torch.min(y)
-        bounding_boxes[i, 2] = torch.max(x)
-        bounding_boxes[i, 3] = torch.max(y)
+        coords = torch.where(mask)
+        for dim, coord in enumerate(coords):
+            bounding_boxes[i, dim] = torch.min(coord)
+            bounding_boxes[i, dims + dim] = torch.max(coord)
 
     return bounding_boxes, is_empty
 
@@ -790,19 +747,19 @@ def resolve_areas_and_cond_masks_multidim(conditions, dims, device):
                 else:
                     mask = comfy.utils.common_upscale(mask, dims[-1], dims[-2], 'bilinear', 'none')
 
-            if modified.get("set_area_to_bounds", False): #TODO: handle dim != 2
+            if modified.get("set_area_to_bounds", False):
                 bounds = torch.max(torch.abs(mask),dim=0).values.unsqueeze(0)
                 boxes, is_empty = get_mask_aabb(bounds)
+                ndim = len(dims)
+                minimum_sizes = (1,) * max(0, ndim - 2) + (8,) * min(2, ndim)
                 if is_empty[0]:
                     # Use the minimum possible size for efficiency reasons. (Since the mask is all-0, this becomes a noop anyway)
-                    modified['area'] = (8, 8, 0, 0)
+                    modified['area'] = minimum_sizes + (0,) * ndim
                 else:
                     box = boxes[0]
-                    H, W, Y, X = (box[3] - box[1] + 1, box[2] - box[0] + 1, box[1], box[0])
-                    H = max(8, H)
-                    W = max(8, W)
-                    area = (int(H), int(W), int(Y), int(X))
-                    modified['area'] = area
+                    starts = [int(box[dim]) for dim in range(ndim)]
+                    sizes = [max(minimum_sizes[dim], int(box[ndim + dim] - box[dim] + 1)) for dim in range(ndim)]
+                    modified['area'] = tuple(sizes + starts)
 
             modified['mask'] = mask
             conditions[i] = modified
@@ -970,7 +927,7 @@ class Sampler:
 KSAMPLER_NAMES = ["euler", "euler_cfg_pp", "euler_ancestral", "euler_ancestral_cfg_pp", "heun", "heunpp2", "exp_heun_2_x0", "exp_heun_2_x0_sde", "dpm_2", "dpm_2_ancestral",
                   "lms", "dpm_fast", "dpm_adaptive", "dpmpp_2s_ancestral", "dpmpp_2s_ancestral_cfg_pp", "dpmpp_sde", "dpmpp_sde_gpu",
                   "dpmpp_2m", "dpmpp_2m_cfg_pp", "dpmpp_2m_sde", "dpmpp_2m_sde_gpu", "dpmpp_2m_sde_heun", "dpmpp_2m_sde_heun_gpu", "dpmpp_3m_sde", "dpmpp_3m_sde_gpu", "ddpm", "lcm",
-                  "ipndm", "ipndm_v", "deis", "res_multistep", "res_multistep_cfg_pp", "res_multistep_ancestral", "res_multistep_ancestral_cfg_pp",
+                  "ipndm", "ipndm_v", "deis", "cfgpp_ud10_ab", "res_multistep", "res_multistep_cfg_pp", "res_multistep_ancestral", "res_multistep_ancestral_cfg_pp",
                   "gradient_estimation", "gradient_estimation_cfg_pp", "er_sde", "seeds_2", "seeds_3", "sa_solver", "sa_solver_pece"]
 
 class KSAMPLER(Sampler):
@@ -991,10 +948,15 @@ class KSAMPLER(Sampler):
 
         noise = model_wrap.inner_model.model_sampling.noise_scaling(sigmas[0], noise, latent_image, self.max_denoise(model_wrap, sigmas))
 
-        k_callback = None
         total_steps = len(sigmas) - 1
-        if callback is not None:
-            k_callback = lambda x: callback(x["i"], x["denoised"], x["x"], total_steps)
+        first_step = True
+        def k_callback(x):
+            nonlocal first_step
+            if first_step:
+                detail("First sampler step: model=%s sampler=%s step=%s total_steps=%s cfg=%s seed=%s sigma=%s sigma_hat=%s latent_shape=%s denoised_shape=%s", model_wrap.model_patcher.model.__class__.__name__, getattr(self.sampler_function, "__name__", "unknown"), x["i"], total_steps, model_wrap.cfg, extra_args.get("seed"), x.get("sigma"), x.get("sigma_hat"), tuple(x["x"].shape), tuple(x["denoised"].shape))
+                first_step = False
+            if callback is not None:
+                callback(x["i"], x["denoised"], x["x"], total_steps)
 
         samples = self.sampler_function(model_k, noise, sigmas, extra_args=extra_args, callback=k_callback, disable=disable_pbar, **self.extra_options)
         samples = model_wrap.inner_model.model_sampling.inverse_noise_scaling(sigmas[-1], samples)
@@ -1195,6 +1157,7 @@ class CFGGuider:
     def inner_set_conds(self, conds):
         for k in conds:
             if self.model_patcher.is_dynamic() and comfy.sampler_helpers.cond_has_hooks(conds[k]):
+                logging.info("Conditioning contains hooks; switching from dynamic VRAM loading to a standard model clone.")
                 self.model_patcher = self.model_patcher.get_non_dynamic_delegate()
             self.original_conds[k] = comfy.sampler_helpers.convert_cond(conds[k])
 
@@ -1212,6 +1175,8 @@ class CFGGuider:
         return sampling_function(self.inner_model, x, timestep, self.conds.get("negative", None), self.conds.get("positive", None), self.cfg, model_options=model_options, seed=seed)
 
     def inner_sample(self, noise, latent_image, device, sampler, sigmas, denoise_mask, callback, disable_pbar, seed, latent_shapes=None):
+        self.inner_model.latent_shapes = latent_shapes
+
         if latent_image is not None and torch.count_nonzero(latent_image) > 0: #Don't shift the empty latent image.
             latent_image = self.inner_model.process_latent_in(latent_image)
 
@@ -1270,10 +1235,21 @@ class CFGGuider:
             return latent_image
 
         if latent_image.is_nested:
+            sampler_shapes = [tuple(x.shape) for x in latent_image.unbind()]
             latent_image, latent_shapes = comfy.utils.pack_latents(latent_image.unbind())
             noise, _ = comfy.utils.pack_latents(noise.unbind())
         else:
             latent_shapes = [latent_image.shape]
+            sampler_shapes = [tuple(latent_image.shape)]
+        detail("Sampler: model=%s latent_shapes=%s", self.model_patcher.model.__class__.__name__, sampler_shapes)
+
+        if len(latent_shapes) > 1 and callback is not None:
+            # samplers run on the flat pack, hand callbacks (previews, x0 output) the nested view
+            packed_callback = callback
+            def callback(step, x0, x, total_steps):
+                x0 = comfy.nested_tensor.NestedTensor(comfy.utils.unpack_latents(x0, latent_shapes))
+                x = comfy.nested_tensor.NestedTensor(comfy.utils.unpack_latents(x, latent_shapes))
+                return packed_callback(step, x0, x, total_steps)
 
         if denoise_mask is not None:
             if denoise_mask.is_nested:
