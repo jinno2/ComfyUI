@@ -1,192 +1,60 @@
-# Milestones — ComfyUI fork（実行用分解）
+# Milestones — ComfyUI fork
 
 Plan-Status: in_progress
 
-正本: [.concept/charter.yml](../.concept/charter.yml)（目的・非目標・成功指標・マイルストーンの定義）
-長期方針の見直し記録と現在地: [docs/plan/long-term-direction.md](plan/long-term-direction.md)
-現行の実行波（約30分の作業枠とWPカード）: [docs/plan/milestones.md](plan/milestones.md)
+正本: [`.concept/charter.yml`](../.concept/charter.yml)（目的・非目標・指標・マイルストーン）
+長期方針と現在地: [docs/plan/long-term-direction.md](plan/long-term-direction.md)
+実行波と WP: [docs/plan/milestones.md](plan/milestones.md)
 
-本書は charter のマイルストーンを実行可能な単位へ分解した索引であり、定義と正本状態は charter 側にある（charter の `done` / `active` は本書の `achieved` / `in_progress` と同義）。WP カードの実装手順・依存表は `docs/plan/milestones.md` が保持し、本書では重複して保持しない。各項目は charter の同一 ID（MS-001..MS-003）を引き継ぐ。
+本書は charter MS-001〜MS-005 の実行用分解。定義・優先順位・状態は charter が正本で、WP の手順と依存は実行波に置く。
 
-## 継続更新の回路
+## 直近の一枠（約30分）
 
-- 目標・マイルストーンを変更するときは charter を更新し、本書と `docs/plan/milestones.md` の参照を整合させる。
-- `REPO_METADATA.json` は charter と `docs/plan/milestones.md` の投影であり、原本を変えたら `source_hash`（git blob ID）と `updated_at` を更新する。
-- 受入証拠は commit と run 出力に置く。計画 MD に実行ログを複製しない。
-
-## 直近の一枠（約30分・現在 ready）
-
-# Milestones — ComfyUI fork（実行用分解）
-
-Plan-Status: in_progress
-
-正本: [.concept/charter.yml](../.concept/charter.yml)（目的・非目標・成功指標・マイルストーンの定義）  
-長期方針の見直し記録と現在地: [docs/plan/long-term-direction.md](plan/long-term-direction.md)  
-現行の実行波（約30分の作業枠とWPカード）: [docs/plan/milestones.md](plan/milestones.md)
-
-本書は charter のマイルストーンを実行可能な単位へ分解した索引であり、定義と正本状態は charter 側にある（charter の `done` / `active` は本書の `achieved` / `in_progress` と同義）。WP カードの実装手順・依存表は `docs/plan/milestones.md` が保持し、本書では重複して保持しない。各項目は charter の同一 ID（MS-001..MS-003）を引き継ぐ。
-
-## 継続更新の回路
-
-- 目標・マイルストーンを変更するときは charter を更新し、本書と `docs/plan/milestones.md` の参照を整合させる。
-- `REPO_METADATA.json` は charter と `docs/plan/milestones.md` の投影であり、原本を変えたら `source_hash`（git blob ID）と `updated_at` を更新する。
-- 受入証拠は commit と run 出力に置く。計画 MD に実行ログを複製しない。
-
-## 直近の一枠（約30分・現在 ready）
-
-- 対象: WP-A2 — CFLT-ASSETPERSIST-001 解消判定と charter MS-002 更新（カード全文は [docs/plan/milestones.md](plan/milestones.md)）
-- 前提: WP-A1 の実行記録は取得済み（[docs/plan/evidence/wp-a1-alembic-chain.md](plan/evidence/wp-a1-alembic-chain.md)、着地 commit 0075fd4f、2026-11-07 観測）。既存 venv（`make install` 済み）
-- 検証可能な行動: `alembic_db/README.md` の手順と versions 0001..0008 の実態一致を判定表にし、同一候補の make test 証拠（既存 CI 証拠の再利用可）と合わせて charter MS-002 の status を確定する
-- 完了判定: 判定と根拠の記録、成功時は charter 更新の実際の default 着地まで
-- 戻り先: WP-C2 — make test 再観測と MET-001 実測の更新（独立着手可、charter 編集は直列化）
+- 対象: WP-A2 — `alembic_db/README.md` と migration versions 0001〜0008 の実態を照合し、同一候補の `make test` 結果を確認する。
+- 完了条件: 隔離 DB で `alembic upgrade head` と `alembic current` が単一 head で成功し、README の記述が実装と一致し、同一候補の `make test` が 0 failed。証拠を charter に反映し、MS-002 は証拠が default に着地するまで active のままにする。
+- 依存: WP-A1 の隔離 DB 証拠は取得済み。MS-002 と MS-003 の charter 更新は直列化する。
 
 ## MS-001: Fork infrastructure stability
 
-Outcome: 無人稼働の阻害要因を排除した fork 固有基盤（Makefile 標準ターゲット、Woodpecker gate、GitHub Actions 無効の運用）が維持され、CI gate が PR と main push で機能する  
-Acceptance: `make test` が 0 failed（記録: 2026-10-10 1930 passed / 0 failed / 74 skipped）、`.woodpecker.yml` の Ruff + tests-unit 選別が PR と main push で green（出典: charter MS-001 acceptance、MET-001、MET-002）  
-Evidence: charter MS-001 status=done と acceptance（make test）。Makefile の install/build/run/start/test/lint ターゲットと `.woodpecker.yml` gate の存在（2026-11-03 観測）。GitHub Actions 無効・Woodpecker 有効の運用記録は AUTOMATION.md Status  
-Status: achieved  
-依存: なし  
-次の一手: 維持のみ（新規の改善は LOOP.md の候補順に従う）。MET-002 の green は Woodpecker 側の実観測でのみ更新する
-
-## MS-002: Asset persistence layer integrity
-
-Outcome: アセット永続化レイヤ（models.py の 6 テーブル、alembic_db 0001..0008、alembic_db/README.md）が実態と一致し、マイグレーション連鎖が隔離環境で実行可能であることが証拠で示される  
-Acceptance: 隔離した一時 DB で `alembic upgrade head` が exit 0、`alembic current` が単一 head と一致、README の手順が versions 0001..0008 の実態と一致（CFLT-ASSETPERSIST-001 の解消）、`make test` が 0 failed  
-Evidence: `app/assets/database/models.py` に 6 テーブル、`alembic_db/versions` に 0001..0008 の連鎖（いずれも 2026-11-03 観測）。WP-A1 の隔離実行証拠は取得済み: `docs/plan/evidence/wp-a1-alembic-chain.md`（run 20261107-235007-331852、着地 commit 0075fd4f — upgrade head が exit 0、heads/current とも単一 `0008_missing_content_age` に一致、2026-11-07 観測）。README 実態一致の判定と make test 同一候補証拠は未取得（WP-A2）  
-Status: in_progress  
-依存: WP-A1 は完了済み。WP-A2 の残りは README 判定と make test 証拠で、charter の編集は直列化する  
-次の一手: WP-A2 を約30分枠で実行 — README と versions 0001..0008 の実態一致を判定し、同一候補の make test 証拠と合わせて charter MS-002 の status を確定する
-
-## MS-003: Concept synchronization
-
-Outcome: .concept/ の記述が実コード・テスト・追跡構成から乖離せず、autopilot 品質基準（Q1-Q8）を満たす状態が保たれる  
-Acceptance: `.concept/*.yml` の yaml parse が成功し、`git ls-files .concept` が charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイルと一致し、非追跡の runtime 12 ファイルが check-ignore される（MET-001 の再観測は WP-C2 で charter へ反映）  
-Evidence: 820d2ae4 (#43) で runtime 生成物 12 ファイルの Git 追跡を解除して追跡は 3 ファイルになり、ガードテスト `tests-unit/concept_metadata_tracking_test.py` が追跡/除外を検査する。旧記載だった deliverables「固定 14 ファイル構成」は 2026-11-03 に現構成へ修正した。2026-11-11 再観測: `git ls-files .concept` = 3 ファイル、`.concept/*.yml` の yaml parse 3/3 OK、runtime 12 ファイルすべて check-ignore  
-Status: in_progress  
-依存: なし。WP-C1（charter deliverables を現構成へ整合）は 2026-11-03 の eadbeeeb で main へ着地済み（2026-11-11 確認）、残りは WP-C2。同じ charter を触るため反映は直列化する  
-次の一手: WP-C2 を約30分枠で実行 — `make test` を1回だけ走らせ MET-001 の実測（passed/failed/skipped と対象 SHA）を記録し、charter の MET-001 記載を実測値へ更新する
-
-## MS-001: Fork infrastructure stability
-
-Outcome: 無人稼働の阻害要因を排除した fork 固有基盤（Makefile 標準ターゲット、Woodpecker gate、GitHub Actions 無効の運用）が維持され、CI gate が PR と main push で機能する
-Acceptance: `make test` が 0 failed（記録: 2026-10-10 1930 passed / 0 failed / 74 skipped）、`.woodpecker.yml` の Ruff + tests-unit 選別が PR と main push で green（出典: charter MS-001 acceptance、MET-001、MET-002）
-Evidence: charter MS-001 status=done と acceptance（make test）。Makefile の install/build/run/start/test/lint ターゲットと `.woodpecker.yml` gate の存在（2026-11-03 観測）。GitHub Actions 無効・Woodpecker 有効の運用記録は AUTOMATION.md Status
+Outcome: fork 固有の基盤と CI gate が安定して動作し、unit suite の失敗を防ぐ。
+Acceptance: `make test` が 0 failed。Woodpecker の Ruff + tests-unit gate が PR と main push で green。
+Evidence: charter status=`done`。Makefile の標準ターゲットと `.woodpecker.yml` の gate を 2026-11-03 に確認。最新の CI green はこの計画更新では再観測していない。
 Status: achieved
-依存: なし
-次の一手: 維持のみ（新規の改善は LOOP.md の候補順に従う）。MET-002 の green は Woodpecker 側の実観測でのみ更新する
+依存: なし。
+次の一手: 維持。新しい作業は通常候補選択に従う。
 
 ## MS-002: Asset persistence layer integrity
 
-Outcome: アセット永続化レイヤ（models.py の 6 テーブル、alembic_db 0001..0008、alembic_db/README.md）が実態と一致し、マイグレーション連鎖が隔離環境で実行可能であることが証拠で示される
-Acceptance: 隔離した一時 DB で `alembic upgrade head` が exit 0、`alembic current` が単一 head と一致、README の手順が versions 0001..0008 の実態と一致（CFLT-ASSETPERSIST-001 の解消）、`make test` が 0 failed
-# Milestones — ComfyUI fork（実行用分解）
-
-Plan-Status: in_progress
-
-正本: [.concept/charter.yml](../.concept/charter.yml)（目的・非目標・成功指標・マイルストーンの定義）
-長期方針の見直し記録と現在地: [docs/plan/long-term-direction.md](plan/long-term-direction.md)
-現行の実行波（約30分の作業枠とWPカード）: [docs/plan/milestones.md](plan/milestones.md)
-
-本書は charter のマイルストーンを実行可能な単位へ分解した索引であり、定義と正本状態は charter 側にある（charter の `done` / `active` は本書の `achieved` / `in_progress` と同義）。WP カードの実装手順・依存表は `docs/plan/milestones.md` が保持し、本書では重複して保持しない。各項目は charter の同一 ID（MS-001..MS-003）を引き継ぐ。
-
-## 継続更新の回路
-
-- 目標・マイルストーンを変更するときは charter を更新し、本書と `docs/plan/milestones.md` の参照を整合させる。
-- `REPO_METADATA.json` は charter と `docs/plan/milestones.md` の投影であり、原本を変えたら `source_hash`（git blob ID）と `updated_at` を更新する。
-- 受入証拠は commit と run 出力に置く。計画 MD に実行ログを複製しない。
-
-## 直近の一枠（約30分・現在 ready）
-
-- 対象: WP-C2 — `make test` の再観測と MET-001 の記載更新（カード全文は [docs/plan/milestones.md](plan/milestones.md)）
-- 検証可能な行動: `make test` を1回だけ実行し、passed / failed / skipped の集計行と対象 SHA を run 出力へ記録する。0 failed なら charter MET-001 の実測値と観測日をその値へ更新する
-- 完了判定: テスト実行のサマリ行（passed / failed / skipped）と対象 commit SHA が run 出力に残り、charter MET-001 の記載が実測値と一致する
-- 前提: 既存 venv（`make install` 済み）。テストコードは変更しない
-- 戻り先: MS-003 の status 判定（charter exit_criteria 2 項の充足状況）
-- 注記: WP-A1 の隔離実行証拠は run 20261107-235007-331852、commit 0075fd4f に記録済み。WP-A2 の README 実態一致判定と同一候補の make test 証拠は未取得で、WP-A2 は WP-C2 と独立して着手できる。同じ charter を編集するため、charter の更新は直列化する
-
-## MS-001: Fork infrastructure stability
-
-Outcome: 無人稼働の阻害要因を排除した fork 固有基盤（Makefile 標準ターゲット、Woodpecker gate、GitHub Actions 無効の運用）が維持され、CI gate が PR と main push で機能する
-Acceptance: `make test` が 0 failed（記録: 2026-10-10 1930 passed / 0 failed / 74 skipped）、`.woodpecker.yml` の Ruff + tests-unit 選別が PR と main push で green（出典: charter MS-001 acceptance、MET-001、MET-002）
-Evidence: charter MS-001 status=done と acceptance（make test）。Makefile の install/build/run/start/test/lint ターゲットと `.woodpecker.yml` gate の存在（2026-11-03 観測）。GitHub Actions 無効・Woodpecker 有効の運用記録は AUTOMATION.md Status
-Status: achieved
-依存: なし
-次の一手: 維持のみ（新規の改善は LOOP.md の候補順に従う）。MET-002 の green は Woodpecker 側の実観測でのみ更新する
-
-## MS-002: Asset persistence layer integrity
-
-Outcome: アセット永続化レイヤ（models.py の 6 テーブル、alembic_db 0001..0008、alembic_db/README.md）が実態と一致し、マイグレーション連鎖が隔離環境で実行可能であることが証拠で示される
-Acceptance: 隔離した一時 DB で `alembic upgrade head` が exit 0、`alembic current` が単一 head と一致、README の手順が versions 0001..0008 の実態と一致（CFLT-ASSETPERSIST-001 の解消）、`make test` が 0 failed
-Evidence: `app/assets/database/models.py` に 6 テーブル、`alembic_db/versions` に 0001..0008 の連鎖（2026-11-11 再観測）。WP-A1 の隔離実行証拠は `docs/plan/evidence/wp-a1-alembic-chain.md`（run 20261107-235007-331852、着地 commit 0075fd4f — `upgrade head` が exit 0、heads/current とも単一 `0008_missing_content_age` に一致、2026-11-07 観測）。README 実態一致の判定と make test 同一候補証拠は未取得（WP-A2）
+Outcome: SQLAlchemy schema、migration chain、README が実態と一致し、migration を隔離環境で実行できる。
+Acceptance: 隔離 DB で `alembic upgrade head` が成功し、`alembic current` が単一 head と一致する。README の手順と versions 0001〜0008 が一致し、同一候補の `make test` が 0 failed。
+Evidence: [`WP-A1` 実行証拠](plan/evidence/wp-a1-alembic-chain.md) は `upgrade head` と `current` の単一 `0008_missing_content_age` を記録。WP-A2 の README 判定と同一候補 test 証拠は main の charter で未確認。
 Status: in_progress
-依存: WP-A1 は完了済み。WP-A2 の残りは README 判定と make test 証拠で、charter の編集は直列化する
-次の一手: WP-A2 を約30分枠で実行 — README と versions 0001..0008 の実態一致を判定し、同一候補の make test 証拠と合わせて charter MS-002 の status を確定する
+依存: WP-A1 → WP-A2。
+次の一手: 直近の一枠 WP-A2 を実施し、検証済み証拠だけを charter に反映する。
 
 ## MS-003: Concept synchronization
 
-Outcome: .concept/ の記述が実コード・テスト・追跡構成から乖離せず、autopilot 品質基準（Q1-Q8）を満たす状態が保たれる
-Acceptance: `.concept/*.yml` の yaml parse が成功し、`git ls-files .concept` が charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイルと一致し、非追跡の runtime 12 ファイルが check-ignore される（MET-001 の再観測は WP-C2 で charter へ反映）
-Evidence: 820d2ae4 (#43) で runtime 生成物 12 ファイルの Git 追跡を解除して追跡は 3 ファイルになり、ガードテスト `tests-unit/concept_metadata_tracking_test.py` が追跡/除外を検査する。旧記載だった deliverables「固定 14 ファイル構成」は 2026-11-03 に現構成へ修正した。2026-11-11 再観測: `git ls-files .concept` = 3 ファイル、`.concept/*.yml` の yaml parse 3/3 OK、runtime 12 ファイルすべて check-ignore
+Outcome: `.concept` の手管理ファイルと runtime 除外が実態に一致し、継続的な test gate が保たれる。
+Acceptance: `.concept/*.yml` が parse できる。`git ls-files .concept` が charter.yml / autopilot.yml / ontology_budget.yml の3ファイルで、runtime 生成物12ファイルが `check-ignore` される。
+Evidence: 2026-11-11 の記録で YAML parse 3/3、追跡3ファイル、runtime 除外12/12。MET-001 の新鮮な実測は未確認。
 Status: in_progress
-依存: なし。WP-C1 は着地済み（charter MS-003 deliverables を2026-11-03に現構成へ修正、eadbeeebで着地）、残りは WP-C2。同じ charter を触るため反映は直列化する
-次の一手: WP-C2 を約30分枠で実行 — `make test` を1回だけ走らせ MET-001 の実測（passed/failed/skipped と対象 SHA）を記録し、charter の MET-001 記載を実測値へ更新する
+依存: 構成確認はなし。WP-C2 の charter 更新は WP-A2 更新後。
+次の一手: WP-C2 で `make test` を一度実行し、集計と対象 SHA を記録して charter MET-001 を更新する。
 
-## MS-003: Concept synchronization
+## MS-004: フォーク状態の可視化
 
-Outcome: .concept/ の記述が実コード・テスト・追跡構成から乖離せず、autopilot 品質基準（Q1-Q8）を満たす状態が保たれる
-Acceptance: `.concept/*.yml` の yaml parse が成功し、`git ls-files .concept` が charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイルと一致し、非追跡の runtime 12 ファイルが check-ignore される（MET-001 の再観測は WP-C2 で charter へ反映）
-Evidence: 820d2ae4 (#43) で runtime 生成物 12 ファイルの Git 追跡を解除して追跡は 3 ファイルになり、ガードテスト `tests-unit/concept_metadata_tracking_test.py` が追跡/除外を検査する。旧記載だった deliverables「固定 14 ファイル構成」は 2026-11-03 に現構成へ修正した。2026-11-11 再観測: `git ls-files .concept` = 3 ファイル、`.concept/*.yml` の yaml parse 3/3 OK、runtime 12 ファイルすべて check-ignore
+Outcome: fork 固有コミット数と upstream 同期状態を新鮮な git 計測で把握する。
+Acceptance: `.concept/claims.ndjson` に対象 SHA、基準 ref、計測時点を含む ForkUpstreamSync claim がある。
+Evidence: pending — fresh upstream baseline に基づく claim を未確認。
 Status: in_progress
-# Milestones — ComfyUI fork（実行用分解）
+依存: 新鮮な upstream baseline。
+次の一手: 既存の許可済み作業で fresh ref が利用できる時に計測し、欠けた入力は unknown と記録する。
 
-Plan-Status: in_progress
+## MS-005: Documentation and implementation alignment
 
-正本: [.concept/charter.yml](../.concept/charter.yml)（目的・非目標・成功指標・マイルストーンの定義）
-長期方針の見直し記録と現在地: [docs/plan/long-term-direction.md](plan/long-term-direction.md)
-現行の実行波（約30分の作業枠とWPカード）: [docs/plan/milestones.md](plan/milestones.md)
-
-本書は charter のマイルストーンを実行可能な単位へ分解した索引であり、定義と正本状態は charter 側にある（charter の `done` / `active` は本書の `achieved` / `in_progress` と同義）。WP カードの実装手順・依存表は `docs/plan/milestones.md` が保持し、本書では重複して保持しない。各項目は charter の同一 ID（MS-001..MS-003）を引き継ぐ。
-
-## 継続更新の回路
-
-- 目標・マイルストーンを変更するときは charter を更新し、本書と `docs/plan/milestones.md` の参照を整合させる。
-- `REPO_METADATA.json` は charter と `docs/plan/milestones.md` の投影であり、原本を変えたら `source_hash`（git blob ID）と `updated_at` を更新する。
-- 受入証拠は commit と run 出力に置く。計画 MD に実行ログを複製しない。
-
-## 直近の一枠（約30分・現在 ready）
-
-- 対象: WP-C2 — `make test` の再観測と MET-001 の記載更新（カード全文は [docs/plan/milestones.md](plan/milestones.md)）
-- 検証可能な行動: `make test` を1回だけ実行し、passed / failed / skipped の集計行と対象 SHA を run 出力へ記録する。0 failed なら charter MET-001 の実測値と観測日をその値へ更新する
-- 完了判定: テスト実行のサマリ行（passed / failed / skipped）と対象 commit SHA が run 出力に残り、charter MET-001 の記載が実測値と一致する
-- 前提: 既存 venv（`make install` 済み）。テストコードは変更しない
-- 戻り先: MS-003 の status 判定（charter exit_criteria 2 項の充足状況）
-- 注記: WP-A1 の隔離実行証拠は `docs/plan/evidence/wp-a1-alembic-chain.md` に記録済み（run `20261107-235007-331852`、報告された着地 commit `0075fd4f`、2026-11-07 観測）。ただし、WP-A1 / WP-A2 の成果が default に着地したかは未確認のため、MS-002 は着地確認まで active のまま据え置く。main での README 実態一致の判定は未取得
-
-## MS-001: Fork infrastructure stability
-
-Outcome: 無人稼働の阻害要因を排除した fork 固有基盤（Makefile 標準ターゲット、Woodpecker gate、GitHub Actions 無効の運用）が維持され、CI gate が PR と main push で機能する
-Acceptance: `make test` が 0 failed（記録: 2026-10-10 1930 passed / 0 failed / 74 skipped）、`.woodpecker.yml` の Ruff + tests-unit 選別が PR と main push で green（出典: charter MS-001 acceptance、MET-001、MET-002）
-Evidence: charter MS-001 status=done と acceptance（make test）。Makefile の install/build/run/start/test/lint ターゲットと `.woodpecker.yml` gate の存在（2026-11-03 観測）。GitHub Actions 無効・Woodpecker 有効の運用記録は AUTOMATION.md Status
-Status: achieved
-依存: なし
-次の一手: 維持のみ（新規の改善は LOOP.md の候補順に従う）。MET-002 の green は Woodpecker 側の実観測でのみ更新する
-
-## MS-002: Asset persistence layer integrity
-
-Outcome: アセット永続化レイヤ（models.py の 6 テーブル、alembic_db 0001..0008、alembic_db/README.md）が実態と一致し、マイグレーション連鎖が隔離環境で実行可能であることが証拠で示される
-Acceptance: 隔離した一時 DB で `alembic upgrade head` が exit 0、`alembic current` が単一 head と一致、README の手順が versions 0001..0008 の実態と一致（CFLT-ASSETPERSIST-001 の解消）、`make test` が 0 failed
-Evidence: `app/assets/database/models.py` に 6 テーブル、`alembic_db/versions` に 0001..0008 の連鎖（2026-11-11 再観測）。WP-A1 の隔離実行証拠は `docs/plan/evidence/wp-a1-alembic-chain.md` に記録済み（run `20261107-235007-331852`、報告された着地 commit `0075fd4f` — `alembic upgrade head` が exit 0、heads/current とも単一 `0008_missing_content_age` に一致、2026-11-07 観測）。main での README 実態一致の判定は未取得。WP-A1 / WP-A2 の成果が default に着地したかは未確認
-Status: in_progress
-依存: なし。WP-A1 の実行記録は取得済み。WP-A2 は README 判定と make test 同一候補証拠に依存し、charter の編集は直列化する
-次の一手: WP-A1 / WP-A2 の成果が default へ着地したかを確認する。未着地なら active を維持し、WP-A2 で README と versions 0001..0008 の実態一致を判定し、同一候補の make test 証拠と合わせて charter MS-002 の status を確定する
-
-## MS-003: Concept synchronization
-
-Outcome: .concept/ の記述が実コード・テスト・追跡構成から乖離せず、autopilot 品質基準（Q1-Q8）を満たす状態が保たれる
-Acceptance: `.concept/*.yml` の yaml parse が成功し、`git ls-files .concept` が charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイルと一致し、非追跡の runtime 12 ファイルが check-ignore される（MET-001 の再観測は WP-C2 で charter へ反映）
-Evidence: 820d2ae4 (#43) で runtime 生成物 12 ファイルの Git 追跡を解除して追跡は 3 ファイルになり、ガードテスト `tests-unit/concept_metadata_tracking_test.py` が追跡/除外を検査する。旧記載だった deliverables「固定 14 ファイル構成」は 2026-11-03 に現構成へ修正した。2026-11-11 再観測: `git ls-files .concept` = 3 ファイル、`.concept/*.yml` の yaml parse 3/3 OK、runtime 12 ファイルすべて check-ignore
-Status: in_progress
-依存: なし。WP-C1 は着地済み（charter MS-003 deliverables を 2026-11-03 に現構成へ修正、eadbeeeb で着地。2026-11-11 確認）。残りは WP-C2。同じ charter を触るため反映は直列化する
-次の一手: WP-C2 を約30分枠で実行 — `make test` を1回だけ走らせ MET-001 の実測（passed/failed/skipped と対象 SHA）を記録し、charter の MET-001 記載を実測値へ更新する
-次の一手: WP-C2 を約30分枠で実行 — `make test` を1回だけ走らせ MET-001 の実測（passed/failed/skipped と対象 SHA）を記録し、charter の MET-001 記載を実測値へ更新する
+Outcome: docs の手順と実装の不一致を具体的な差分単位で解消する。
+Acceptance: 対象手順と実装を照合し、特定した不一致を解消する。今回の計画更新では新しい不一致を調査していない。
+Evidence: pending — 現在の未修正候補は未特定。
+Status: planned
+依存: なし。
+次の一手: LOOP の通常候補選択で具体的な不一致を見つけた時に分解する。

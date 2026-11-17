@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "verified_at": "2026-11-17T10:20:10Z",
+  "verified_at": "2026-11-17T10:47:19Z",
   "long_term": {
-    "summary": "画像生成研究向けに画像・動画・3D・音声を扱うモジュラーなノードグラフ型 ComfyUI fork を、上流へ自動追従せず安定提供する（推定）。成功指標は make test 0 failed と Woodpecker CI green。",
+    "summary": "画像生成研究向けに画像・動画・3D・音声を扱うモジュラーな ComfyUI fork を、上流へ自動追従せず安定提供する。成功指標は make test、CI gate、fork 状態の可視化。",
     "source": ".concept/charter.yml#product_goal",
-    "source_hash": "git-blob:cf755dbe8ff210915be040422aa2f3a7aa8a2532",
-    "updated_at": "2026-11-03"
+    "source_hash": "git-blob:471d10afb3cb12638eb8d6c52f7f127d786ec406",
+    "updated_at": "2026-11-17"
   },
   "short_term": {
-    "summary": "現行実行波S2: WP-S2-1はLOOP runのplan由来作業選択を検証し接続有効と判定、WP-S2-2は現状維持を確定。記録のdefault着地後にplan残課題を確認し、無ければLOOP通常候補へ戻る。",
+    "summary": "最優先はWP-A2でMS-002のREADME・migration・同一候補testを検証し、次にWP-C2でMET-001を再測定する。WP-S2の判断記録はあるがdefault着地未確認。",
     "source": "docs/plan/milestones.md",
-    "source_hash": "git-blob:c31844d8ff5ecfa03cb7a07ade5db5c00fb1aa16",
+    "source_hash": "git-blob:8bc6030356554f38491175429f9ec52710929830",
     "updated_at": "2026-11-17",
     "status": "in_progress"
   }
