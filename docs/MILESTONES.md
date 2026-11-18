@@ -8,6 +8,10 @@ Plan-Status: in_progress
 
 本書は charter MS-001〜MS-005 の実行用分解。定義・優先順位・状態は charter が正本で、WP の手順と依存は実行波に置く。
 
+## 停止時評価 — 2026-11-18
+
+制御平面の `run-5707669ae112` は `failed` / reason `unknown`。関連する ComfyUI run `20261118-173303-344644` の worker 報告は、期限の誤認後に読み取り専用の実行可能性調査を記録し、訂正後も元 mission と記録済み定義の範囲不一致を理由に実行しなかったとしている。独立した制御平面の失敗分類は未確認のため reason は unknown のまま保持する。計画は維持し、既存 milestone の状態・優先順は変更しない。停止した mission は TAS の新 dispatch で再開する。再開後の約30分作業は LOOP 順で候補を一つ選び、指定検証と1 commitを完了すること。詳細な根拠と再開条件は[長期方針の停止時評価](plan/long-term-direction.md#停止時評価--2026-11-18)と[現行実行波の停止時評価](plan/milestones.md#停止時評価--run-5707669ae112)を参照。
+
 ## 直近の一枠（約30分）
 
 - 対象: WP-A2 — `alembic_db/README.md` と migration versions 0001〜0008 の実態を照合し、同一候補の `make test` 結果を確認する。
