@@ -3,3 +3,5 @@
 comfy_api_nodes/apis/__init__.py linguist-generated
 
 /.concept/claims.ndjson merge=union
+docs/llm-wiki/log.md merge=union
+docs/llm-wiki/index.md merge=union
