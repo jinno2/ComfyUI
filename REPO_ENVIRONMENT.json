@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "languages": [
+    {
+      "name": "python",
+      "package_manager": "uv",
+      "markers": [
+        "pyproject.toml",
+        "requirements.txt"
+      ],
+      "version_constraint": ">=3.10"
+    }
+  ],
+  "generated": {
+    "by": "repo-env-scan/v1",
+    "at": "2026-11-21",
+    "evidence": [
+      "mise.toml",
+      "pyproject.toml",
+      "requirements.txt"
+    ]
+  },
+  "toolchain": {
+    "mise": true
+  }
+}
