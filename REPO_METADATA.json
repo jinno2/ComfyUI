@@ -1,21 +1,17 @@
 {
   "schema_version": 1,
-{
-  "schema_version": 1,
-  "verified_at": "2026-11-18T17:46:20Z",
+  "verified_at": "2026-11-21T08:09:24Z",
   "long_term": {
-    "summary": "画像生成研究向けに画像・動画・3D・音声を扱うモジュラーな ComfyUI fork を、上流へ自動追従せず安定提供する。成功指標は make test 0 failed、CI gate green、fork 状態の可視化。",
+    "summary": "画像生成研究向けに画像・動画・3D・音声を扱うモジュラーな ComfyUI fork を、上流へ自動追従せず安定提供する。成功指標は make test、CI gate、fork 状態の可視化。",
     "source": ".concept/charter.yml#product_goal",
-    "source_hash": "git-blob:471d10afb3cb12638eb8d6c52f7f127d786ec406",
+    "source_hash": "git-blob:e5e335b511521cd85e3329e086a7c7a3d32371ce",
     "updated_at": "2026-11-17"
   },
   "short_term": {
     "summary": "停止した bounded-improvement run は期限誤認後、読み取り専用の選択定義が元 mission と合わず未実行。制御平面 reason は unknown。再開は新 dispatch。製品計画の直近は WP-A2。",
     "source": "docs/plan/milestones.md",
-    "source_hash": "git-blob:19a1c636cb97997c09ac0b076f60c081b38975f5",
+    "source_hash": "git-blob:337a8f03511db420cd2092bbefc0be230eae09fc",
     "updated_at": "2026-11-18",
     "status": "in_progress"
-  }
-}
   }
 }
