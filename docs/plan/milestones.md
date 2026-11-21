@@ -1,6 +1,8 @@
 # ComfyUI fork — 現行実行波
 
-目的・状態の正本: [`.concept/charter.yml`](../../.concept/charter.yml)。長期方針: [long-term-direction.md](long-term-direction.md)。実行用分解: [docs/MILESTONES.md](../MILESTONES.md)。この文書は現在の WP とその依存だけを持つ。
+目的・状態の正本: [`.concept/charter.yml`](../../.concept/charter.yml)。長期方針: [long-term-direction.md](long-term-direction.md)。実行用分解: [`../MILESTONES.md`](../MILESTONES.md)。この文書は現在の WP とその依存を持ち、過去の実行波と WP-A1/A2、WP-C1/C2 の定義・ID・証拠要件も記録する。過去の記録は現行状態として再利用しない。
+
+<!-- BEGIN: GENERATED -->
 
 ## 現行状態
 

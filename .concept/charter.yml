@@ -69,15 +69,15 @@ milestones:
 
   - id: "MS-003"
     name: "Concept synchronization"
-    intent: ".concept/ 辞書を実コード・テストと同期させ、autopilot 品質基準（Q1-Q8）を満たし続ける"
+intent: ".concept/ の辞書を実コード・テストと同期し、autopilot 品質基準（Q1-Q8）を満たしながら、追跡対象を永続シード3ファイルに保ち、生成 runtime metadata を追跡対象へ戻さない"
     supports: ["MET-001"]
     deliverables:
-      - "追跡する .concept ファイルは charter.yml / autopilot.yml / ontology_budget.yml の 3 ファイル"
-      - "生成される runtime メタデータ 12 ファイルは Git 追跡から除外し、除外を tests-unit/concept_metadata_tracking_test.py でガードする"
-      - "ontology / invariants / mappings 相当の辞書追加は対応する概念を観測した時点で個別に判断する（常設ファイルを作らない）"
+      - "追跡する永続シード: charter.yml, autopilot.yml, ontology_budget.yml"
+      - "生成される runtime メタデータ12ファイルを Git 追跡から除外し、tests-unit/concept_metadata_tracking_test.py でガードする"
+      - "ontology / invariants / mappings 相当の辞書追加は、対応する概念を観測した時点で個別に判断する（常設ファイルを作らない）"
     acceptance:
       - type: "test"
-        target: "yaml parse of .concept/*.yml"
+        target: "pytest tests-unit/concept_metadata_tracking_test.py -q; git ls-files .concept lists only charter.yml, autopilot.yml, ontology_budget.yml"
     priority: "P2"
     status: "active"
     depends_on: []
