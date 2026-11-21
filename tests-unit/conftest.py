@@ -1,6 +1,10 @@
 import os
 
 import pytest
+from comfy.cli_args import args
+
+if os.environ.get("COMFY_TEST_CPU") == "1":
+    args.cpu = True
 
 import comfy.memory_management
 

@@ -133,7 +133,7 @@ async def test_hash_only_multipart_upload_off_mode_returns_400(monkeypatch):
 def server_hashing_enabled(request: pytest.FixtureRequest) -> bool:
     markexpr = request.config.getoption("markexpr") or ""
     return bool(
-        request.config.getoption("--enable-asset-hashing")
+        request.config.getoption("--enable-asset-hashing", default=False)
         or "hashing_on" in markexpr
         or any(item.get_closest_marker("hashing_on") for item in request.session.items)
     )

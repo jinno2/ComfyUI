@@ -1,17 +1,21 @@
 {
   "schema_version": 1,
-  "verified_at": "2026-10-24T14:32:28Z",
+{
+  "schema_version": 1,
+  "verified_at": "2026-11-18T17:46:20Z",
   "long_term": {
-    "summary": "charterの推定目的に沿い、forkを安定提供する。受入対象はmake test 0 failedとWoodpecker gate green。MS-001は記録済み、MS-002/003は証拠確認待ち。",
-    "source": ".concept/charter.yml",
-    "source_hash": "git-blob:e4c9dd7536fcfb5cb34e72fe72d67c9cf10aa2f9",
-    "updated_at": "2026-10-24"
+    "summary": "画像生成研究向けに画像・動画・3D・音声を扱うモジュラーな ComfyUI fork を、上流へ自動追従せず安定提供する。成功指標は make test 0 failed、CI gate green、fork 状態の可視化。",
+    "source": ".concept/charter.yml#product_goal",
+    "source_hash": "git-blob:471d10afb3cb12638eb8d6c52f7f127d786ec406",
+    "updated_at": "2026-11-17"
   },
   "short_term": {
-    "summary": "MS-002の隔離DBでmigration連鎖を確認し、exit codeとcurrent headを記録する。",
-    "source": "docs/MILESTONES.md",
-    "source_hash": "git-blob:89a64f48b3f21330a4d2b3bca2ebe95233c53c04",
-    "updated_at": "2026-10-24",
-    "status": "not_started"
+    "summary": "停止した bounded-improvement run は期限誤認後、読み取り専用の選択定義が元 mission と合わず未実行。制御平面 reason は unknown。再開は新 dispatch。製品計画の直近は WP-A2。",
+    "source": "docs/plan/milestones.md",
+    "source_hash": "git-blob:19a1c636cb97997c09ac0b076f60c081b38975f5",
+    "updated_at": "2026-11-18",
+    "status": "in_progress"
+  }
+}
   }
 }

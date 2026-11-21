@@ -11,6 +11,7 @@ clone:
       fetch-target-branch: true
 labels:
   platform: linux/amd64
+  comfy_cache: "true"
 steps:
   - name: lint
     image: python:3.12-slim
@@ -18,20 +19,34 @@ steps:
       - python -m pip install ruff
       - ruff check .
   - name: unit-tests
-    image: python:3.12-slim
+    image: ghcr.io/astral-sh/uv@sha256:e5b65587bce7de595f299855d7385fe7fca39b8a74baa261ba1b7147afa78e58
+    environment:
+      COMFY_TEST_CPU: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
     commands:
       - apt-get update && apt-get install -y --no-install-recommends git
-      - pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-      - pip install -r requirements.txt
-      - pip install -r tests-unit/requirements.txt
+      - if [ -d /opt/comfyui-ci-cache ]; then mkdir -p /root/.cache/uv && cp -a /opt/comfyui-ci-cache/. /root/.cache/uv/; fi
+      - uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+      - uv pip install --system -r requirements.txt
+      - uv pip install --system -r tests-unit/requirements.txt pytest-xdist
       - |
+        if [ "$CI_PIPELINE_EVENT" = manual ]; then
+          set -- tests-unit
+        else
+          set -- tests-unit/security_test tests-unit/execution_test \
+            tests-unit/comfy_test/folder_path_test.py \
+            tests-unit/comfy_test/model_detection_test.py \
+            tests-unit/feature_flags_test.py
+        fi
         status=0
-        python -u -X faulthandler -m pytest tests-unit -q --maxfail=1 --tb=short > /tmp/pytest.log 2>&1 || status=$?
+        python -u -X faulthandler -m pytest "$@" -n 2 --dist loadfile --maxfail=1 --tb=short > /tmp/pytest.log 2>&1 || status=$?
         echo "pytest exit status: $status"
         if [ "$status" -ne 0 ]; then
           tail -n 100 /tmp/pytest.log
         else
-          grep -E "^pytest serial runtime: " /tmp/pytest.log || true
+          grep -E "^[0-9]+ workers \[[0-9]+ items\]" /tmp/pytest.log || true
           tail -n 1 /tmp/pytest.log
         fi
         exit "$status"

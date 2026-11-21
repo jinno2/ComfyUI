@@ -1,0 +1,48 @@
+mappings:
+  ComfyUI:
+    code_symbols:
+      - "main.py"
+      - "server.py"
+      - "execution.py"
+  ImprovementLoop:
+    code_symbols:
+      - "LOOP.md"
+      - "PURPOSE.md"
+  UnitTestGate:
+    code_symbols:
+      - "Makefile::test"
+      - "tests-unit/"
+  MinimalChange:
+    code_symbols:
+      - "AGENTS.md#Engineering Style"
+  ForkUpstreamSync:
+    code_symbols:
+      - "docs/llm-wiki/index.md"
+      - "docs/CODEBASE_ANALYSIS.md"
+  Node:
+    code_symbols:
+      - "nodes.py::NODE_CLASS_MAPPINGS"
+      - "comfy_extras/"
+  Server:
+    code_symbols:
+      - "server.py::class PromptServer"
+  ExecutionEngine:
+    code_symbols:
+      - "execution.py::class PromptExecutor"
+      - "comfy_execution/"
+  ModelManagement:
+    code_symbols:
+      - "comfy/model_management.py"
+      - "comfy/model_patcher.py::class ModelPatcher"
+  SamplingLayer:
+    code_symbols:
+      - "comfy/samplers.py::class KSAMPLER"
+      - "comfy/samplers.py::class CFGGuider"
+  AssetService:
+    code_symbols:
+      - "app/assets/api/routes.py::register_assets_routes"
+      - "app/assets/manager.py"
+  ExternalAPINodes:
+    code_symbols:
+      - "comfy_api_nodes/util/client.py::class ApiEndpoint"
+      - "comfy_api_nodes/nodes_bfl.py"
