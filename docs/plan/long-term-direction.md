@@ -1,6 +1,6 @@
 # ComfyUI fork — 長期方針
 
-再確認: 2026-11-17（基準: `origin/main` @ `f3fbf32f`）。目的・成功指標・非目標とマイルストーン状態の正本は [`.concept/charter.yml`](../../.concept/charter.yml)。本書は現状との差、優先順、到達段階を示す。実行可能な受入条件と次の一手は [`../MILESTONES.md`](../MILESTONES.md) を参照し、詳細を重複して管理しない。
+再確認: 2026-11-23（基準: `origin/main` @ `128be722`）。目的・成功指標・非目標とマイルストーン状態の正本は [`.concept/charter.yml`](../../.concept/charter.yml)。本書は現状との差、優先順、到達段階を示す。実行可能な受入条件と次の一手は [`../MILESTONES.md`](../MILESTONES.md) を参照し、詳細を重複して管理しない。
 
 ## 目的と境界
 
@@ -32,6 +32,15 @@ MS-001〜MS-005 の定義と状態は charter、実行可能な AC と次の一�
 - したがって最も具体的な確認結果は、期限の誤認に続く選択タスクの範囲不一致であり、ComfyUI のコード、CI、または実行資源の障害を示す証拠はない。ただし、制御平面の失敗理由を独立して裏付ける outcome 詳細は確認できていないため、制御平面上の reason は `unknown` のまま扱う。
 - 目的・既存 milestone は変更せず計画を維持する。未解決依存は、制御平面に独立した失敗分類がないことと、元 mission が未実行であること。停止解除や runtime 再起動は本リポジトリの権限外。
 - 再開条件: TAS が既存経路で元の bounded-improvement mission を新しい dispatch として発行し、deadline を UTC で確認したうえで、記録する選択タスクを元 mission の候補選定・1件実行・検証・commit の範囲に一致させる。次の約30分作業はその新 dispatch で LOOP の候補順を確認して最初の適格候補を一つ完了すること。受入条件は当該候補の指定検証が成功し、変更が1 commitにまとまり、push/deployを行わないこと。現在の製品計画の直近 WP-A2 はこの再開を理由に変更しない。
+
+## 停止時評価 — 2026-11-23
+
+- 観測: 制御平面の停止観測は前回評価済みの `run-5707669ae112` / `prod-conservative` / `failed` / reason `unknown` のまま（[2026-11-18 評価](#停止時評価--2026-11-18)参照。新たな構造化 outcome は得られていない）。それ以降の実績では、2026-11-21T08:06Z と 2026-11-22T18:27Z の care run が正常完了し、2026-11-22T19:38Z の bug-fix run `20261122-193842-311751` は worker が定義タスクを完了して run branch に commit `9b073fbc`（`docs/plan/evidence/20261123-pr66-outcome-check-registration.md` 新規 + `docs/llm-wiki/relations.md` 観察追記）を残したが、着地が merge 前に blocked（evaluation-or-landing-failed）となり、成果は保存済み worktree `/home/jinno/ComfyUI-aihub-20261122-193842-311751` にとどまっている。
+- 原因: 当該 run の検証済み調査（着地済みの PR #63 調査と同一の外部依存）では、`tas_autopilot/control_plane/post_dispatch.py`（sha256 `e5c66eec…`）の `_REQUIRED_CHECK_CONTEXTS` / `_REQUIRED_CHECK_RUNS` / `_REQUIRED_CHECK_CONTEXT_PRODUCERS` に `jinno2/ComfyUI` が未登録で、`_repo_expects_pr_checks` は `.woodpecker.yml` の存在だけで True（fail-closed）を返すため、green CI の PR を含む全 ComfyUI PR で auto-merge が block される。PR #66（head `7ee1116e`、CI SUCCESS）は owner が 2026-11-22T19:22:54Z に手動 merge し、PR #63 は同理由で未だ OPEN。
+- repo 内に残る欠陥は確認されていない: `.concept/charter.yml` の YAML parse は 2026-11-22T19:38Z run で exit 0 を再確認（2026-11-21 評価時の malformed 指摘は #64/#65 で修復済み）。make test / CI の失敗は観測されていない。
+- 未解決依存: (1) tas_autopilot 側の slug 登録修正（repo 外。`docs/llm-wiki/relations.md` の follow-up として記録済み）、(2) commit `9b073fbc` の未着地（重複して再作成せず、既存 TAS landing 経路で着地を待つ）。
+- 判定: 計画を維持する。停止原因は着地レーンの外部設定欠落であり、目的・milestone・優先順（MS-001 achieved 維持、次の一枠は MS-002 WP-A2）は変更しない。
+- 再開条件: tas_autopilot への `jinno2/ComfyUI` 登録完了後、TAS が既存経路で dispatch を継続し、着地 blocked が再発しないこと。次の約30分作業は WP-A2 のまま変更しない。停止解除・mode 変更・host 割当は本リポジトリの権限外。
 
 ## 更新規則
 

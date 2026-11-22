@@ -8,9 +8,9 @@ Plan-Status: in_progress
 
 本書は charter MS-001〜MS-005 の実行用分解。定義・優先順位・状態は charter が正本で、WP の手順と依存は実行波に置く。`achieved` は受入条件に対する記録済み証拠を示す。未確認の実行や最新 CI は pending のままにする。
 
-## 停止時評価 — 2026-11-18
+## 停止時評価 — 2026-11-23
 
-制御平面の `run-5707669ae112` は `failed` / reason `unknown`。関連する ComfyUI run `20261118-173303-344644` の worker 報告は、期限の誤認後に読み取り専用の実行可能性調査を記録し、訂正後も元 mission と記録済み定義の範囲不一致を理由に実行しなかったとしている。独立した制御平面の失敗分類は未確認のため reason は unknown のまま保持する。計画は維持し、既存 milestone の状態・優先順は変更しない。停止した mission は TAS の新 dispatch で再開する。再開後の約30分作業は LOOP 順で候補を一つ選び、指定検証と1 commitを完了すること。詳細な根拠と再開条件は[長期方針の停止時評価](plan/long-term-direction.md#停止時評価--2026-11-18)と[現行実行波の停止時評価](plan/milestones.md#停止時評価--run-5707669ae112)を参照。
+制御平面の停止観測は前回評価済みの `run-5707669ae112`（`failed` / reason `unknown`、2026-11-18 評価）のまま。最新の失敗は 2026-11-22T19:38Z の bug-fix run `20261122-193842-311751` で、worker は定義タスクを完了し commit `9b073fbc` を run branch に残したが、着地が merge 前に blocked（evaluation-or-landing-failed）となり、成果は保存済み worktree にとどまる。原因は repo 外: tas_autopilot `post_dispatch.py` の `_REQUIRED_CHECK_*` テーブルに `jinno2/ComfyUI` が未登録で、`.woodpecker.yml` の存在だけで fail-closed に全 PR の auto-merge が block される（green CI の PR #66 も owner 手動 merge、PR #63 は OPEN）。repo 内に残る欠陥は確認されていない（charter parse exit 0）。計画は維持し、milestone の状態・優先順・次の一枠（WP-A2）は変更しない。未解決依存は tas_autopilot 側の登録修正と commit `9b073fbc` の着地（既存 TAS 経路で処理、本 run では再作成しない）。再開条件は登録完了後に着地 blocked が再発しないこと。詳細な根拠と再開条件は[長期方針の停止時評価](plan/long-term-direction.md#停止時評価--2026-11-23)と[現行実行波の停止時評価](plan/milestones.md#停止時評価--2026-11-23run-20261122-193842-311751-landing-block)を参照。
 
 ## 直近の一枠（約30分）
 
