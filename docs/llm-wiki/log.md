@@ -240,3 +240,22 @@ stdout のみで全 criteria unverified・評価 40 となった。本 recovery 
 
 - **Verification**: `VERIFY_PLANNING` が `planning structure verified; semantic acceptance remains separate` で exit 0、`repository_metadata_format.py check` / `check-index` が success。観測事実: `git ls-files .concept` = 3 ファイル、`.concept/*.yml` の yaml parse 3/3 OK、runtime 12 ファイルの check-ignore 12/12、`alembic_db/versions` に 0001..0008、main の `alembic_db/README.md` は 4 行。
 - 未了: MET-001 の再観測（WP-C2）は未実行。MS-002 の受入証拠は未着地のままで、default 着地までは active。charter の status は変更していない。
+
+## 2026-11-23 — PR #63 auto_merge_blocked の原因は tas_autopilot 側チェック登録漏れ
+
+inbox-care 調査（run 20261122-175820-206928）で PR #63 の「failed CI」通報を検証した。
+PR の CI は実際には green（`ci/woodpecker/pr/woodpecker` SUCCESS、head
+f7139216 一致、producer tas-bot）。`auto_merge_blocked` は tas_autopilot
+`post_dispatch.py` が origin slug `jinno2/ComfyUI` を required-check 登録テーブルに
+持たず、未登録リポの PR CI を failed 扱いにするため（PR が `.woodpecker.yml` を
+base→head で変更しているため CI 期待判定も真）。登録は repo 外のため
+`docs/llm-wiki/relations.md` の tas_autopilot 節に follow-up を記録し、証拠
+（gh 出力・出典 excerpt・sha256）は
+`docs/plan/evidence/20261123-pr63-outcome-check-registration.md` に永続化した。
+あわせて MS-003 `intent:` 行のインデクト欠落で不通だった `.concept/charter.yml`
+を修復（yaml parse exit 0）。
+
+- **Verification**: `gh pr view 63` rollup SUCCESS / `gh api .../status` combined
+  success（GraphQL creator=tas-bot）/ `git diff --stat base head -- .woodpecker.yml`
+  = 5 insertions, 21 deletions / `yaml.safe_load('.concept/charter.yml')` exit 0。
+- 境界: tas_autopilot の登録テーブル修正は本リポの書込範囲外（follow-up 参照）。

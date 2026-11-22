@@ -69,7 +69,7 @@ milestones:
 
   - id: "MS-003"
     name: "Concept synchronization"
-intent: ".concept/ の辞書を実コード・テストと同期し、autopilot 品質基準（Q1-Q8）を満たしながら、追跡対象を永続シード3ファイルに保ち、生成 runtime metadata を追跡対象へ戻さない"
+    intent: ".concept/ の辞書を実コード・テストと同期し、autopilot 品質基準（Q1-Q8）を満たしながら、追跡対象を永続シード3ファイルに保ち、生成 runtime metadata を追跡対象へ戻さない"
     supports: ["MET-001"]
     deliverables:
       - "追跡する永続シード: charter.yml, autopilot.yml, ontology_budget.yml"
