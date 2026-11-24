@@ -20,6 +20,14 @@
 - 計画: 既存の MS-001〜MS-005 と優先順を維持する。現在の次項目は WP-A2。停止した bounded-improvement mission の再開は TAS が新しい dispatch を発行するまで待つ。
 - 再開条件・次の一手（約30分）: 新 dispatch で UTC deadline と元 mission を照合し、LOOP の優先順から候補を一つ選び、その候補の指定検証と1 commitまで完了する。選択タスク定義を元 mission の範囲に合わせ、push/deploy は行わない。制御平面の停止理由は、構造化 outcome が得られた時だけ更新する。
 
+## 停止時評価 — 2026-11-23（run 20261122-193842-311751 landing block）
+
+- 観測: 制御平面の停止観測は前回評価済みの `run-5707669ae112`（上記）のまま。最新の失敗は 2026-11-22T19:38Z の bug-fix run `20261122-193842-311751` で、worker は定義タスク（PR #66 auto-merge block の root-cause 証拠作成）を完了し、run branch に commit `9b073fbc`（`docs/plan/evidence/20261123-pr66-outcome-check-registration.md` + `docs/llm-wiki/relations.md` 観察）を残したが、着地が merge 前に blocked（evaluation-or-landing-failed）。成果は保存済み worktree にあり、default（main @ `128be722`）には未着地。
+- 判定: 原因は repo 外。tas_autopilot `post_dispatch.py`（sha256 `e5c66eec…`）の `_REQUIRED_CHECK_*` テーブルに `jinno2/ComfyUI` が未登録で、`_repo_expects_pr_checks` が `.woodpecker.yml` 存在だけで fail-closed に True を返すため、green CI を含む全 PR の auto-merge が block される。PR #66 は owner 手動 merge、PR #63 は OPEN のまま。repo 内に残る欠陥なし（charter parse exit 0）。
+- 計画: 維持。MS-001〜MS-005 の状態・優先順・次の一枠（WP-A2）は変更しない。
+- 未解決依存: (1) tas_autopilot 側の登録修正（外部 follow-up、`docs/llm-wiki/relations.md` に記録済み）、(2) commit `9b073fbc` の着地 — 本 run では再作成・再適用せず既存 TAS landing 経路で処理する。
+- 再開条件: 登録完了後に TAS が既存経路で dispatch を継続し、着地 blocked が再発しないこと。次の約30分作業は WP-A2 のまま。
+
 ## 次の一枠 — WP-A2（約30分）
 
 - 目的: CFLT-ASSETPERSIST-001 の main 上の状態を確認し、MS-002 を証拠に基づいて確定する。

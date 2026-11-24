@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "verified_at": "2026-11-22T18:30:09Z",
+  "verified_at": "2026-11-22T23:41:40Z",
   "long_term": {
     "summary": "画像生成研究向けに画像・動画・3D・音声を扱うモジュラーな ComfyUI fork を、上流へ自動追従せず安定提供する。成功指標は make test、CI gate、fork 状態の可視化。",
     "source": ".concept/charter.yml#product_goal",
@@ -8,10 +8,10 @@
     "updated_at": "2026-11-17"
   },
   "short_term": {
-    "summary": "停止した bounded-improvement run は期限誤認後、読み取り専用の選択定義が元 mission と合わず未実行。制御平面 reason は unknown。再開は新 dispatch。製品計画の直近は WP-A2。",
+    "summary": "着地レーンが repo 外の tas_autopilot 未登録 (jinno2/ComfyUI) により全 PR auto-merge block。2026-11-22 run 20261122-193842-311751 は commit 9b073fbc まで完了したが merge 前に blocked。計画は維持、次は WP-A2。",
     "source": "docs/plan/milestones.md",
-    "source_hash": "git-blob:337a8f03511db420cd2092bbefc0be230eae09fc",
-    "updated_at": "2026-11-18",
+    "source_hash": "git-blob:2c48eabfbce680a9c4bf654b965693107a3ac614",
+    "updated_at": "2026-11-23",
     "status": "in_progress"
   }
 }
