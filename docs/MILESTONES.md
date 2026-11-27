@@ -8,9 +8,9 @@ Plan-Status: in_progress
 
 本書は charter MS-001〜MS-005 の実行用分解。定義・優先順位・状態は charter が正本で、WP の手順と依存は実行波に置く。`achieved` は受入条件に対する記録済み証拠を示す。未確認の実行や最新 CI は pending のままにする。
 
-## 停止時評価 — 2026-11-23
+## 停止時評価 — 2026-11-27
 
-制御平面の停止観測は前回評価済みの `run-5707669ae112`（`failed` / reason `unknown`、2026-11-18 評価）のまま。最新の失敗は 2026-11-22T19:38Z の bug-fix run `20261122-193842-311751` で、worker は定義タスクを完了し commit `9b073fbc` を run branch に残したが、着地が merge 前に blocked（evaluation-or-landing-failed）となり、成果は保存済み worktree にとどまる。原因は repo 外: tas_autopilot `post_dispatch.py` の `_REQUIRED_CHECK_*` テーブルに `jinno2/ComfyUI` が未登録で、`.woodpecker.yml` の存在だけで fail-closed に全 PR の auto-merge が block される（green CI の PR #66 も owner 手動 merge、PR #63 は OPEN）。repo 内に残る欠陥は確認されていない（charter parse exit 0）。計画は維持し、milestone の状態・優先順・次の一枠（WP-A2）は変更しない。未解決依存は tas_autopilot 側の登録修正と commit `9b073fbc` の着地（既存 TAS 経路で処理、本 run では再作成しない）。再開条件は登録完了後に着地 blocked が再発しないこと。詳細な根拠と再開条件は[長期方針の停止時評価](plan/long-term-direction.md#停止時評価--2026-11-23)と[現行実行波の停止時評価](plan/milestones.md#停止時評価--2026-11-23run-20261122-193842-311751-landing-block)を参照。
+制御平面の停止観測は前回評価済みの `run-5707669ae112`（`failed` / reason `unknown`、2026-11-18 評価）のまま変化なし。2026-11-23 の停止時評価は PR #67 として 2026-11-24T04:10:24Z に着地済み（main `f5536936`）。最新の失敗は 2026-11-24T09:38Z の bug-fix run `20261124-093848-120294` で、worker は `[push_denied]` 403（`denied to nobu007`）の root-cause 調査を完了し commit `48a929c2` を保存済み worktree に残したが、着地が merge 前に blocked（evaluation-or-landing-failed）。停止原因はすべて repo 外: 403 はホスト GitHub 資格層（グローバル `insteadOf` 資格埋め込み + 自動化アカウント資格の注入）で `setup` commit `65a2fae` により是正済み、着地 blocked の構造原因は tas_autopilot `_REQUIRED_CHECK_*` テーブルへの `jinno2/ComfyUI` 未登録による全 PR auto-merge block。repo 内に残る欠陥は確認されていない（charter parse を本評価時に再確認、exit 0）。長期目的と現状の差（MS-002 WP-A2 の main 上の証拠が未取得）に変化はなく、計画は維持、milestone の状態・優先順・次の一枠（WP-A2）は変更しない。未解決依存は tas_autopilot 側の登録修正、commit `48a929c2` と `9b073fbc` の着地（いずれも既存 TAS 経路で処理、本 run では再作成しない）。再開条件は登録完了後に着地 blocked が再発しないこと。詳細な根拠と再開条件は[長期方針の停止時評価](plan/long-term-direction.md#停止時評価--2026-11-27)と[現行実行波の停止時評価](plan/milestones.md#停止時評価--2026-11-27)を参照。
 
 ## 直近の一枠（約30分）
 
