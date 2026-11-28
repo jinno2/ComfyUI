@@ -1,6 +1,6 @@
 # ComfyUI fork — 長期方針
 
-再確認: 2026-11-23（基準: `origin/main` @ `128be722`）。目的・成功指標・非目標とマイルストーン状態の正本は [`.concept/charter.yml`](../../.concept/charter.yml)。本書は現状との差、優先順、到達段階を示す。実行可能な受入条件と次の一手は [`../MILESTONES.md`](../MILESTONES.md) を参照し、詳細を重複して管理しない。
+再確認: 2026-11-27（基準: `origin/main` @ `f5536936`）。目的・成功指標・非目標とマイルストーン状態の正本は [`.concept/charter.yml`](../../.concept/charter.yml)。本書は現状との差、優先順、到達段階を示す。実行可能な受入条件と次の一手は [`../MILESTONES.md`](../MILESTONES.md) を参照し、詳細を重複して管理しない。
 
 ## 目的と境界
 
@@ -41,6 +41,25 @@ MS-001〜MS-005 の定義と状態は charter、実行可能な AC と次の一�
 - 未解決依存: (1) tas_autopilot 側の slug 登録修正（repo 外。`docs/llm-wiki/relations.md` の follow-up として記録済み）、(2) commit `9b073fbc` の未着地（重複して再作成せず、既存 TAS landing 経路で着地を待つ）。
 - 判定: 計画を維持する。停止原因は着地レーンの外部設定欠落であり、目的・milestone・優先順（MS-001 achieved 維持、次の一枠は MS-002 WP-A2）は変更しない。
 - 再開条件: tas_autopilot への `jinno2/ComfyUI` 登録完了後、TAS が既存経路で dispatch を継続し、着地 blocked が再発しないこと。次の約30分作業は WP-A2 のまま変更しない。停止解除・mode 変更・host 割当は本リポジトリの権限外。
+
+## 停止時評価 — 2026-11-27
+
+- 観測: 制御平面の停止観測は前回評価済みの `run-5707669ae112` / `prod-conservative` / `failed` / reason `unknown` のまま（新たな構造化 outcome なし）。それ以降の実績では、2026-11-23 の 3 bug-fix run（02:06Z / 10:44Z / 19:46Z、いずれも files_changed=0、final stage evaluation or landing failed）を経て、2026-11-23 の停止時評価は PR #67（head `5cb22df6`）として 2026-11-24T04:10:24Z に main へ着地済み（現 HEAD `f5536936`）。最新の失敗は 2026-11-24T09:38Z の bug-fix run `20261124-093848-120294` で、worker は慢性失敗 `[push_denied]` 403（`Permission to jinno2/ComfyUI.git denied to nobu007`）の root-cause 調査を完了し、commit `48a929c2`（`docs/plan/evidence/20261124-push-denied-403-root-cause.md` 新規 + `docs/llm-wiki/log.md` 記録）を保存済み worktree `/home/jinno/ComfyUI-aihub-20261124-093848-120294` に残したが、着地が merge 前に blocked（evaluation-or-landing-failed）。
+- 原因: 403 push_denied は repo 外のホスト GitHub 資格層の欠陥（資格を URL に埋め込むグローバル `url.<base>.insteadOf` 書換えが残留し、push 権限のない自動化アカウント `nobu007` の資格が提示された）。是正は repo 外の `setup` commit `65a2fae`（insteadOf ガード + `~/.git-credentials` の `gh auth token` 日次同期）で実施済み。着地 blocked の残る構造原因は変わらず tas_autopilot `post_dispatch.py` の `_REQUIRED_CHECK_*` テーブルへの `jinno2/ComfyUI` 未登録による全 PR auto-merge block（[2026-11-23 評価](#停止時評価--2026-11-23)参照）。
+- repo 内に残る欠陥は確認されていない: `.concept/charter.yml` の YAML parse を本評価時に再確認（exit 0）。make test / CI の失敗は観測されていない。
+- 長期目的と現状の差: MS-001〜MS-005 の到達度に変化なし（MS-002 WP-A2 の main 上の証拠が未取得のまま）。停止は着地レーンの外部要因であり、計画上の作業内容の欠陥ではない。
+- 未解決依存: (1) tas_autopilot 側の slug 登録修正（repo 外。`docs/llm-wiki/relations.md` の follow-up として記録済み）、(2) commit `48a929c2` の未着地（再作成せず既存 TAS landing 経路で処理）、(3) commit `9b073fbc`（2026-11-22 run 由来）の未着地（同様に既存経路で処理）。
+- 判定: 計画を維持する（改訂也不要、達成でもない）。停止原因はすべて repo 外の着地レーン設定であり、目的・milestone・優先順（MS-001 achieved 維持、次の一枠は MS-002 WP-A2）は変更しない。
+- 再開条件: tas_autopilot への `jinno2/ComfyUI` 登録完了後、TAS が既存経路で dispatch を継続し、着地 blocked が再発しないこと（403 側は setup で是正済みのため、dry-run push が通る状態を維持）。次の約30分作業は WP-A2 のまま。停止解除・mode 変更・host 割当は本リポジトリの権限外。
+
+## 停止時評価 — 2026-11-28
+
+- 観測: 制御平面の停止観測は前回評価済みの `run-5707669ae112` / `prod-conservative` / `failed` / reason `unknown` のまま（新たな構造化 outcome なし）。2026-11-27T14:07Z の care run は正常完了し、その停止時評価 commit `88c457f0` は PR #68 として push 済み（CI green は worker 報告、本評価では再観測していない）だが未 merge。最新の失敗は 2026-11-27T20:15Z の care run `20261127-201502-331895`: worker は定義タスクを完了し commit `0261cdcf`（2026-11-28 停止評価の記録、MS-001 への green PR gate 証拠の反映、`docs/llm-wiki/relations.md` の再検証）を旧 base `f5536936` 上の run branch に残したが、着地の ff-merge が diverging で失敗し、続く base tip `88c457f0` への rebase が `REPO_METADATA.json` / `docs/plan/long-term-direction.md` / `docs/plan/milestones.md` で衝突して失敗した。成果は保存済み worktree `/home/jinno/ComfyUI-aihub-20261127-201502-331895` にある。
+- 原因: 着地の積み上げ構造。PR #68（`88c457f0`）が tas_autopilot `post_dispatch.py` の `_REQUIRED_CHECK_*` テーブルへの `jinno2/ComfyUI` 未登録による auto-merge block で未 merge のため、後続 run が旧 base 上で同じ計画ファイル群を編集し、着地時の rebase で衝突する。根本原因は repo 外の登録欠落で[2026-11-23 評価](#停止時評価--2026-11-23)と同一。repo 内に残る欠陥は確認されていない（charter parse を本評価時に再確認、exit 0）。
+- 長期目的と現状の差: MS-001〜MS-005 の到達度に変化なし（MS-002 WP-A2 の main 上の証拠が未取得のまま）。停止は着地レーンの外部要因であり、計画上の作業内容の欠陥ではない。
+- 未解決依存: (1) tas_autopilot 側の slug 登録修正（repo 外。`docs/llm-wiki/relations.md` の follow-up として記録済み）、(2) PR #68（`88c457f0`）の着地、(3) commit `0261cdcf` の成果の着地（再作成せず既存 TAS landing 経路で処理）、(4) commit `48a929c2` / `9b073fbc` の着地（同様に既存経路）。
+- 判定: 計画を維持する（改訂也不要、達成でもない）。目的・milestone・優先順（MS-001 achieved 維持、次の一枠は MS-002 WP-A2）は変更しない。
+- 再開条件: tas_autopilot への `jinno2/ComfyUI` 登録完了後、TAS が既存経路で dispatch を継続し、着地 blocked が再発しないこと。次の約30分作業は WP-A2 のまま。停止解除・mode 変更・host 割当は本リポジトリの権限外。本 run は前回失敗の再発防止として、base tip `88c457f0` の上で直接作業して着地 rebase 衝突の構造を回避した。
 
 ## 更新規則
 

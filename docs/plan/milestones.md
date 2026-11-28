@@ -28,6 +28,22 @@
 - 未解決依存: (1) tas_autopilot 側の登録修正（外部 follow-up、`docs/llm-wiki/relations.md` に記録済み）、(2) commit `9b073fbc` の着地 — 本 run では再作成・再適用せず既存 TAS landing 経路で処理する。
 - 再開条件: 登録完了後に TAS が既存経路で dispatch を継続し、着地 blocked が再発しないこと。次の約30分作業は WP-A2 のまま。
 
+## 停止時評価 — 2026-11-27
+
+- 観測: 制御平面の停止観測は `run-5707669ae112`（`prod-conservative` / `failed` / reason `unknown`、2026-11-18 評価）のまま変化なし。2026-11-23 の 3 失敗 run を経て前回の停止時評価は PR #67 として 2026-11-24T04:10:24Z に着地（main `f5536936`）。最新の失敗は 2026-11-24T09:38Z run `20261124-093848-120294`: worker は `[push_denied]` 403 root-cause 調査を完了し commit `48a929c2`（evidence `20261124-push-denied-403-root-cause.md`）を保存済み worktree に残したが着地 blocked。
+- 判定: 停止原因は repo 外。403 はホスト GitHub 資格層（`insteadOf` 資格埋め込み + `nobu007` 資格注入）で、`setup` commit `65a2fae` で是正済み。着地 blocked の構造原因は tas_autopilot の `_REQUIRED_CHECK_*` への `jinno2/ComfyUI` 未登録による全 PR auto-merge block（前回評価と同一）。repo 内欠陥なし（charter parse 再確認 exit 0）。
+- 計画: 維持。MS-001〜MS-005 の状態・優先順・次の一枠（WP-A2）は変更しない。
+- 未解決依存: (1) tas_autopilot 側の登録修正（外部 follow-up、`docs/llm-wiki/relations.md` 記録済み）、(2) commit `48a929c2` の着地、(3) commit `9b073fbc` の着地 — いずれも既存 TAS landing 経路で処理し本 run では再作成しない。
+- 再開条件: 登録完了後に着地 blocked が再発しないこと。次の約30分作業は WP-A2 のまま。詳細は[長期方針の 2026-11-27 評価](long-term-direction.md#停止時評価--2026-11-27)を参照。
+
+## 停止時評価 — 2026-11-28
+
+- 観測: 制御平面の停止観測は `run-5707669ae112`（`prod-conservative` / `failed` / reason `unknown`、2026-11-18 評価）のまま変化なし。2026-11-27T14:07Z care run は正常完了し、その評価 commit `88c457f0` は PR #68 として push 済み（CI green は worker 報告、未再観測）だが未 merge。最新の失敗は 2026-11-27T20:15Z run `20261127-201502-331895`: worker は commit `0261cdcf`（2026-11-28 停止評価・MS-001 証拠反映・relations 再検証）を旧 base `f5536936` 上に残したが、着地 ff-merge が diverging、続く base tip `88c457f0` への rebase が `REPO_METADATA.json` / `docs/plan/*` で衝突し失敗。成果は保存済み worktree `/home/jinno/ComfyUI-aihub-20261127-201502-331895` にある。
+- 判定: 停止原因は repo 外。PR #68 が tas_autopilot `_REQUIRED_CHECK_*` 未登録による auto-merge block で未 merge のため、後続 run が旧 base 上で同じ計画ファイルを編集して着地 rebase 衝突する積み上げ構造が直接原因。根本は前回評価と同一の登録欠落。repo 内欠陥なし（charter parse 再確認 exit 0）。
+- 計画: 維持。MS-001〜MS-005 の状態・優先順・次の一枠（WP-A2）は変更しない。
+- 未解決依存: (1) tas_autopilot 側の登録修正（外部 follow-up、`docs/llm-wiki/relations.md` 記録済み）、(2) PR #68（`88c457f0`）の着地、(3) commit `0261cdcf` の成果の着地、(4) commit `48a929c2` / `9b073fbc` の着地 — 再作成せず既存 TAS landing 経路で処理する。
+- 再開条件: 登録完了後に着地 blocked が再発しないこと。次の約30分作業は WP-A2 のまま。本 run は base tip `88c457f0` 上で直接作業して rebase 衝突構造を回避した。詳細は[長期方針の 2026-11-28 評価](long-term-direction.md#停止時評価--2026-11-28)を参照。
+
 ## 次の一枠 — WP-A2（約30分）
 
 - 目的: CFLT-ASSETPERSIST-001 の main 上の状態を確認し、MS-002 を証拠に基づいて確定する。
